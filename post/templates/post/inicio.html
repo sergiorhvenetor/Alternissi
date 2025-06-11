@@ -1,0 +1,224 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Bienvenido a {{ block.super }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h2>¡Bienvenido a Nuestra Tienda!</h2>
+    <p>Descubre productos increíbles a precios fantásticos.</p>
+    <a href="{% url 'tienda:lista_productos' %}" class="btn-primary">Ver todos los productos</a>
+</section>
+
+<section class="productos-destacados">
+    <h2>Productos Destacados</h2>
+    {% if productos_destacados %}
+        <div class="product-grid">
+            {% for producto in productos_destacados %}
+                <div class="product-card">
+                    {% if producto.imagenes.first %}
+                        <a href="{{ producto.get_absolute_url }}">
+                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
+                        </a>
+                    {% else %}
+                        <a href="{{ producto.get_absolute_url }}">
+                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
+                        </a>
+                    {% endif %}
+                    <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
+                    <p class="precio">
+                        {% if producto.tiene_descuento %}
+                            <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                            <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                        {% else %}
+                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                        {% endif %}
+                    </p>
+                    <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No hay productos destacados en este momento.</p>
+    {% endif %}
+</section>
+
+<section class="productos-nuevos">
+    <h2>Últimos Productos</h2>
+    {% if productos_nuevos %}
+        <div class="product-grid">
+            {% for producto in productos_nuevos %}
+                <div class="product-card">
+                    {% if producto.imagenes.first %}
+                         <a href="{{ producto.get_absolute_url }}">
+                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
+                        </a>
+                    {% else %}
+                        <a href="{{ producto.get_absolute_url }}">
+                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
+                        </a>
+                    {% endif %}
+                    <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
+                    <p class="precio">
+                        {% if producto.tiene_descuento %}
+                            <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                            <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                        {% else %}
+                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                        {% endif %}
+                    </p>
+                    <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No hay productos nuevos en este momento.</p>
+    {% endif %}
+</section>
+
+<section class="categorias-principales">
+    <h2>Categorías</h2>
+    {% if categorias %}
+        <ul class="category-list">
+            {% for categoria in categorias %}
+                <li>
+                    <a href="{{ categoria.get_absolute_url }}">
+                        {% if categoria.imagen %}
+                            <img src="{{ categoria.imagen.url }}" alt="{{ categoria.nombre }}" class="category-image">
+                        {% endif %}
+                        <span>{{ categoria.nombre }}</span>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No hay categorías disponibles.</p>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_head %} {# Cambiado de extra_css a extra_head para ser más general, aunque aquí solo hay style #}
+<style>
+    .hero {
+        background-color: #f0f0f0;
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .hero h2 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+    }
+    .hero p {
+        font-size: 1.2em;
+        margin-bottom: 20px;
+    }
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 1.1em;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        padding: 8px 15px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-size: 0.9em;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+    .productos-destacados h2, .productos-nuevos h2, .categorias-principales h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 2em;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        padding: 0 20px;
+    }
+
+    .product-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        background-color: #fff;
+    }
+
+    .product-card img {
+        max-width: 100%;
+        height: 200px; /* Fixed height for consistency */
+        object-fit: cover; /* Scales the image to maintain aspect ratio while filling the element's entire content box */
+        border-radius: 4px;
+        margin-bottom: 10px;
+    }
+
+    .product-card h3 {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+    .product-card h3 a {
+        text-decoration: none;
+        color: #333;
+    }
+    .product-card h3 a:hover {
+        color: #007bff;
+    }
+
+    .precio {
+        font-size: 1.1em;
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+    .precio .precio-original {
+        text-decoration: line-through;
+        color: #dc3545;
+        margin-right: 8px;
+        font-size: 0.9em;
+    }
+    .precio .precio-descuento {
+        font-weight: bold;
+    }
+
+    .category-list {
+        list-style: none;
+        padding: 0 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+    .category-list li a {
+        display: block;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f9f9f9;
+        text-align: center;
+    }
+    .category-list li a:hover {
+        background-color: #e9e9e9;
+        border-color: #ccc;
+    }
+    .category-image {
+        width: 50px; /* Adjust as needed */
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+{% endblock %}

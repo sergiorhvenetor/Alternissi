@@ -1,0 +1,119 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Detalle del Pedido {{ pedido.codigo }} - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .account-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+    .account-grid { display: flex; gap: 30px; }
+    .account-nav { flex: 0 0 220px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; height: fit-content; }
+    .account-nav ul { list-style: none; padding: 0; margin: 0; }
+    .account-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-radius: 4px; margin-bottom: 5px; }
+    .account-nav li a:hover, .account-nav li a.active { background-color: #007bff; color: white; }
+    .account-content { flex: 1; }
+    .account-content h2 { font-size: 1.8em; margin-top: 0; margin-bottom: 20px; }
+    .order-details-card { background-color: #f8f9fa; padding: 25px; border-radius: 8px; text-align: left; margin-bottom: 30px; }
+    .order-details-card h3 { font-size: 1.4em; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;}
+    .order-info p { margin: 8px 0; font-size: 1.0em; }
+    .order-info p strong { min-width: 160px; display: inline-block; }
+    .order-items-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+    .order-items-table th, .order-items-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9em; }
+    .order-items-table th { background-color: #e9ecef; }
+    .order-items-table img { width: 45px; height: 45px; object-fit: cover; border-radius: 3px; margin-right: 8px; }
+    .order-items-table .item-total { font-weight: bold; }
+    .totals-summary { margin-top: 20px; }
+    .totals-summary .summary-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 1.0em; }
+    .totals-summary .summary-row.grand-total { font-weight: bold; font-size: 1.2em; border-top: 2px solid #ddd; margin-top:8px; padding-top:8px;}
+    .shipping-billing-info { margin-top: 20px; display:flex; gap: 20px; }
+    .address-column { flex:1; }
+    .address-column h4 { font-size: 1.1em; margin-bottom: 8px;}
+    .address-column address { font-style: normal; line-height: 1.5; font-size:0.95em; }
+    .action-buttons { margin-top: 30px; }
+    .action-buttons .btn { padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 1.0em; margin-right: 10px; }
+    .btn-secondary { background-color: #6c757d; color: white; }
+    @media (max-width: 768px) {
+        .account-grid { flex-direction: column; }
+        .account-nav { margin-bottom: 20px; flex: 0 0 auto; }
+        .shipping-billing-info { flex-direction:column; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="account-grid">
+        <aside class="account-nav">
+            <ul>
+                <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
+                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}" class="active">Mis Pedidos</a></li>
+                <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
+                <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
+                <li><a href="#">Cerrar Sesión</a></li>
+            </ul>
+        </aside>
+        <main class="account-content">
+            <h2>Detalles del Pedido #{{ pedido.codigo }}</h2>
+            {% if pedido %}
+            <div class="order-details-card">
+                <div class="order-info">
+                    <p><strong>Fecha del Pedido:</strong> {{ pedido.creado|date:"d F Y, H:i" }}</p>
+                    <p><strong>Estado del Pedido:</strong> {{ pedido.get_estado_display }}</p>
+                    <p><strong>Método de Pago:</strong> {{ pedido.get_metodo_pago_display }}</p>
+                    {% if pedido.transaccion_id %}<p><strong>ID de Transacción:</strong> {{ pedido.transaccion_id }}</p>{% endif %}
+                </div>
+                <h3>Artículos Comprados</h3>
+                <table class="order-items-table">
+                    <thead><tr><th colspan="2">Producto</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                        {% for item in pedido.detalles.all %}
+                        <tr>
+                            <td>
+                                {% if item.producto.imagenes.first %}<img src="{{ item.producto.imagenes.first.imagen.url }}" alt="{{ item.producto.nombre }}">
+                                {% else %}<img src="{% static 'post/images/placeholder.png' %}" alt="N/A">{% endif %}
+                            </td>
+                            <td><a href="{{item.producto.get_absolute_url}}">{{ item.producto.nombre }}</a></td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>{{ item.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
+                            <td class="item-total">{{ item.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="totals-summary">
+                    <div class="summary-row"><span>Subtotal:</span><span>{{ pedido.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span></div>
+                    {% if pedido.descuento > 0 %}<div class="summary-row"><span>Descuento {% if pedido.cupon %}({{ pedido.cupon.codigo }}){% endif %}:</span><span>- {{ pedido.descuento|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span></div>{% endif %}
+                    {% if pedido.impuesto > 0 %}<div class="summary-row"><span>Impuestos:</span><span>{{ pedido.impuesto|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span></div>{% endif %}
+                    {% if pedido.envio > 0 %}<div class="summary-row"><span>Costo de Envío:</span><span>{{ pedido.envio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span></div>{% endif %}
+                    <div class="summary-row grand-total"><span>Total Pagado:</span><span>{{ pedido.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span></div>
+                </div>
+                <div class="shipping-billing-info">
+                    <div class="address-column">
+                        <h4>Dirección de Envío</h4>
+                        <address>
+                            {{ pedido.direccion_envio.nombre|default:'' }} {{ pedido.direccion_envio.apellido|default:'' }}<br>
+                            {{ pedido.direccion_envio.direccion1|default:'' }}<br>
+                            {% if pedido.direccion_envio.direccion2 %}{{ pedido.direccion_envio.direccion2 }}<br>{% endif %}
+                            {{ pedido.direccion_envio.ciudad|default:'' }}, {{ pedido.direccion_envio.codigo_postal|default:'' }}<br>
+                            {{ pedido.direccion_envio.pais|default:'' }}<br>
+                            {% if pedido.direccion_envio.telefono %}Tel: {{ pedido.direccion_envio.telefono }}{% endif %}
+                        </address>
+                    </div>
+                    <div class="address-column">
+                        <h4>Dirección de Facturación</h4>
+                         <address>
+                            {{ pedido.direccion_facturacion.nombre|default:'' }} {{ pedido.direccion_facturacion.apellido|default:'' }}<br>
+                            {{ pedido.direccion_facturacion.direccion1|default:'' }}<br>
+                            {% if pedido.direccion_facturacion.direccion2 %}{{ pedido.direccion_facturacion.direccion2 }}<br>{% endif %}
+                            {{ pedido.direccion_facturacion.ciudad|default:'' }}, {{ pedido.direccion_facturacion.codigo_postal|default:'' }}<br>
+                            {{ pedido.direccion_facturacion.pais|default:'' }}
+                        </address>
+                    </div>
+                </div>
+            </div>
+            {% else %}<p>No se pudo cargar la información del pedido.</p>{% endif %}
+            <div class="action-buttons"><a href="{% url 'tienda:lista_pedidos_cliente' %}" class="btn btn-secondary">Volver a Mis Pedidos</a></div>
+        </main>
+    </div>
+</div>
+{% endblock %}

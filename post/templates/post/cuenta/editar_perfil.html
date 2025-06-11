@@ -1,0 +1,114 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Editar Perfil - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .account-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+    .account-grid { display: flex; gap: 30px; }
+    .account-nav { flex: 0 0 220px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; height: fit-content; }
+    .account-nav ul { list-style: none; padding: 0; margin: 0; }
+    .account-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-radius: 4px; margin-bottom: 5px; }
+    .account-nav li a:hover, .account-nav li a.active { background-color: #007bff; color: white; }
+    .account-content { flex: 1; }
+    .account-content h2 { font-size: 1.8em; margin-top: 0; margin-bottom: 20px; }
+    .profile-form { background-color: #f8f9fa; padding: 25px; border-radius: 8px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 0.95em; }
+    .form-group input[type="text"], .form-group input[type="email"], .form-group input[type="tel"],
+    .form-group input[type="date"], .form-group textarea {
+        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;
+    }
+    .form-group textarea { min-height: 100px; }
+    .form-group .helptext { font-size: 0.85em; color: #666; margin-top: 4px; }
+    .form-group ul.errorlist { list-style: none; padding: 0; margin: 5px 0 0 0; color: #dc3545; font-size: 0.9em;}
+    .btn-submit-profile { padding: 12px 25px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; }
+    .btn-submit-profile:hover { background-color: #218838; }
+    @media (max-width: 768px) {
+        .account-grid { flex-direction: column; }
+        .account-nav { margin-bottom: 20px; flex: 0 0 auto; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="account-grid">
+        <aside class="account-nav">
+            <ul>
+                <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
+                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}">Mis Pedidos</a></li>
+                <li><a href="{% url 'tienda:editar_perfil_cliente' %}" class="active">Editar Perfil</a></li>
+                <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
+                <li><a href="#">Cerrar Sesión</a></li>
+            </ul>
+        </aside>
+        <main class="account-content">
+            <h2>Editar Mi Perfil</h2>
+            <form method="post" class="profile-form">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <ul class="errorlist nonfield">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.nombre.id_for_label }}">Nombre:</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.help_text %}<small class="helptext">{{ form.nombre.help_text }}</small>{% endif %}
+                    {% if form.nombre.errors %}<ul class="errorlist">{% for error in form.nombre.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.apellido.id_for_label }}">Apellido:</label>
+                    {{ form.apellido }}
+                    {% if form.apellido.help_text %}<small class="helptext">{{ form.apellido.help_text }}</small>{% endif %}
+                    {% if form.apellido.errors %}<ul class="errorlist">{% for error in form.apellido.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email:</label>
+                    {{ form.email }}
+                     <small class="helptext">Tu email de inicio de sesión es: {{ request.user.email }}. Este email es para contacto y perfil.</small>
+                    {% if form.email.errors %}<ul class="errorlist">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.telefono.id_for_label }}">Teléfono:</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.help_text %}<small class="helptext">{{ form.telefono.help_text }}</small>{% endif %}
+                    {% if form.telefono.errors %}<ul class="errorlist">{% for error in form.telefono.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.direccion.id_for_label }}">Dirección:</label>
+                    {{ form.direccion }}
+                    {% if form.direccion.help_text %}<small class="helptext">{{ form.direccion.help_text }}</small>{% endif %}
+                    {% if form.direccion.errors %}<ul class="errorlist">{% for error in form.direccion.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.ciudad.id_for_label }}">Ciudad:</label>
+                    {{ form.ciudad }}
+                    {% if form.ciudad.help_text %}<small class="helptext">{{ form.ciudad.help_text }}</small>{% endif %}
+                    {% if form.ciudad.errors %}<ul class="errorlist">{% for error in form.ciudad.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.codigo_postal.id_for_label }}">Código Postal:</label>
+                    {{ form.codigo_postal }}
+                    {% if form.codigo_postal.help_text %}<small class="helptext">{{ form.codigo_postal.help_text }}</small>{% endif %}
+                    {% if form.codigo_postal.errors %}<ul class="errorlist">{% for error in form.codigo_postal.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.pais.id_for_label }}">País:</label>
+                    {{ form.pais }}
+                    {% if form.pais.help_text %}<small class="helptext">{{ form.pais.help_text }}</small>{% endif %}
+                    {% if form.pais.errors %}<ul class="errorlist">{% for error in form.pais.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                 <div class="form-group">
+                    <label for="{{ form.fecha_nacimiento.id_for_label }}">Fecha de Nacimiento (opcional):</label>
+                    {{ form.fecha_nacimiento }}
+                    {% if form.fecha_nacimiento.help_text %}<small class="helptext">{{ form.fecha_nacimiento.help_text }}</small>{% endif %}
+                    {% if form.fecha_nacimiento.errors %}<ul class="errorlist">{% for error in form.fecha_nacimiento.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <button type="submit" class="btn-submit-profile">Guardar Cambios</button>
+            </form>
+        </main>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .product-detail-container { display: flex; gap: 30px; padding: 20px; max-width: 1200px; margin: auto; }
+    .product-gallery { flex: 1; max-width: 500px; }
+    .main-image img { width: 100%; max-height: 500px; object-fit: cover; border: 1px solid #ddd; border-radius: 5px; }
+    .thumbnail-images { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; }
+    .thumbnail-images img { width: 80px; height: 80px; object-fit: cover; border: 1px solid #ddd; border-radius: 3px; cursor: pointer; }
+    .thumbnail-images img.active, .thumbnail-images img:hover { border-color: #007bff; }
+    .product-info { flex: 1.5; }
+    .product-info h1 { font-size: 2.2em; margin-top: 0; margin-bottom: 10px; }
+    .product-meta { font-size: 0.9em; color: #555; margin-bottom: 15px; }
+    .product-meta a { color: #007bff; text-decoration: none; }
+    .product-meta a:hover { text-decoration: underline; }
+    .product-price .precio { font-size: 1.8em; margin-bottom: 20px; }
+    .product-description, .product-features { margin-bottom: 20px; line-height: 1.6; }
+    .product-features ul { padding-left: 20px; list-style: disc; }
+    .add-to-cart-form label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .add-to-cart-form input[type="number"] { width: 70px; padding: 8px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
+    .btn-add-to-cart { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; }
+    .btn-add-to-cart:hover { background-color: #218838; }
+    .reviews-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
+    .reviews-section h2 { font-size: 1.8em; margin-bottom: 20px; }
+    .review { border-bottom: 1px solid #f0f0f0; padding: 15px 0; }
+    .review:last-child { border-bottom: none; }
+    .review strong { font-size: 1.1em; }
+    .review .rating { color: #ffc107; margin-bottom: 5px; }
+    .review p { margin: 5px 0 0 0; }
+    .review-date { font-size: 0.85em; color: #777; margin-top: 5px; }
+    .no-reviews { color: #777; }
+    .add-review-link { display: inline-block; margin-top: 15px; padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    .add-review-link:hover { background-color: #0056b3; }
+    .badge-descuento { background-color: #ffc107; color: #333; padding: 3px 6px; font-size: 0.8em; border-radius: 4px; margin-left: 5px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="product-detail-container">
+    <section class="product-gallery">
+        <div class="main-image">
+            {% if producto.imagenes.first %}
+                <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}" id="mainProductImage">
+            {% else %}
+                <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible" id="mainProductImage">
+            {% endif %}
+        </div>
+        {% if producto.imagenes.all|length > 1 %}
+            <div class="thumbnail-images">
+                {% for imagen_obj in producto.imagenes.all %}
+                    <img src="{{ imagen_obj.imagen.url }}" alt="{{ imagen_obj.alt_text|default:producto.nombre }}"
+                         onclick="document.getElementById('mainProductImage').src='{{ imagen_obj.imagen.url }}'; setActiveThumbnail(this);"
+                         class="{% if imagen_obj.principal or (forloop.first and not producto.imagenes.all.filter.principal) %}active{% endif %}">
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="product-info">
+        <h1>{{ producto.nombre }}</h1>
+
+        <div class="product-meta">
+            {% if producto.categoria %}
+                <span>Categoría: <a href="{{ producto.categoria.get_absolute_url }}">{{ producto.categoria.nombre }}</a></span> |
+            {% endif %}
+            {% if producto.marca %}
+                <span>Marca: <a href="{% url 'tienda:productos_por_marca' marca_slug=producto.marca.slug %}">{{ producto.marca.nombre }}</a></span> |
+            {% endif %}
+            <span>SKU: {{ producto.sku }}</span>
+        </div>
+
+        <div class="product-price">
+            <p class="precio">
+                {% if producto.tiene_descuento %}
+                    <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    {% if producto.porcentaje_descuento > 0 %}
+                        <span class="badge-descuento">{{ producto.porcentaje_descuento }}% OFF</span>
+                    {% endif %}
+                {% else %}
+                    {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="product-description">
+            <h3>Descripción</h3>
+            <p>{{ producto.descripcion|linebreaks }}</p>
+        </div>
+
+        {% if producto.caracteristicas %}
+        <div class="product-features">
+            <h3>Características</h3>
+            <ul>
+                {% for key, value in producto.caracteristicas.items %}
+                    <li><strong>{{ key|capfirst }}:</strong> {{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post" class="add-to-cart-form">
+            {% csrf_token %}
+            <div>
+                <label for="cantidad">Cantidad:</label>
+                <input type="number" name="cantidad" id="cantidad" value="1" min="1" {% if producto.stock > 0 %}max="{{ producto.stock }}"{% else %}max="0"{% endif %}>
+            </div>
+            {% if producto.stock > 0 and producto.disponible %}
+                <button type="submit" class="btn-add-to-cart">Añadir al Carrito</button>
+            {% else %}
+                <p style="color: red; font-weight: bold;">Producto no disponible actualmente.</p>
+            {% endif %}
+             <p><small>Stock disponible: {{ producto.stock }}</small></p>
+        </form>
+
+    </section>
+</div>
+
+<section class="reviews-section container" style="max-width: 1200px; margin-left:auto; margin-right:auto; padding-left:20px; padding-right:20px;">
+    <h2>Reseñas de Clientes ({{ resenas|length }})</h2>
+    {% if resenas %}
+        {% for resena in resenas %}
+            <article class="review">
+                <strong>{{ resena.titulo }}</strong>
+                <div class="rating">
+                    {% for i in "x"|rjust:resena.calificacion|slice:"1:" %}★{% endfor %}{% for i in "x"|rjust:resena.calificacion|slice:":4"|slice:"1:"|ljust:5|slice:resena.calificacion|slice:"1:" %}☆{% endfor %}
+                    ({{ resena.calificacion }}/5)
+                </div>
+                <p>{{ resena.comentario|linebreaks }}</p>
+                <p class="review-author">Por: {{ resena.cliente.nombre_completo|default:resena.cliente.email }}</p>
+                <p class="review-date">Fecha: {{ resena.creado|date:"d M Y" }}</p>
+                {% if resena.respuesta %}
+                    <div class="review-reply" style="margin-left: 20px; padding-left:15px; border-left: 2px solid #eee; margin-top:10px;">
+                        <strong>Respuesta de la tienda:</strong>
+                        <p>{{ resena.respuesta|linebreaks }}</p>
+                        <p class="review-date">Fecha: {{ resena.respuesta_fecha|date:"d M Y" }}</p>
+                    </div>
+                {% endif %}
+            </article>
+        {% endfor %}
+    {% else %}
+        <p class="no-reviews">Este producto aún no tiene reseñas.</p>
+    {% endif %}
+    <a href="{% url 'tienda:crear_resena' producto_id=producto.id %}" class="add-review-link">Escribir una reseña</a>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function setActiveThumbnail(thumbnailElement) {
+        var thumbnails = document.querySelectorAll('.thumbnail-images img');
+        thumbnails.forEach(function(thumb) {
+            thumb.classList.remove('active');
+        });
+        thumbnailElement.classList.add('active');
+        // Actualizar la imagen principal
+        document.getElementById('mainProductImage').src = thumbnailElement.src;
+        document.getElementById('mainProductImage').alt = thumbnailElement.alt;
+    }
+
+    // Asegurarse que la primera miniatura activa sea la imagen principal al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+        var firstActiveThumbnail = document.querySelector('.thumbnail-images img.active');
+        if (firstActiveThumbnail) {
+            document.getElementById('mainProductImage').src = firstActiveThumbnail.src;
+            document.getElementById('mainProductImage').alt = firstActiveThumbnail.alt;
+        } else {
+            // Si ninguna es activa por defecto (ej. no hay 'principal' y es la primera del bucle), activa la primera si existe
+            var firstThumbnail = document.querySelector('.thumbnail-images img');
+            if (firstThumbnail) {
+                 firstThumbnail.classList.add('active'); // Activa la primera visualmente
+                 document.getElementById('mainProductImage').src = firstThumbnail.src;
+                 document.getElementById('mainProductImage').alt = firstThumbnail.alt;
+            }
+        }
+    });
+</script>
+{% endblock %}
