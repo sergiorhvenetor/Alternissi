@@ -1,44 +1,68 @@
-/* === General Body & Links (si no existen ya) === */
+/* === General Body & Links === */
 body {
     font-family: sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4; /* Un color de fondo general suave */
+    background-color: #f4f4f4;
     color: #333;
+    display: flex; /* Para footer pegajoso */
+    flex-direction: column; /* Para footer pegajoso */
+    min-height: 100vh; /* Para footer pegajoso */
+}
+
+main {
+    flex-grow: 1; /* Para footer pegajoso */
 }
 
 a {
-    color: #007bff; /* Color de enlace por defecto */
+    color: #007bff;
 }
 a:hover {
     color: #0056b3;
 }
 
-.container { /* Un contenedor general si se usa en otras partes */
+.container {
     max-width: 1200px;
     margin: 20px auto;
     padding: 0 20px;
 }
 
+/* Django Messages Styling */
+ul.messages {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+ul.messages li {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    color: #fff;
+}
+ul.messages li.success { background-color: #28a745; }
+ul.messages li.info { background-color: #17a2b8; }
+ul.messages li.warning { background-color: #ffc107; color: #212529; }
+ul.messages li.error { background-color: #dc3545; }
+
 
 /* === Navbar Styles === */
 header {
-    background-color: #333; /* Color de fondo oscuro para la navbar */
-    padding: 15px 20px; /* Aumentar padding vertical */
+    background-color: #333;
+    padding: 15px 20px;
     color: white;
-    border-bottom: 4px solid #007bff; /* Un acento de color más grueso */
+    border-bottom: 4px solid #007bff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 nav {
     display: flex;
-    justify-content: space-between; /* Logo a la izquierda, links a la derecha */
+    justify-content: space-between;
     align-items: center;
-    max-width: 1200px; /* O el ancho máximo de tu contenido */
-    margin: 0 auto; /* Centrar la navbar */
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-nav .nav-logo h1 { /* Clase para el logo/título de la tienda */
+nav .nav-logo h1 {
     margin: 0;
     font-size: 1.8em;
 }
@@ -48,7 +72,7 @@ nav .nav-logo h1 a {
     font-weight: bold;
 }
 
-nav .nav-links { /* Clase para el contenedor de la lista de enlaces */
+nav .nav-links {
     list-style: none;
     padding: 0;
     margin: 0;
@@ -57,11 +81,11 @@ nav .nav-links { /* Clase para el contenedor de la lista de enlaces */
 }
 
 nav .nav-links li {
-    margin-left: 25px; /* Espacio entre ítems de la lista */
+    margin-left: 25px;
 }
 
 nav .nav-links li a {
-    color: #f0f0f0; /* Un blanco un poco más suave */
+    color: #f0f0f0;
     text-decoration: none;
     padding: 8px 12px;
     border-radius: 4px;
@@ -70,7 +94,7 @@ nav .nav-links li a {
 }
 
 nav .nav-links li a:hover,
-nav .nav-links li a.active-nav-link {
+nav .nav-links li a.active-nav-link { /* Clase .active-nav-link se puede añadir con JS o tags de Django si es necesario */
     background-color: #007bff;
     color: white;
 }
@@ -79,15 +103,14 @@ nav .nav-links li form#logout-form + a { /* Estilo para el enlace de Logout */
      cursor: pointer;
 }
 nav .nav-links li form#logout-form + a:hover {
-    background-color: #c82333; /* Color rojo para logout al hacer hover */
+    background-color: #c82333;
     color:white;
 }
-
 
 /* Barra de búsqueda */
 header .search-bar {
     max-width: 1200px;
-    margin: 15px auto 5px auto; /* Espacio arriba, centrada */
+    margin: 15px auto 5px auto;
     display: flex;
     gap: 8px;
 }
@@ -113,7 +136,7 @@ header .search-bar button:hover {
 }
 
 /* Responsive Navbar */
-@media (max-width: 880px) { /* Ajustar breakpoint según sea necesario */
+@media (max-width: 880px) {
     nav {
         flex-direction: column;
         align-items: flex-start;
@@ -138,7 +161,7 @@ header .search-bar button:hover {
          margin-top:10px;
     }
 }
-@media (max-width: 768px) { /* Ajustes menores para pantallas aún más pequeñas si es necesario */
+@media (max-width: 768px) {
    header .search-bar {
         flex-direction: column;
     }
@@ -146,4 +169,33 @@ header .search-bar button:hover {
         margin-top: 5px;
         width:100%;
     }
+}
+
+/* === Footer Styles === */
+footer {
+    background-color: #333;
+    color: #aaa;
+    padding: 20px;
+    text-align: center;
+    font-size: 0.9em;
+    margin-top: auto; /* Para footer pegajoso */
+}
+footer p {
+    margin: 0 0 10px 0;
+}
+footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+footer ul li {
+    display: inline;
+    margin: 0 10px;
+}
+footer ul li a {
+    color: #aaa;
+    text-decoration: none;
+}
+footer ul li a:hover {
+    color: #fff;
 }

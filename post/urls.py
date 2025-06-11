@@ -63,8 +63,8 @@ urlpatterns = [
     path('carrito/aplicar-cupon/', views.AplicarCuponView.as_view(), name='aplicar_cupon'),
 
     # --- URLs del Proceso de Pago (Checkout) ---
-    path('checkout/', views.CheckoutView.as_view(), name='checkout'),
-    path('checkout/procesar-pedido/', views.ProcesarPedidoView.as_view(), name='procesar_pedido'),
+    path('checkout/', views.CheckoutView.as_view(), name='checkout'), # Vista única para GET y POST
+    # path('checkout/procesar-pedido/', views.ProcesarPedidoView.as_view(), name='procesar_pedido'), # ELIMINADA
     path('checkout/pedido-completado/<int:pedido_id>/', views.PedidoCompletadoView.as_view(), name='pedido_completado'),
     path('checkout/cancelado/', views.PagoCanceladoView.as_view(), name='pago_cancelado'),
     

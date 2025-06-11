@@ -22,7 +22,7 @@ from .models import (
     Pedido, Cliente, ListaDeseos, Resena, Cupon, ConfiguracionTienda
 )
 # Asumimos que tendrás un archivo forms.py con estos formularios
-# from .forms import ResenaForm, ClienteForm, DireccionForm
+from .forms import ClienteForm, ResenaForm, CheckoutForm # Importar el nuevo CheckoutForm
 
 # --- Mixins Personalizados ---
 
@@ -293,125 +293,136 @@ class AplicarCuponView(CartMixin, View):
 
 class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
     """Muestra la página de checkout."""
-    template_name = 'post/checkout.html' # Corregido
+    template_name = 'post/checkout.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        cart = self.get_cart()
-        if not cart.items.all().exists(): # Comprobar si hay items
-            messages.warning(request, "Tu carrito está vacío.")
-            return redirect('tienda:lista_productos') # Usar el namespace correcto
-        return super().dispatch(request, *args, **kwargs)
+    def get_initial_data_for_form(self):
+        initial = {}
+        if self.request.user.is_authenticated:
+            try:
+                cliente = Cliente.objects.get(usuario=self.request.user)
+                initial['shipping_nombre'] = cliente.nombre
+                initial['shipping_apellido'] = cliente.apellido
+                initial['shipping_email'] = cliente.email
+                initial['shipping_direccion1'] = cliente.direccion
+                initial['shipping_ciudad'] = cliente.ciudad
+                initial['shipping_codigo_postal'] = cliente.codigo_postal
+                initial['shipping_pais'] = cliente.pais
+                initial['shipping_telefono'] = cliente.telefono
+            except Cliente.DoesNotExist:
+                initial['shipping_nombre'] = self.request.user.first_name
+                initial['shipping_apellido'] = self.request.user.last_name
+                initial['shipping_email'] = self.request.user.email
+        return initial
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['carrito'] = self.get_cart()
-
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
-
-        # Pasar las choices del método de pago al template
-        context['pedido_metodos_pago_choices'] = Pedido.MetodoPago.choices
-
-        # context['direccion_form'] = DireccionForm(...) # Comentado como en el original
-        return context
-
-class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
-    """Procesa el carrito y lo convierte en un pedido."""
-    @transaction.atomic # Asegurar que todas las operaciones sean atómicas
-    def post(self, request, *args, **kwargs):
         cart = self.get_cart()
         if not cart.items.all().exists():
-            messages.error(request, "Tu carrito está vacío. No puedes procesar un pedido.")
-            return redirect('tienda:ver_carrito')
+            context['form'] = None
+        elif 'form' not in context:
+             context['form'] = CheckoutForm(initial=self.get_initial_data_for_form())
 
-        # Usar get_or_create para el cliente, similar a como se hizo en CuentaDashboardView
-        # para asegurar que el cliente exista.
-        cliente, created = Cliente.objects.get_or_create(
-            usuario=request.user,
-            defaults={
-                'email': request.POST.get('shipping_email', request.user.email), # Usar email de form si disponible
-                'nombre': request.POST.get('shipping_nombre', request.user.first_name or ''),
-                'apellido': request.POST.get('shipping_apellido', request.user.last_name or ''),
-                'telefono': request.POST.get('shipping_telefono', ''),
-                'direccion': request.POST.get('shipping_direccion1', ''),
-                'ciudad': request.POST.get('shipping_ciudad', ''),
-                'codigo_postal': request.POST.get('shipping_codigo_postal', ''),
-                'pais': request.POST.get('shipping_pais', ''),
-            }
-        )
-        # Si el cliente ya existía y los datos del formulario son más recientes, actualizarlos.
-        if not created:
-            update_fields = []
-            # Comparar con los valores actuales del objeto cliente
-            if cliente.nombre != request.POST.get('shipping_nombre', cliente.nombre):
-                cliente.nombre = request.POST.get('shipping_nombre', cliente.nombre)
-                update_fields.append('nombre')
-            if cliente.apellido != request.POST.get('shipping_apellido', cliente.apellido):
-                cliente.apellido = request.POST.get('shipping_apellido', cliente.apellido)
-                update_fields.append('apellido')
-            if cliente.email != request.POST.get('shipping_email', cliente.email):
-                cliente.email = request.POST.get('shipping_email', cliente.email)
-                update_fields.append('email')
-            if cliente.telefono != request.POST.get('shipping_telefono', cliente.telefono):
-                cliente.telefono = request.POST.get('shipping_telefono', cliente.telefono)
-                update_fields.append('telefono')
-            # Aquí podrías añadir la lógica para actualizar direccion, ciudad, etc. del modelo Cliente si es necesario
-            if update_fields:
-                cliente.save(update_fields=update_fields)
+        context['carrito'] = cart
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        return context
 
-        # Recolectar datos de dirección de envío
-        direccion_envio_data = {
-            'nombre': request.POST.get('shipping_nombre', ''),
-            'apellido': request.POST.get('shipping_apellido', ''),
-            'email': request.POST.get('shipping_email', request.user.email),
-            'direccion1': request.POST.get('shipping_direccion1', ''),
-            'direccion2': request.POST.get('shipping_direccion2', ''),
-            'ciudad': request.POST.get('shipping_ciudad', ''),
-            'codigo_postal': request.POST.get('shipping_codigo_postal', ''),
-            'pais': request.POST.get('shipping_pais', ''),
-            'telefono': request.POST.get('shipping_telefono', ''),
-        }
+    def dispatch(self, request, *args, **kwargs):
+        cart = self.get_cart()
+        if not cart.items.all().exists():
+            messages.warning(request, "Tu carrito está vacío.")
+            return redirect('tienda:lista_productos')
+        return super().dispatch(request, *args, **kwargs)
 
-        # Recolectar datos de dirección de facturación
-        billing_same_as_shipping = request.POST.get('billing_same_as_shipping') == 'on'
-        if billing_same_as_shipping:
-            direccion_facturacion_data = direccion_envio_data.copy()
-        else:
-            direccion_facturacion_data = {
-                'nombre': request.POST.get('billing_nombre', direccion_envio_data['nombre']),
-                'apellido': request.POST.get('billing_apellido', direccion_envio_data['apellido']),
-                'direccion1': request.POST.get('billing_direccion1', ''),
-                'direccion2': request.POST.get('billing_direccion2', ''),
-                'ciudad': request.POST.get('billing_ciudad', ''),
-                'codigo_postal': request.POST.get('billing_codigo_postal', ''),
-                'pais': request.POST.get('billing_pais', ''),
-            }
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        cart = self.get_cart()
+        # No es necesario chequear si el carrito está vacío aquí de nuevo, dispatch lo hace.
+        # if not cart.items.all().exists(): ...
 
-        metodo_pago = request.POST.get('metodo_pago', Pedido.MetodoPago.TARJETA)
-        
-        try:
-            pedido = cart.convertir_a_pedido(
-                cliente=cliente,
-                direccion_envio=direccion_envio_data,
-                direccion_facturacion=direccion_facturacion_data,
-                metodo_pago=metodo_pago
+        form = CheckoutForm(request.POST)
+
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+
+            cliente, cliente_created = Cliente.objects.get_or_create( # Renombrado 'created' a 'cliente_created'
+                usuario=request.user,
+                defaults={
+                    'email': cleaned_data.get('shipping_email'),
+                    'nombre': cleaned_data.get('shipping_nombre'),
+                    'apellido': cleaned_data.get('shipping_apellido'),
+                    'telefono': cleaned_data.get('shipping_telefono'),
+                    'direccion': cleaned_data.get('shipping_direccion1'),
+                    'ciudad': cleaned_data.get('shipping_ciudad'),
+                    'codigo_postal': cleaned_data.get('shipping_codigo_postal'),
+                    'pais': cleaned_data.get('shipping_pais'),
+                }
             )
+            if not cliente_created: # Si el cliente ya existía
+                cliente.nombre = cleaned_data.get('shipping_nombre', cliente.nombre)
+                cliente.apellido = cleaned_data.get('shipping_apellido', cliente.apellido)
+                cliente.email = cleaned_data.get('shipping_email', cliente.email) # Email del modelo Cliente
+                cliente.telefono = cleaned_data.get('shipping_telefono', cliente.telefono)
+                cliente.direccion = cleaned_data.get('shipping_direccion1', cliente.direccion)
+                cliente.ciudad = cleaned_data.get('shipping_ciudad', cliente.ciudad)
+                cliente.codigo_postal = cleaned_data.get('shipping_codigo_postal', cliente.codigo_postal)
+                cliente.pais = cleaned_data.get('shipping_pais', cliente.pais)
+                cliente.save()
 
-            if pedido.estado == Pedido.Estado.PENDIENTE:
-                 pedido.estado = Pedido.Estado.PROCESANDO
-                 # import uuid # Asegurar que uuid está importado si se usa
-                 # pedido.transaccion_id = "simulado_" + str(uuid.uuid4())
-                 pedido.save()
+            direccion_envio_data = {
+                'nombre': cleaned_data.get('shipping_nombre'), 'apellido': cleaned_data.get('shipping_apellido'),
+                'email': cleaned_data.get('shipping_email'), 'direccion1': cleaned_data.get('shipping_direccion1'),
+                'direccion2': cleaned_data.get('shipping_direccion2'), 'ciudad': cleaned_data.get('shipping_ciudad'),
+                'codigo_postal': cleaned_data.get('shipping_codigo_postal'), 'pais': cleaned_data.get('shipping_pais'),
+                'telefono': cleaned_data.get('shipping_telefono'),
+            }
 
-            messages.success(request, f"¡Gracias! Tu pedido #{pedido.codigo} ha sido creado y está siendo procesado.")
-            return redirect('tienda:pedido_completado', pedido_id=pedido.id)
-        except ValueError as e:
-            messages.error(request, str(e))
-            return redirect('tienda:ver_carrito')
-        except Exception as e:
-            print(f"Error al procesar pedido: {e}")
-            messages.error(request, "Ocurrió un error inesperado al procesar tu pedido. Por favor, inténtalo de nuevo o contacta a soporte.")
-            return redirect('tienda:checkout')
+            if cleaned_data.get('billing_same_as_shipping'):
+                direccion_facturacion_data = direccion_envio_data.copy()
+            else:
+                direccion_facturacion_data = {
+                    'nombre': cleaned_data.get('billing_nombre'), 'apellido': cleaned_data.get('billing_apellido'),
+                    'direccion1': cleaned_data.get('billing_direccion1'), 'direccion2': cleaned_data.get('billing_direccion2'),
+                    'ciudad': cleaned_data.get('billing_ciudad'), 'codigo_postal': cleaned_data.get('billing_codigo_postal'),
+                    'pais': cleaned_data.get('billing_pais'),
+                }
+
+            metodo_pago = cleaned_data.get('metodo_pago')
+            notas_pedido = cleaned_data.get('notas_pedido')
+
+            try:
+                pedido = cart.convertir_a_pedido(
+                    cliente=cliente,
+                    direccion_envio=direccion_envio_data,
+                    direccion_facturacion=direccion_facturacion_data,
+                    metodo_pago=metodo_pago,
+                    notas=notas_pedido
+                )
+                # Ya no se necesita añadir notas aquí si convertir_a_pedido lo maneja
+                # if notas_pedido:
+                #     pedido.notas = notas_pedido
+
+                if pedido.estado == Pedido.Estado.PENDIENTE:
+                     pedido.estado = Pedido.Estado.PROCESANDO
+                pedido.save()
+
+                messages.success(request, f"¡Gracias! Tu pedido #{pedido.codigo} ha sido creado y está siendo procesado.")
+                return redirect('tienda:pedido_completado', pedido_id=pedido.id)
+            except ValueError as e:
+                messages.error(request, str(e))
+                context = self.get_context_data(form=form)
+                return self.render_to_response(context)
+            except Exception as e:
+                print(f"Error al procesar pedido: {e}")
+                messages.error(request, "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.")
+                context = self.get_context_data(form=form)
+                return self.render_to_response(context)
+        else:
+            messages.error(request, "Por favor, corrige los errores en el formulario.")
+            context = self.get_context_data(form=form)
+            return self.render_to_response(context)
+
+# class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View): # ELIMINADA
 
 class PedidoCompletadoView(LoginRequiredMixin, DetailView):
     """Muestra la página de confirmación de pedido."""

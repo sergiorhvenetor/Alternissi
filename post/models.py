@@ -575,7 +575,7 @@ class Carrito(models.Model):
         self.cupon = None
         self.save()
 
-    def convertir_a_pedido(self, cliente, direccion_envio, direccion_facturacion, metodo_pago):
+    def convertir_a_pedido(self, cliente, direccion_envio, direccion_facturacion, metodo_pago, notas=""): # Nueva firma
         """Convierte el carrito en un pedido."""
         from django.db import transaction
 
@@ -588,6 +588,7 @@ class Carrito(models.Model):
                 subtotal=self.subtotal,
                 descuento=self.subtotal - self.total,
                 total=self.total,
+                notas=notas, # Añadir notas
                 cupon=self.cupon
             )
 

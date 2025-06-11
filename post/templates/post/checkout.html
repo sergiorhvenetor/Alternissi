@@ -19,8 +19,17 @@
     .form-group textarea {
         width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
     }
+    .form-group ul.errorlist { list-style: none; padding: 0; margin: 5px 0 0 0; color: #dc3545; font-size: 0.9em;}
+    .form-group .helptext { font-size: 0.85em; color: #6c757d; margin-top: 4px; display:block; }
+
     .form-group textarea { min-height: 80px; }
     .form-group.checkbox-group label { display: inline-block; margin-left: 5px; font-weight:normal; }
+    .form-group.radio-group label {display: block; margin-bottom: 8px; font-weight: bold;}
+    .form-group.radio-group div { margin-left:0;} /* Reset para los radios */
+    .form-group.radio-group label.radio-label {display: inline-block; margin-left: 5px; margin-right:15px; font-weight: normal;}
+    .form-group.radio-group input[type="radio"] {width: auto; margin-right: 5px;}
+
+
     .order-summary-checkout { background-color: #f0f0f0; padding: 20px; border-radius: 5px; height:fit-content; }
     .order-summary-checkout h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 20px; }
     .summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; align-items:center; }
@@ -45,85 +54,128 @@
 <div class="checkout-container">
     <h1>Finalizar Compra</h1>
 
-    <form action="{% url 'tienda:procesar_pedido' %}" method="post">
+    <form action="{% url 'tienda:checkout' %}" method="post">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         <div class="checkout-grid">
             <div class="checkout-forms">
                 <section class="form-section">
                     <h2>Dirección de Envío</h2>
                     <div class="form-group">
-                        <label for="shipping_nombre">Nombre</label>
-                        <input type="text" name="shipping_nombre" id="shipping_nombre" value="{{ request.user.cliente.nombre|default:request.user.first_name|default:'' }}" required>
+                        <label for="{{ form.shipping_nombre.id_for_label }}">{{ form.shipping_nombre.label }}</label>
+                        {{ form.shipping_nombre }}
+                        {% if form.shipping_nombre.errors %}<ul class="errorlist">{% for error in form.shipping_nombre.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="form-group">
-                        <label for="shipping_apellido">Apellido</label>
-                        <input type="text" name="shipping_apellido" id="shipping_apellido" value="{{ request.user.cliente.apellido|default:request.user.last_name|default:'' }}" required>
+                        <label for="{{ form.shipping_apellido.id_for_label }}">{{ form.shipping_apellido.label }}</label>
+                        {{ form.shipping_apellido }}
+                        {% if form.shipping_apellido.errors %}<ul class="errorlist">{% for error in form.shipping_apellido.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.shipping_email.id_for_label }}">{{ form.shipping_email.label }}</label>
+                        {{ form.shipping_email }}
+                        {% if form.shipping_email.errors %}<ul class="errorlist">{% for error in form.shipping_email.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.shipping_direccion1.id_for_label }}">{{ form.shipping_direccion1.label }}</label>
+                        {{ form.shipping_direccion1 }}
+                        {% if form.shipping_direccion1.errors %}<ul class="errorlist">{% for error in form.shipping_direccion1.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                      <div class="form-group">
-                        <label for="shipping_email">Email</label>
-                        <input type="email" name="shipping_email" id="shipping_email" value="{{ request.user.email|default:'' }}" required>
+                        <label for="{{ form.shipping_direccion2.id_for_label }}">{{ form.shipping_direccion2.label }}</label>
+                        {{ form.shipping_direccion2 }}
+                        {% if form.shipping_direccion2.errors %}<ul class="errorlist">{% for error in form.shipping_direccion2.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="form-group">
-                        <label for="shipping_direccion1">Dirección Línea 1</label>
-                        <input type="text" name="shipping_direccion1" id="shipping_direccion1" value="{{ request.user.cliente.direccion|default:'' }}" required>
+                        <label for="{{ form.shipping_ciudad.id_for_label }}">{{ form.shipping_ciudad.label }}</label>
+                        {{ form.shipping_ciudad }}
+                        {% if form.shipping_ciudad.errors %}<ul class="errorlist">{% for error in form.shipping_ciudad.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="form-group">
-                        <label for="shipping_ciudad">Ciudad</label>
-                        <input type="text" name="shipping_ciudad" id="shipping_ciudad" value="{{ request.user.cliente.ciudad|default:'' }}" required>
+                        <label for="{{ form.shipping_codigo_postal.id_for_label }}">{{ form.shipping_codigo_postal.label }}</label>
+                        {{ form.shipping_codigo_postal }}
+                        {% if form.shipping_codigo_postal.errors %}<ul class="errorlist">{% for error in form.shipping_codigo_postal.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                     <div class="form-group">
-                        <label for="shipping_codigo_postal">Código Postal</label>
-                        <input type="text" name="shipping_codigo_postal" id="shipping_codigo_postal" value="{{ request.user.cliente.codigo_postal|default:'' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_pais">País</label>
-                        <input type="text" name="shipping_pais" id="shipping_pais" value="{{ request.user.cliente.pais|default:'' }}" required>
+                        <label for="{{ form.shipping_pais.id_for_label }}">{{ form.shipping_pais.label }}</label>
+                        {{ form.shipping_pais }}
+                        {% if form.shipping_pais.errors %}<ul class="errorlist">{% for error in form.shipping_pais.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                      <div class="form-group">
-                        <label for="shipping_telefono">Teléfono</label>
-                        <input type="tel" name="shipping_telefono" id="shipping_telefono" value="{{ request.user.cliente.telefono|default:'' }}" required>
+                        <label for="{{ form.shipping_telefono.id_for_label }}">{{ form.shipping_telefono.label }}</label>
+                        {{ form.shipping_telefono }}
+                        {% if form.shipping_telefono.errors %}<ul class="errorlist">{% for error in form.shipping_telefono.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                 </section>
 
                 <section class="form-section">
                     <h2>Dirección de Facturación</h2>
                     <div class="form-group checkbox-group">
-                        <input type="checkbox" name="billing_same_as_shipping" id="billing_same_as_shipping" checked
-                               onchange="toggleBillingAddressForm()">
-                        <label for="billing_same_as_shipping">Usar la misma dirección de envío para la facturación</label>
+                        {{ form.billing_same_as_shipping }}
+                        <label for="{{ form.billing_same_as_shipping.id_for_label }}">{{ form.billing_same_as_shipping.label }}</label>
+                         {% if form.billing_same_as_shipping.errors %}<ul class="errorlist">{% for error in form.billing_same_as_shipping.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
-                    <div id="billing-address-form" style="display:none;">
+                    <div id="billing-address-form" {% if not form.billing_same_as_shipping.value %}style="display:block;"{% else %}style="display:none;"{% endif %}>
                         <p><em>Completa esta sección solo si tu dirección de facturación es diferente a la de envío.</em></p>
                         <div class="form-group">
-                            <label for="billing_nombre">Nombre</label> <input type="text" name="billing_nombre" id="billing_nombre">
+                            <label for="{{ form.billing_nombre.id_for_label }}">{{ form.billing_nombre.label }}</label>
+                            {{ form.billing_nombre }}
+                            {% if form.billing_nombre.errors %}<ul class="errorlist">{% for error in form.billing_nombre.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                         </div>
                         <div class="form-group">
-                            <label for="billing_apellido">Apellido</label> <input type="text" name="billing_apellido" id="billing_apellido">
+                            <label for="{{ form.billing_apellido.id_for_label }}">{{ form.billing_apellido.label }}</label>
+                            {{ form.billing_apellido }}
+                            {% if form.billing_apellido.errors %}<ul class="errorlist">{% for error in form.billing_apellido.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                         </div>
                         <div class="form-group">
-                            <label for="billing_direccion1">Dirección Línea 1</label> <input type="text" name="billing_direccion1" id="billing_direccion1">
+                            <label for="{{ form.billing_direccion1.id_for_label }}">{{ form.billing_direccion1.label }}</label>
+                            {{ form.billing_direccion1 }}
+                            {% if form.billing_direccion1.errors %}<ul class="errorlist">{% for error in form.billing_direccion1.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                         </div>
                         <div class="form-group">
-                            <label for="billing_ciudad">Ciudad</label> <input type="text" name="billing_ciudad" id="billing_ciudad">
+                            <label for="{{ form.billing_direccion2.id_for_label }}">{{ form.billing_direccion2.label }}</label>
+                            {{ form.billing_direccion2 }}
+                            {% if form.billing_direccion2.errors %}<ul class="errorlist">{% for error in form.billing_direccion2.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                         </div>
                         <div class="form-group">
-                            <label for="billing_codigo_postal">Código Postal</label> <input type="text" name="billing_codigo_postal" id="billing_codigo_postal">
+                            <label for="{{ form.billing_ciudad.id_for_label }}">{{ form.billing_ciudad.label }}</label>
+                            {{ form.billing_ciudad }}
+                            {% if form.billing_ciudad.errors %}<ul class="errorlist">{% for error in form.billing_ciudad.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                         </div>
                         <div class="form-group">
-                            <label for="billing_pais">País</label> <input type="text" name="billing_pais" id="billing_pais">
+                            <label for="{{ form.billing_codigo_postal.id_for_label }}">{{ form.billing_codigo_postal.label }}</label>
+                            {{ form.billing_codigo_postal }}
+                            {% if form.billing_codigo_postal.errors %}<ul class="errorlist">{% for error in form.billing_codigo_postal.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.billing_pais.id_for_label }}">{{ form.billing_pais.label }}</label>
+                            {{ form.billing_pais }}
+                            {% if form.billing_pais.errors %}<ul class="errorlist">{% for error in form.billing_pais.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                         </div>
                     </div>
                 </section>
 
                 <section class="form-section">
                     <h2>Método de Pago</h2>
+                    <div class="form-group radio-group">
+                        <label>{{ form.metodo_pago.label }}</label>
+                        {{ form.metodo_pago }} {# Renderizará los radio buttons #}
+                        {% if form.metodo_pago.errors %}<ul class="errorlist">{% for error in form.metodo_pago.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                </section>
+                 <section class="form-section">
+                    <h2>Notas Adicionales</h2>
                     <div class="form-group">
-                        <label for="metodo_pago">Selecciona un método de pago:</label>
-                        <select name="metodo_pago" id="metodo_pago" required>
-                            {% for value, display_name in pedido_metodos_pago_choices %}
-                                <option value="{{ value }}">{{ display_name }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="{{ form.notas_pedido.id_for_label }}">{{ form.notas_pedido.label }}</label>
+                        {{ form.notas_pedido }}
+                        {% if form.notas_pedido.errors %}<ul class="errorlist">{% for error in form.notas_pedido.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                     </div>
                 </section>
             </div>
@@ -161,6 +213,7 @@
                      <button type="submit" class="btn-place-order">Realizar Pedido</button>
                 {% else %}
                     <p>Tu carrito está vacío. No puedes proceder al pago.</p>
+                    <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary" style="display:block; text-align:center;">Explorar Productos</a>
                 {% endif %}
             </aside>
         </div>
@@ -170,20 +223,27 @@
 
 {% block extra_scripts %}
 <script>
-function toggleBillingAddressForm() {
-    var checkbox = document.getElementById('billing_same_as_shipping');
-    var billingForm = document.getElementById('billing-address-form');
-    var billingInputs = billingForm.querySelectorAll('input, select, textarea');
+document.addEventListener('DOMContentLoaded', function() {
+    const billingSameAsShippingCheckbox = document.getElementById('{{ form.billing_same_as_shipping.id_for_label }}'); // Usar id_for_label para el ID real
+    const billingAddressForm = document.getElementById('billing-address-form');
+    const billingInputs = billingAddressForm.querySelectorAll('input, select, textarea');
 
-    if (checkbox.checked) {
-        billingForm.style.display = 'none';
-        billingInputs.forEach(function(input) { input.required = false; });
-    } else {
-        billingForm.style.display = 'block';
-        // Decidir si hacerlos required aquí o manejar en backend.
-        // Por ahora, no los hago required para evitar bloqueo si el usuario desmarca y no llena.
+    function toggleBillingAddressForm() {
+        if (billingSameAsShippingCheckbox.checked) {
+            billingAddressForm.style.display = 'none';
+            // No es necesario cambiar 'required' aquí si el form.clean() lo maneja
+        } else {
+            billingAddressForm.style.display = 'block';
+        }
     }
-}
-document.addEventListener('DOMContentLoaded', toggleBillingAddressForm);
+
+    if (billingSameAsShippingCheckbox) {
+        billingSameAsShippingCheckbox.addEventListener('change', toggleBillingAddressForm);
+        // Llamar una vez al cargar para establecer el estado inicial correcto
+        // El estado inicial del display ya se maneja en el HTML con una condición de Django.
+        // Pero si el form se re-renderiza con errores y el checkbox estaba desmarcado, hay que asegurar que se muestre.
+        // El template ahora maneja el display inicial basado en form.billing_same_as_shipping.value
+    }
+});
 </script>
 {% endblock %}
