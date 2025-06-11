@@ -43,7 +43,10 @@
                 <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
                 <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
                 <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
-                <li><a href="#">Cerrar Sesión</a></li> {# URL de logout #}
+                <li>
+                    <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                    <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">cerrar sesion</a>
+                </li>
             </ul>
         </aside>
         <main class="account-content">

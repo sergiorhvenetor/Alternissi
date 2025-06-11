@@ -16,17 +16,17 @@
                 
                 
                 
-                    <li><a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a></li>
-                    <li>
-                        <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
-                    </li>
+                    
+
 =======
                 <li><a href="{% url 'tienda:lista_productos' %}">Productos</a></li>
                 <li><a href="{% url 'tienda:ver_carrito' %}">Carrito (<span id="cart-count">{{ request.cart.total_items|default:0 }}</span>)</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a></li>
-                    <li><a href="#">Logout</a></li> {# Implementar URL de logout #}
+                    <li>
+                        <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
+                    </li>
 
                 {% else %}
                     <li><a href="{% url 'tienda:login' %}">Login</a></li>
