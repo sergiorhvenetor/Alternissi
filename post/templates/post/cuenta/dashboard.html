@@ -1,0 +1,86 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Panel de Cuenta - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .account-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+    .account-container h1 { text-align: center; margin-bottom: 30px; font-size: 2.2em; }
+    .account-grid { display: flex; gap: 30px; }
+    .account-nav { flex: 0 0 220px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; height: fit-content; }
+    .account-nav ul { list-style: none; padding: 0; margin: 0; }
+    .account-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-radius: 4px; margin-bottom: 5px; }
+    .account-nav li a:hover, .account-nav li a.active { background-color: #007bff; color: white; }
+    .account-content { flex: 1; }
+    .account-content h2, .account-content h3 { margin-top: 0; margin-bottom: 20px; }
+    .account-content h2 {font-size: 1.8em;}
+    .account-content h3 {font-size: 1.5em;}
+    .welcome-box { background-color: #e9f7ef; padding: 20px; border-radius: 5px; margin-bottom: 25px; border-left: 4px solid #28a745;}
+    .recent-orders-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size:0.95em; }
+    .recent-orders-table th, .recent-orders-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    .recent-orders-table th { background-color: #e9ecef; }
+    .recent-orders-table a { color: #007bff; text-decoration:none; }
+    .recent-orders-table a:hover { text-decoration:underline; }
+    .quick-links a { margin-right: 15px; text-decoration:none; color:#007bff; }
+    .quick-links a:hover { text-decoration:underline;}
+     .info-section p { margin-bottom: 8px; }
+    @media (max-width: 768px) {
+        .account-grid { flex-direction: column; }
+        .account-nav { margin-bottom: 20px; flex: 0 0 auto; /* Reset flex-basis */ }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <h1>Mi Cuenta</h1>
+    <div class="account-grid">
+        <aside class="account-nav">
+            <ul>
+                <li><a href="{% url 'tienda:cuenta_dashboard' %}" class="active">Panel Principal</a></li>
+                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}">Mis Pedidos</a></li>
+                <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
+                <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
+                <li><a href="#">Cerrar Sesión</a></li> {# URL de logout #}
+            </ul>
+        </aside>
+        <main class="account-content">
+            <section class="welcome-box">
+                <h2>¡Hola, {{ cliente.nombre|default:request.user.username }}!</h2>
+                <p>Bienvenido a tu panel de cuenta. Desde aquí puedes ver tus pedidos recientes, gestionar tu información personal y más.</p>
+            </section>
+            <section>
+                <h3>Últimos Pedidos</h3>
+                {% if ultimos_pedidos %}
+                    <table class="recent-orders-table">
+                        <thead><tr><th>Nº Pedido</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acción</th></tr></thead>
+                        <tbody>
+                            {% for pedido_obj in ultimos_pedidos %}
+                            <tr>
+                                <td><a href="{% url 'tienda:detalle_pedido_cliente' pedido_id=pedido_obj.id %}">{{ pedido_obj.codigo }}</a></td>
+                                <td>{{ pedido_obj.creado|date:"d M Y" }}</td>
+                                <td>{{ pedido_obj.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
+                                <td>{{ pedido_obj.get_estado_display }}</td>
+                                <td><a href="{% url 'tienda:detalle_pedido_cliente' pedido_id=pedido_obj.id %}">Ver Detalles</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Aún no has realizado ningún pedido.</p>
+                {% endif %}
+                <div class="quick-links"> <a href="{% url 'tienda:lista_pedidos_cliente' %}">Ver todos los pedidos</a></div>
+            </section>
+            <hr style="margin: 30px 0;">
+            <section class="info-section">
+                 <h3>Información de Contacto</h3>
+                 <p><strong>Nombre:</strong> {{ cliente.nombre_completo|default:"No especificado" }}</p>
+                 <p><strong>Email:</strong> {{ cliente.email|default:request.user.email }}</p>
+                 <p><strong>Teléfono:</strong> {{ cliente.telefono|default:"No especificado" }}</p>
+                 <div class="quick-links" style="margin-top:15px;"> <a href="{% url 'tienda:editar_perfil_cliente' %}">Editar información</a></div>
+            </section>
+        </main>
+    </div>
+</div>
+{% endblock %}

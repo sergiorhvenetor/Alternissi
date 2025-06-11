@@ -1,0 +1,189 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Finalizar Compra - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .checkout-container { max-width: 900px; margin: 20px auto; padding: 20px; }
+    .checkout-container h1 { text-align: center; margin-bottom: 30px; font-size: 2.2em; }
+    .checkout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+    .form-section { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom:20px; }
+    .form-section h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="tel"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+    }
+    .form-group textarea { min-height: 80px; }
+    .form-group.checkbox-group label { display: inline-block; margin-left: 5px; font-weight:normal; }
+    .order-summary-checkout { background-color: #f0f0f0; padding: 20px; border-radius: 5px; height:fit-content; }
+    .order-summary-checkout h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 20px; }
+    .summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; align-items:center; }
+    .summary-item-product img { width:40px; height:40px; object-fit:cover; margin-right:8px; border-radius:3px;}
+    .summary-item-product .name {flex-grow:1; font-size:0.9em;}
+    .summary-item-product .quantity {margin-right:5px; font-size:0.9em;}
+    .summary-item-product .price {font-size:0.9em;}
+    .summary-total { font-weight: bold; font-size: 1.2em; margin-top: 15px; padding-top:10px; border-top:1px solid #ccc;}
+    .btn-place-order {
+        display: block; width: 100%; padding: 15px; background-color: #28a745; color: white;
+        border: none; border-radius: 5px; font-size: 1.2em; cursor: pointer; text-align: center; margin-top:20px;
+    }
+    .btn-place-order:hover { background-color: #218838; }
+    @media (max-width: 768px) {
+        .checkout-grid { grid-template-columns: 1fr; }
+        .order-summary-checkout { order: -1; margin-bottom:30px;}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <h1>Finalizar Compra</h1>
+
+    <form action="{% url 'tienda:procesar_pedido' %}" method="post">
+        {% csrf_token %}
+        <div class="checkout-grid">
+            <div class="checkout-forms">
+                <section class="form-section">
+                    <h2>Dirección de Envío</h2>
+                    <div class="form-group">
+                        <label for="shipping_nombre">Nombre</label>
+                        <input type="text" name="shipping_nombre" id="shipping_nombre" value="{{ request.user.cliente.nombre|default:request.user.first_name|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_apellido">Apellido</label>
+                        <input type="text" name="shipping_apellido" id="shipping_apellido" value="{{ request.user.cliente.apellido|default:request.user.last_name|default:'' }}" required>
+                    </div>
+                     <div class="form-group">
+                        <label for="shipping_email">Email</label>
+                        <input type="email" name="shipping_email" id="shipping_email" value="{{ request.user.email|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_direccion1">Dirección Línea 1</label>
+                        <input type="text" name="shipping_direccion1" id="shipping_direccion1" value="{{ request.user.cliente.direccion|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_ciudad">Ciudad</label>
+                        <input type="text" name="shipping_ciudad" id="shipping_ciudad" value="{{ request.user.cliente.ciudad|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_codigo_postal">Código Postal</label>
+                        <input type="text" name="shipping_codigo_postal" id="shipping_codigo_postal" value="{{ request.user.cliente.codigo_postal|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipping_pais">País</label>
+                        <input type="text" name="shipping_pais" id="shipping_pais" value="{{ request.user.cliente.pais|default:'' }}" required>
+                    </div>
+                     <div class="form-group">
+                        <label for="shipping_telefono">Teléfono</label>
+                        <input type="tel" name="shipping_telefono" id="shipping_telefono" value="{{ request.user.cliente.telefono|default:'' }}" required>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h2>Dirección de Facturación</h2>
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" name="billing_same_as_shipping" id="billing_same_as_shipping" checked
+                               onchange="toggleBillingAddressForm()">
+                        <label for="billing_same_as_shipping">Usar la misma dirección de envío para la facturación</label>
+                    </div>
+                    <div id="billing-address-form" style="display:none;">
+                        <p><em>Completa esta sección solo si tu dirección de facturación es diferente a la de envío.</em></p>
+                        <div class="form-group">
+                            <label for="billing_nombre">Nombre</label> <input type="text" name="billing_nombre" id="billing_nombre">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing_apellido">Apellido</label> <input type="text" name="billing_apellido" id="billing_apellido">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing_direccion1">Dirección Línea 1</label> <input type="text" name="billing_direccion1" id="billing_direccion1">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing_ciudad">Ciudad</label> <input type="text" name="billing_ciudad" id="billing_ciudad">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing_codigo_postal">Código Postal</label> <input type="text" name="billing_codigo_postal" id="billing_codigo_postal">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing_pais">País</label> <input type="text" name="billing_pais" id="billing_pais">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h2>Método de Pago</h2>
+                    <div class="form-group">
+                        <label for="metodo_pago">Selecciona un método de pago:</label>
+                        <select name="metodo_pago" id="metodo_pago" required>
+                            {% for value, display_name in pedido_metodos_pago_choices %}
+                                <option value="{{ value }}">{{ display_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="order-summary-checkout">
+                <h2>Resumen de tu Pedido</h2>
+                {% if carrito and carrito.items.all %}
+                    {% for item in carrito.items.all %}
+                        <div class="summary-item summary-item-product">
+                             {% if item.producto.imagenes.first %}
+                                <img src="{{ item.producto.imagenes.first.imagen.url }}" alt="{{ item.producto.nombre }}">
+                            {% else %}
+                                <img src="{% static 'post/images/placeholder.png' %}" alt="N/A">
+                            {% endif %}
+                            <span class="name">{{ item.producto.nombre }}</span>
+                            <span class="quantity">x{{ item.cantidad }}</span>
+                            <span class="price">{{ item.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                        </div>
+                    {% endfor %}
+                    <hr style="margin: 10px 0;">
+                    <div class="summary-item">
+                        <span>Subtotal:</span>
+                        <span>{{ carrito.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    </div>
+                    {% if carrito.cupon and carrito.subtotal|sub:carrito.total > 0 %}
+                    <div class="summary-item">
+                        <span>Descuento ({{ carrito.cupon.codigo }}):</span>
+                        <span>- {{ carrito.subtotal|sub:carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    </div>
+                    {% endif %}
+                    <div class="summary-item summary-total">
+                        <span>Total a Pagar:</span>
+                        <span>{{ carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    </div>
+                     <button type="submit" class="btn-place-order">Realizar Pedido</button>
+                {% else %}
+                    <p>Tu carrito está vacío. No puedes proceder al pago.</p>
+                {% endif %}
+            </aside>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleBillingAddressForm() {
+    var checkbox = document.getElementById('billing_same_as_shipping');
+    var billingForm = document.getElementById('billing-address-form');
+    var billingInputs = billingForm.querySelectorAll('input, select, textarea');
+
+    if (checkbox.checked) {
+        billingForm.style.display = 'none';
+        billingInputs.forEach(function(input) { input.required = false; });
+    } else {
+        billingForm.style.display = 'block';
+        // Decidir si hacerlos required aquí o manejar en backend.
+        // Por ahora, no los hago required para evitar bloqueo si el usuario desmarca y no llena.
+    }
+}
+document.addEventListener('DOMContentLoaded', toggleBillingAddressForm);
+</script>
+{% endblock %}

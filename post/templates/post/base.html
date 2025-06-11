@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mi Tienda{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'post/css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{% url 'tienda:inicio' %}"><h1>Mi Tienda</h1></a>
+            <ul>
+                <li><a href="{% url 'tienda:lista_productos' %}">Productos</a></li>
+                <li><a href="{% url 'tienda:ver_carrito' %}">Carrito (<span id="cart-count">{{ request.cart.total_items|default:0 }}</span>)</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a></li>
+                    <li><a href="#">Logout</a></li> {# Implementar URL de logout #}
+                {% else %}
+                    <li><a href="#">Login</a></li> {# Implementar URL de login #}
+                    <li><a href="#">Registrarse</a></li> {# Implementar URL de registro #}
+                {% endif %}
+                <li><a href="{% url 'tienda:contacto' %}">Contacto</a></li>
+            </ul>
+        </nav>
+        <form action="{% url 'tienda:buscar' %}" method="get" class="search-bar">
+            <input type="search" name="q" placeholder="Buscar productos...">
+            <button type="submit">Buscar</button>
+        </form>
+    </header>
+
+    <main>
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; {% now "Y" %} Mi Tienda. Todos los derechos reservados.</p>
+        <ul>
+            <li><a href="{% url 'tienda:politica_privacidad' %}">Política de Privacidad</a></li>
+            <li><a href="{% url 'tienda:terminos_condiciones' %}">Términos y Condiciones</a></li>
+        </ul>
+    </footer>
+
+    <script src="{% static 'post/js/script.js' %}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

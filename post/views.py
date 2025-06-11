@@ -28,42 +28,59 @@ class CartMixin:
     Esto evita repetir la misma lógica en múltiples vistas.
     """
     def get_cart(self):
+        cart_queryset = Carrito.objects.prefetch_related(
+            'items__producto__imagenes', # Para mostrar imagen del producto en el carrito
+            'cupon' # Para mostrar detalles del cupón si está aplicado
+        )
         if self.request.user.is_authenticated:
             cliente, _ = Cliente.objects.get_or_create(
                 usuario=self.request.user, 
                 defaults={'email': self.request.user.email, 'nombre': self.request.user.first_name or self.request.user.username}
             )
-            cart, _ = Carrito.objects.get_or_create(cliente=cliente)
+            # Utiliza el queryset optimizado para get_or_create
+            cart, created = cart_queryset.get_or_create(cliente=cliente)
         else:
             session_key = self.request.session.session_key
             if not session_key:
                 self.request.session.create()
                 session_key = self.request.session.session_key
-            cart, _ = Carrito.objects.get_or_create(session_key=session_key)
+            # Utiliza el queryset optimizado para get_or_create
+            cart, created = cart_queryset.get_or_create(session_key=session_key)
         return cart
 
 # --- Vistas Principales de la Tienda ---
 
 class InicioTiendaView(TemplateView):
     """Página de inicio de la tienda."""
-    template_name = 'tienda/inicio.html'
+    template_name = 'post/inicio.html' # Corrected path
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['productos_destacados'] = Producto.objects.filter(disponible=True, destacado=True)[:8]
-        context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True)[:8]
+        # Original:
+        # context['productos_destacados'] = Producto.objects.filter(disponible=True, destacado=True)[:8]
+        # context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True)[:8]
+
+        # Modificado:
+        context['productos_destacados'] = Producto.objects.filter(disponible=True, destacado=True).prefetch_related('imagenes')[:8]
+        context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True).prefetch_related('imagenes')[:8]
+
         context['categorias'] = Categoria.objects.filter(activo=True)
+        # Añadir configuración de la tienda para el símbolo de moneda
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
         return context
 
 class ListaProductosView(ListView):
     """Muestra una lista paginada de productos, con filtros opcionales."""
     model = Producto
-    template_name = 'tienda/lista_productos.html'
+    template_name = 'post/lista_productos.html' # Corrected path
     context_object_name = 'productos'
     paginate_by = 12
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(disponible=True)
+        # Original: queryset = super().get_queryset().filter(disponible=True)
+        queryset = super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes')
+
         categoria_slug = self.kwargs.get('categoria_slug')
         marca_slug = self.kwargs.get('marca_slug')
 
@@ -87,17 +104,28 @@ class ListaProductosView(ListView):
 class DetalleProductoView(DetailView):
     """Muestra la página de detalle de un único producto."""
     model = Producto
-    template_name = 'tienda/detalle_producto.html'
+    template_name = 'post/detalle_producto.html' # Corrected path
     context_object_name = 'producto'
+    # slug_field = 'slug' # Already present in models.py get_absolute_url
+    # slug_url_kwarg = 'slug' # Already present in models.py get_absolute_url
 
     def get_queryset(self):
-        return super().get_queryset().filter(disponible=True)
+        # Original: return super().get_queryset().filter(disponible=True)
+        return super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes', 'resenas__cliente')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['imagenes'] = self.get_object().imagenes.all()
-        context['resenas'] = self.get_object().resenas.filter(aprobado=True)
-        # context['resena_form'] = ResenaForm()
+        # El objeto producto ya está en el contexto por DetailView
+
+        producto = self.get_object() # Obtener el objeto una vez
+        # imagenes are preloaded by prefetch_related('imagenes')
+        # resenas are preloaded by prefetch_related('resenas__cliente')
+        # context['imagenes'] = producto.imagenes.all() # Not strictly needed if template uses producto.imagenes.all
+        context['resenas'] = producto.resenas.filter(aprobado=True) # Filter preloaded resenas
+
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # context['resena_form'] = ResenaForm() # Se mantiene comentado como en el original
         return context
 
 class BuscarProductosView(ListView):
@@ -123,11 +151,15 @@ class BuscarProductosView(ListView):
 
 class VerCarritoView(CartMixin, TemplateView):
     """Muestra el contenido del carrito de compras."""
-    template_name = 'tienda/carrito.html'
+    template_name = 'post/carrito.html' # Corregido
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['carrito'] = self.get_cart()
+        cart = self.get_cart() # Obtiene el carrito del mixin optimizado
+        context['carrito'] = cart
+
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
         return context
 
 class AgregarAlCarritoView(CartMixin, View):
@@ -203,19 +235,26 @@ class AplicarCuponView(CartMixin, View):
 
 class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
     """Muestra la página de checkout."""
-    template_name = 'tienda/checkout.html'
+    template_name = 'post/checkout.html' # Corregido
 
     def dispatch(self, request, *args, **kwargs):
-        # Redirigir si el carrito está vacío
-        if self.get_cart().items.count() == 0:
+        cart = self.get_cart()
+        if not cart.items.all().exists(): # Comprobar si hay items
             messages.warning(request, "Tu carrito está vacío.")
-            return redirect('tienda:lista_productos')
+            return redirect('tienda:lista_productos') # Usar el namespace correcto
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['carrito'] = self.get_cart()
-        # context['direccion_form'] = DireccionForm(...)
+
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+
+        # Pasar las choices del método de pago al template
+        context['pedido_metodos_pago_choices'] = Pedido.MetodoPago.choices
+
+        # context['direccion_form'] = DireccionForm(...) # Comentado como en el original
         return context
 
 class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
@@ -246,12 +285,25 @@ class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
 class PedidoCompletadoView(LoginRequiredMixin, DetailView):
     """Muestra la página de confirmación de pedido."""
     model = Pedido
-    template_name = 'tienda/pedido_completado.html'
+    template_name = 'post/pedido_completado.html'   # Corregido
     context_object_name = 'pedido'
     pk_url_kwarg = 'pedido_id'
 
     def get_queryset(self):
-        return super().get_queryset().filter(cliente__usuario=self.request.user)
+        # Original: return super().get_queryset().filter(cliente__usuario=self.request.user)
+        return super().get_queryset().filter(
+            cliente__usuario=self.request.user
+        ).select_related(
+            'cliente', 'cupon'
+        ).prefetch_related(
+            'detalles__producto__imagenes' # Para las imágenes de los productos en el resumen
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        return context
 
 class PagoCanceladoView(TemplateView):
     """Página si el pago es cancelado."""
@@ -261,44 +313,100 @@ class PagoCanceladoView(TemplateView):
 
 class CuentaDashboardView(LoginRequiredMixin, DetailView):
     model = Cliente
-    template_name = 'tienda/cuenta/dashboard.html'
+    template_name = 'post/cuenta/dashboard.html'    # Corregido
     context_object_name = 'cliente'
 
     def get_object(self):
-        return get_object_or_404(Cliente, usuario=self.request.user)
+        # get_or_create para el cliente si no existe, aunque la lógica de CartMixin ya puede haberlo creado.
+        # Es más seguro asegurar que el cliente exista aquí si esta vista puede ser el primer punto de contacto para crear un Cliente.
+        cliente, created = Cliente.objects.get_or_create(
+            usuario=self.request.user,
+            defaults={
+                'email': self.request.user.email,
+                'nombre': self.request.user.first_name or self.request.user.username,
+                'apellido': self.request.user.last_name or '',
+            }
+        )
+        return cliente
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['ultimos_pedidos'] = self.object.pedidos.all()[:5]
+        # self.object es el cliente obtenido por get_object()
+        # Original: context['ultimos_pedidos'] = self.object.pedidos.all()[:5]
+        # Optimizado:
+        context['ultimos_pedidos'] = self.object.pedidos.select_related('cupon').order_by('-creado')[:5]
+
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
         return context
 
 class ListaPedidosClienteView(LoginRequiredMixin, ListView):
     model = Pedido
-    template_name = 'tienda/cuenta/lista_pedidos.html'
+    template_name = 'post/cuenta/lista_pedidos.html'    # Corregido
     context_object_name = 'pedidos'
+    paginate_by = 10 # Añadir paginación
 
     def get_queryset(self):
-        return Pedido.objects.filter(cliente__usuario=self.request.user)
+        # Original: return Pedido.objects.filter(cliente__usuario=self.request.user)
+        return Pedido.objects.filter(
+            cliente__usuario=self.request.user
+        ).select_related('cupon').order_by('-creado') # Optimizar y ordenar
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        return context
 
 class DetallePedidoClienteView(LoginRequiredMixin, DetailView):
     model = Pedido
-    template_name = 'tienda/cuenta/detalle_pedido.html'
+    template_name = 'post/cuenta/detalle_pedido.html'    # Corregido
     context_object_name = 'pedido'
-    pk_url_kwarg = 'pedido_id'
+    pk_url_kwarg = 'pedido_id' # Ya estaba definido
 
     def get_queryset(self):
-        return super().get_queryset().filter(cliente__usuario=self.request.user)
+        # Original: return super().get_queryset().filter(cliente__usuario=self.request.user)
+        return super().get_queryset().filter(
+            cliente__usuario=self.request.user
+        ).select_related(
+            'cliente', 'cupon' # Cliente ya está implícito por el filtro, pero no daña.
+        ).prefetch_related(
+            'detalles__producto__imagenes'
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        return context
 
 class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
     model = Cliente
-    # form_class = ClienteForm # Debes crear este formulario
-    fields = ['nombre', 'apellido', 'telefono', 'direccion', 'ciudad', 'codigo_postal', 'pais'] # Ejemplo si no usas form_class
-    template_name = 'tienda/cuenta/editar_perfil.html'
-    success_url = reverse_lazy('tienda:cuenta_dashboard')
+    template_name = 'post/cuenta/editar_perfil.html'    # Corregido
+    success_url = reverse_lazy('tienda:cuenta_dashboard') # Ya estaba
+
+    # Actualizar fields para incluir los campos del template.
+    # Idealmente, esto sería un form_class = ClienteForm
+    fields = ['nombre', 'apellido', 'email', 'telefono', 'direccion', 'ciudad', 'codigo_postal', 'pais', 'fecha_nacimiento']
 
     def get_object(self):
-        return get_object_or_404(Cliente, usuario=self.request.user)
+        # Asegurar que el cliente exista o se cree, similar a CuentaDashboardView
+        cliente, created = Cliente.objects.get_or_create(
+            usuario=self.request.user,
+            defaults={
+                'email': self.request.user.email, # Email del modelo Cliente
+                'nombre': self.request.user.first_name or '',
+                'apellido': self.request.user.last_name or '',
+            }
+        )
+        return cliente
     
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$' # Por consistencia
+        return context
+
     def form_valid(self, form):
         messages.success(self.request, "Tu perfil ha sido actualizado.")
         return super().form_valid(form)
