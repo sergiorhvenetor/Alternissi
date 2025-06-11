@@ -1,0 +1,64 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Iniciar Sesión - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .auth-form-container { max-width: 450px; margin: 40px auto; padding: 30px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+    .auth-form-container h1 { text-align: center; margin-bottom: 25px; font-size: 2em; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+    .form-group input[type="text"],
+    .form-group input[type="password"],
+    .form-group input[type="email"] { /* Para futuro registro */
+        width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;
+    }
+    .form-group ul.errorlist { list-style: none; padding: 0; margin: 6px 0 0 0; color: #dc3545; font-size: 0.9em; }
+    .form-group .helptext { font-size: 0.85em; color: #666; margin-top: 6px; }
+
+    .btn-submit-auth {
+        display: block; width: 100%; padding: 12px; background-color: #007bff; color: white;
+        border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.2s;
+    }
+    .btn-submit-auth:hover { background-color: #0056b3; }
+    .auth-links { margin-top: 20px; text-align: center; font-size: 0.95em; }
+    .auth-links a { color: #007bff; text-decoration: none; }
+    .auth-links a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-form-container">
+    <h1>Iniciar Sesión</h1>
+    <form method="post" action="{% url 'tienda:login' %}">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <ul class="errorlist nonfield">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Usuario o Email:</label>
+            {{ form.username }}
+            {% if form.username.errors %}<ul class="errorlist">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.password.id_for_label }}">Contraseña:</label>
+            {{ form.password }}
+            {% if form.password.errors %}<ul class="errorlist">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+
+        <input type="hidden" name="next" value="{{ request.GET.next|default:'tienda:cuenta_dashboard' }}">
+
+        <button type="submit" class="btn-submit-auth">Ingresar</button>
+    </form>
+    <div class="auth-links">
+        <p><a href="{% url 'tienda:password_reset' %}">¿Olvidaste tu contraseña?</a></p>
+        <p>¿No tienes una cuenta? <a href="{% url 'tienda:registro' %}">Regístrate aquí</a></p>
+    </div>
+</div>
+{% endblock %}

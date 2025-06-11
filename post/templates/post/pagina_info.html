@@ -1,0 +1,21 @@
+{% extends "post/base.html" %}
+{% load static %}
+{% block title %}{{ titulo|default:"Información" }} - {{ block.super }}{% endblock %}
+{% block extra_head %}
+<style>
+    .static-page-container { max-width: 800px; margin: 20px auto; padding: 20px; }
+    .static-page-container h1 { text-align: center; margin-bottom: 30px; font-size: 2.2em; }
+    .static-content { background-color: #fff; padding: 25px; border-radius: 8px; line-height: 1.7; font-size:1.05em; border:1px solid #eee;}
+    .static-content h2, .static-content h3 { margin-top: 1.5em; margin-bottom: 0.5em; }
+    .static-content p, .static-content ul, .static-content ol { margin-bottom: 1em; }
+    .static-content ul, .static-content ol { padding-left: 20px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="static-page-container">
+    <h1>{{ titulo|default:"Información de la Tienda" }}</h1>
+    <section class="static-content">
+        {% if contenido %}{{ contenido|safe|linebreaks }}{% else %}<p>El contenido para esta página no está disponible actualmente.</p>{% endif %}
+    </section>
+</div>
+{% endblock %}

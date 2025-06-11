@@ -40,6 +40,7 @@
                 <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
                 <li><a href="{% url 'tienda:lista_pedidos_cliente' %}">Mis Pedidos</a></li>
                 <li><a href="{% url 'tienda:editar_perfil_cliente' %}" class="active">Editar Perfil</a></li>
+                <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
                 <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
                 <li><a href="#">Cerrar Sesión</a></li>
             </ul>
@@ -105,6 +106,12 @@
                     {{ form.fecha_nacimiento }}
                     {% if form.fecha_nacimiento.help_text %}<small class="helptext">{{ form.fecha_nacimiento.help_text }}</small>{% endif %}
                     {% if form.fecha_nacimiento.errors %}<ul class="errorlist">{% for error in form.fecha_nacimiento.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group checkbox-group" style="display: flex; align-items: center;">
+                    {{ form.acepta_marketing }}
+                    <label for="{{ form.acepta_marketing.id_for_label }}" style="margin-bottom:0; margin-left:10px;">{{ form.acepta_marketing.label }}</label>
+                    {% if form.acepta_marketing.help_text %}<small class="helptext" style="margin-left:15px;">{{ form.acepta_marketing.help_text }}</small>{% endif %}
+                    {% if form.acepta_marketing.errors %}<ul class="errorlist">{% for error in form.acepta_marketing.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
                 <button type="submit" class="btn-submit-profile">Guardar Cambios</button>
             </form>

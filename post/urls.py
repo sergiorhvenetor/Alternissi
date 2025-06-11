@@ -1,10 +1,52 @@
 from django.urls import path
 # Importamos las clases de las vistas
 from . import views
+from django.contrib.auth import views as auth_views # Added for auth views
+from django.urls import reverse_lazy # Added for password reset URLs
 
-app_name = 'post'
+app_name = 'tienda' # Changed from 'post'
 
 urlpatterns = [
+    # Auth URLs
+    path('login/', auth_views.LoginView.as_view(template_name='post/auth/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='tienda:inicio'), name='logout'),
+    path('registro/', views.registro_view, name='registro'), # Vista de registro
+    path('password-reset/',
+         auth_views.PasswordResetView.as_view(
+             template_name='post/auth/password_reset_form.html',
+             email_template_name='post/auth/password_reset_email.html',
+             subject_template_name='post/auth/password_reset_subject.txt',
+             success_url=reverse_lazy('tienda:password_reset_done')
+         ),
+         name='password_reset'),
+    path('password-reset/done/',
+         auth_views.PasswordResetDoneView.as_view(
+             template_name='post/auth/password_reset_done.html'
+         ),
+         name='password_reset_done'),
+    path('reset/<uidb64>/<token>/',
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='post/auth/password_reset_confirm.html',
+             success_url=reverse_lazy('tienda:password_reset_complete')
+         ),
+         name='password_reset_confirm'),
+    path('reset/done/',
+         auth_views.PasswordResetCompleteView.as_view(
+             template_name='post/auth/password_reset_complete.html'
+         ),
+         name='password_reset_complete'),
+    path('cuenta/cambiar-password/',
+         auth_views.PasswordChangeView.as_view(
+             template_name='post/auth/password_change_form.html',
+             success_url=reverse_lazy('tienda:password_change_done')
+         ),
+         name='password_change'),
+    path('cuenta/cambiar-password/done/',
+         auth_views.PasswordChangeDoneView.as_view(
+             template_name='post/auth/password_change_done.html'
+         ),
+         name='password_change_done'),
+
     # --- URLs principales de la tienda ---
     path('', views.InicioTiendaView.as_view(), name='inicio'),
     path('productos/', views.ListaProductosView.as_view(), name='lista_productos'),
@@ -34,6 +76,9 @@ urlpatterns = [
     
     # --- URLs de la Lista de Deseos (ListaDeseos) ---
     path('lista-deseos/', views.VerListaDeseosView.as_view(), name='ver_lista_deseos'),
+    path('deseos/agregar/<int:producto_id>/', views.AgregarAListaDeseosView.as_view(), name='agregar_a_lista_deseos'),
+    path('deseos/eliminar/<int:producto_id>/', views.EliminarDeListaDeseosView.as_view(), name='eliminar_de_lista_deseos'),
+    path('deseos/mover-a-carrito/<int:producto_id>/', views.MoverDeseoACarritoView.as_view(), name='mover_deseo_a_carrito'),
     
     # NOTA: Las siguientes vistas para agregar/eliminar de la lista de deseos no están en el
     # views.py que me pasaste, pero serían el siguiente paso lógico. Deberías crearlas

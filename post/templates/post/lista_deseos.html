@@ -1,0 +1,95 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Mi Lista de Deseos - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .account-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
+    .account-grid { display: flex; gap: 30px; }
+    .account-nav { flex: 0 0 220px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; height: fit-content; }
+    .account-nav ul { list-style: none; padding: 0; margin: 0; }
+    .account-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-radius: 4px; margin-bottom: 5px; }
+    .account-nav li a:hover, .account-nav li a.active { background-color: #007bff; color: white; }
+    .account-content { flex: 1; }
+    .account-content h2 { font-size: 1.8em; margin-top: 0; margin-bottom: 20px; }
+    .wishlist-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; background-color: #fff; }
+    .wishlist-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
+    .wishlist-item-info { flex-grow: 1; }
+    .wishlist-item-info h3 { margin: 0 0 5px 0; font-size: 1.2em; }
+    .wishlist-item-info h3 a { text-decoration: none; color: #333; }
+    .wishlist-item-info h3 a:hover { color: #007bff; }
+    .wishlist-item-info .precio { font-size: 1.1em; color: #28a745; margin-bottom:10px;}
+    .wishlist-item-actions .btn { padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 0.9em; margin-right: 10px; border: none; cursor:pointer; display:inline-block; margin-top:5px;}
+    .wishlist-item-actions .btn-view { background-color: #6c757d; color: white; }
+    .wishlist-item-actions .btn-add-cart { background-color: #007bff; color: white; }
+    .wishlist-item-actions .btn-remove-wishlist { background-color: #dc3545; color: white; }
+    .empty-wishlist { padding: 20px; background-color:#f8f9fa; text-align:center; border-radius:5px;}
+     @media (max-width: 768px) {
+        .account-grid { flex-direction: column; }
+        .account-nav { margin-bottom: 20px; flex: 0 0 auto; }
+        .wishlist-item { flex-direction: column; align-items: flex-start; }
+        .wishlist-item img { margin-bottom:10px;}
+        .wishlist-item-actions { margin-top:10px;}
+        .wishlist-item-actions .btn  { margin-bottom:5px; display:block; width:100%; text-align:center;}
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-container">
+    <div class="account-grid">
+        <aside class="account-nav">
+            <ul>
+                <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
+                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}">Mis Pedidos</a></li>
+                <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
+                <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
+                <li><a href="{% url 'tienda:ver_lista_deseos' %}" class="active">Mi Lista de Deseos</a></li>
+                <li><a href="#">Cerrar Sesión</a></li>
+            </ul>
+        </aside>
+        <main class="account-content">
+            <h2>Mi Lista de Deseos</h2>
+            {% if lista_deseos and lista_deseos.productos.all %}
+                <div class="wishlist-items-container">
+                    {% for producto in lista_deseos.productos.all %}
+                        <article class="wishlist-item">
+                            <a href="{{ producto.get_absolute_url }}">
+                                {% if producto.imagenes.first %}<img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.nombre }}">
+                                {% else %}<img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">{% endif %}
+                            </a>
+                            <div class="wishlist-item-info">
+                                <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
+                                <p class="precio">
+                                    {% if producto.tiene_descuento %}
+                                        <span class="precio-original" style="text-decoration: line-through; color: #dc3545; margin-right: 8px; font-size: 0.9em;">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                                        <span class="precio-descuento" style="font-weight: bold;">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                                    {% else %}{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}{% endif %}
+                                </p>
+                                <p style="font-size:0.9em; color:#555;">{{ producto.categoria.nombre }}</p>
+                            </div>
+                            <div class="wishlist-item-actions">
+                                <a href="{{ producto.get_absolute_url }}" class="btn btn-view">Ver</a>
+                                <form action="{% url 'tienda:mover_deseo_a_carrito' producto_id=producto.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-add-cart">Mover al Carrito</button>
+                                </form>
+                                <form action="{% url 'tienda:eliminar_de_lista_deseos' producto_id=producto.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-remove-wishlist">Eliminar</button>
+                                </form>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-wishlist">
+                    <p>Tu lista de deseos está vacía.</p>
+                    <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary" style="padding:10px 15px; background-color:#007bff; color:white; text-decoration:none; border-radius:4px;">Descubrir productos</a>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}

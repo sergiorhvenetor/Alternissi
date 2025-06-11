@@ -81,6 +81,7 @@
                             <input type="hidden" name="cantidad" value="1">
                             <button type="submit" class="btn-primary">Añadir al Carrito</button>
                         </form>
+                        <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" title="Añadir a Lista de Deseos" class="btn-wishlist-icon" style="text-decoration:none; font-size:1.2em; color:#ccc; display:block; margin-top:5px;">&#9825;</a>
                     </div>
                 {% endfor %}
             </div>

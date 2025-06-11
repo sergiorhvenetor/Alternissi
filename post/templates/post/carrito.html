@@ -85,8 +85,11 @@
                         </td>
                         <td id="subtotal-{{ item.id }}">{{ item.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
                         <td>
-                            <a href="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" class="btn-remove-item"
-                               onclick="return confirm('¿Estás seguro de que quieres eliminar este producto del carrito?');">Eliminar</a>
+                            <form action="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-remove-item"
+                                        onclick="return confirm('¿Estás seguro de que quieres eliminar este producto del carrito?');">Eliminar</button>
+                            </form>
                         </td>
                     </tr>
                     {% endfor %}
@@ -119,6 +122,12 @@
                     <span>Descuento ({{ carrito.cupon.codigo }}):</span>
                     <span id="cart-discount-amount">- {{ carrito.subtotal|sub:carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
                 </div>
+                {% else %}
+                {# Fila de descuento oculta si no hay descuento inicialmente #}
+                <div class="summary-row" id="cart-discount-row" style="display: none;">
+                    <span>Descuento (<span id="cart-cupon-code-display"></span>):</span> {# Para mostrar el código del cupón dinámicamente #}
+                    <span id="cart-discount-amount"></span>
+                </div>
                 {% endif %}
                 <div class="summary-row total">
                     <span>Total:</span>
@@ -145,8 +154,12 @@
 {% block extra_scripts %}
 <script>
 function updateCartItem(url, itemId, quantity, inputElement) {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '{{ csrf_token }}'; // Fallback para csrf_token
-    const originalQuantity = inputElement.defaultValue; // Guardar valor original por si falla
+    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+    const originalQuantity = inputElement.defaultValue;
+    const monedaSimbolo = "{{ moneda_simbolo|default:'$' }}"; // Obtener el símbolo de moneda del contexto
+
+    // Deshabilitar el input mientras se procesa para evitar múltiples envíos
+    inputElement.disabled = true;
 
     fetch(url, {
         method: 'POST',
@@ -158,38 +171,91 @@ function updateCartItem(url, itemId, quantity, inputElement) {
     })
     .then(response => {
         if (!response.ok) {
-            // Si el servidor devuelve un error (4xx, 5xx)
-            return response.json().then(err => Promise.reject(err));
+            // Si el servidor devuelve un error (4xx, 5xx), intenta parsear el JSON del error.
+            return response.json().then(errData => Promise.reject(errData));
         }
         return response.json();
     })
     .then(data => {
         if (data.success) {
-            // Actualizar dinámicamente la página (subtotales, total general)
-            // Esta es la parte más simple: recargar para ver todos los cambios actualizados.
-            window.location.reload();
-            // Para una actualización sin recarga, necesitarías:
-            // document.getElementById(`subtotal-${itemId}`).textContent = parseFloat(data.item_subtotal).toFixed(2) + " {{moneda_simbolo|default:'$'}}";
-            // document.getElementById('cart-subtotal').textContent = parseFloat(data.cart_subtotal_display).toFixed(2) + " {{moneda_simbolo|default:'$'}}";
-            // document.getElementById('cart-total').textContent = parseFloat(data.cart_total_display).toFixed(2) + " {{moneda_simbolo|default:'$'}}";
-            // document.getElementById('cart-total-items').textContent = data.cart_total_items_display;
-            // Actualizar descuento si existe...
-            // inputElement.defaultValue = quantity; // Actualizar el valor original si es exitoso
+            if (data.removed) {
+                // Eliminar la fila del item de la tabla
+                inputElement.closest('tr').remove();
+            } else {
+                // Actualizar subtotal del item
+                const itemSubtotalEl = document.getElementById(`subtotal-${itemId}`);
+                if (itemSubtotalEl) {
+                    itemSubtotalEl.textContent = parseFloat(data.item_subtotal).toFixed(2) + " " + monedaSimbolo;
+                }
+                inputElement.defaultValue = quantity; // Actualizar el valor original si es exitoso
+            }
+
+            // Actualizar totales del carrito
+            const cartSubtotalEl = document.getElementById('cart-subtotal');
+            if (cartSubtotalEl) {
+                cartSubtotalEl.textContent = parseFloat(data.cart_subtotal_display).toFixed(2) + " " + monedaSimbolo;
+            }
+            const cartTotalEl = document.getElementById('cart-total');
+            if (cartTotalEl) {
+                cartTotalEl.textContent = parseFloat(data.cart_total_display).toFixed(2) + " " + monedaSimbolo;
+            }
+            const cartTotalItemsEl = document.getElementById('cart-total-items');
+            if (cartTotalItemsEl) {
+                cartTotalItemsEl.textContent = data.cart_total_items_display;
+            }
+
+            // Actualizar contador en la navbar
+            const navbarCartCountEl = document.getElementById('cart-count');
+            if (navbarCartCountEl) {
+                navbarCartCountEl.textContent = data.cart_total_items_display;
+            }
+
+            // Manejar la fila de descuento
+            const discountRowEl = document.getElementById('cart-discount-row');
+            const discountAmountEl = document.getElementById('cart-discount-amount');
+            const cuponCodeDisplayEl = document.getElementById('cart-cupon-code-display');
+
+            if (data.cart_discount_amount_display && parseFloat(data.cart_discount_amount_display) > 0) {
+                if (discountAmountEl) {
+                    discountAmountEl.textContent = "- " + parseFloat(data.cart_discount_amount_display).toFixed(2) + " " + monedaSimbolo;
+                }
+                if (cuponCodeDisplayEl && data.cart_cupon_codigo) {
+                     cuponCodeDisplayEl.textContent = data.cart_cupon_codigo;
+                } else if (cuponCodeDisplayEl) {
+                     cuponCodeDisplayEl.textContent = ''; // Limpiar si no hay código
+                }
+                if (discountRowEl) {
+                    discountRowEl.style.display = 'flex'; // O el display original que tuviera
+                }
+            } else {
+                if (discountRowEl) {
+                    discountRowEl.style.display = 'none';
+                }
+            }
+
+            if (data.cart_total_items_display === 0) {
+                // Si el carrito queda vacío, recargar la página para mostrar el estado "carrito vacío".
+                window.location.reload();
+            }
+
         } else {
             alert('Error al actualizar el carrito: ' + (data.message || 'Error desconocido'));
             inputElement.value = originalQuantity; // Revertir al valor original
         }
     })
     .catch(error => {
-        console.error('Error en AJAX:', error);
         let errorMsg = 'Hubo un error al conectar con el servidor.';
         if (error && error.message) {
             errorMsg = error.message;
         } else if (typeof error === 'string') {
             errorMsg = error;
         }
+        console.error('Error en AJAX:', error);
         alert(errorMsg);
-        inputElement.value = originalQuantity; // Revertir al valor original
+        inputElement.value = originalQuantity;
+    })
+    .finally(() => {
+        inputElement.disabled = false;
     });
 }
 </script>

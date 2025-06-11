@@ -115,7 +115,11 @@
             {% endif %}
              <p><small>Stock disponible: {{ producto.stock }}</small></p>
         </form>
-
+        <div style="margin-top: 15px;">
+            <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" class="btn btn-outline-secondary" style="padding:8px 15px; text-decoration:none; border:1px solid #6c757d; color:#6c757d; border-radius:4px;">
+                &#9825; Añadir a Lista de Deseos
+            </a>
+        </div>
     </section>
 </div>
 
