@@ -1,0 +1,149 @@
+/* === General Body & Links (si no existen ya) === */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4; /* Un color de fondo general suave */
+    color: #333;
+}
+
+a {
+    color: #007bff; /* Color de enlace por defecto */
+}
+a:hover {
+    color: #0056b3;
+}
+
+.container { /* Un contenedor general si se usa en otras partes */
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+
+/* === Navbar Styles === */
+header {
+    background-color: #333; /* Color de fondo oscuro para la navbar */
+    padding: 15px 20px; /* Aumentar padding vertical */
+    color: white;
+    border-bottom: 4px solid #007bff; /* Un acento de color más grueso */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between; /* Logo a la izquierda, links a la derecha */
+    align-items: center;
+    max-width: 1200px; /* O el ancho máximo de tu contenido */
+    margin: 0 auto; /* Centrar la navbar */
+}
+
+nav .nav-logo h1 { /* Clase para el logo/título de la tienda */
+    margin: 0;
+    font-size: 1.8em;
+}
+nav .nav-logo h1 a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+nav .nav-links { /* Clase para el contenedor de la lista de enlaces */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+nav .nav-links li {
+    margin-left: 25px; /* Espacio entre ítems de la lista */
+}
+
+nav .nav-links li a {
+    color: #f0f0f0; /* Un blanco un poco más suave */
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 1em;
+}
+
+nav .nav-links li a:hover,
+nav .nav-links li a.active-nav-link {
+    background-color: #007bff;
+    color: white;
+}
+
+nav .nav-links li form#logout-form + a { /* Estilo para el enlace de Logout */
+     cursor: pointer;
+}
+nav .nav-links li form#logout-form + a:hover {
+    background-color: #c82333; /* Color rojo para logout al hacer hover */
+    color:white;
+}
+
+
+/* Barra de búsqueda */
+header .search-bar {
+    max-width: 1200px;
+    margin: 15px auto 5px auto; /* Espacio arriba, centrada */
+    display: flex;
+    gap: 8px;
+}
+header .search-bar input[type="search"] {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 0.95em;
+}
+header .search-bar button {
+    padding: 10px 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s ease;
+}
+header .search-bar button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Navbar */
+@media (max-width: 880px) { /* Ajustar breakpoint según sea necesario */
+    nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    nav .nav-logo h1 {
+        margin-bottom: 10px;
+    }
+    nav .nav-links {
+        flex-direction: column;
+        width: 100%;
+    }
+    nav .nav-links li {
+        margin-left: 0;
+        width: 100%;
+    }
+    nav .nav-links li a {
+        display: block;
+        padding: 10px;
+        text-align: left;
+    }
+    header .search-bar {
+         margin-top:10px;
+    }
+}
+@media (max-width: 768px) { /* Ajustes menores para pantallas aún más pequeñas si es necesario */
+   header .search-bar {
+        flex-direction: column;
+    }
+    header .search-bar button {
+        margin-top: 5px;
+        width:100%;
+    }
+}

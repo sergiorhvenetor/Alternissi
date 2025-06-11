@@ -17,7 +17,7 @@
     <aside class="filters">
         <h3>Categorías</h3>
         <ul class="filter-list">
-            <li><a href="{% url 'post:lista_productos' %}" {% if not categoria_actual and not marca_actual %}class="active"{% endif %}>Todas las Categorías</a></li>
+            <li><a href="{% url 'tienda:lista_productos' %}" {% if not categoria_actual and not marca_actual %}class="active"{% endif %}>Todas las Categorías</a></li>
             {% for categoria in categorias %}
                 <li>
                     <a href="{{ categoria.get_absolute_url }}" {% if categoria_actual == categoria %}class="active"{% endif %}>
@@ -29,10 +29,10 @@
 
         <h3>Marcas</h3>
         <ul class="filter-list">
-             <li><a href="{% url 'post:lista_productos' %}" {% if not marca_actual and not categoria_actual %}class="active"{% endif %}>Todas las Marcas</a></li>
+             <li><a href="{% url 'tienda:lista_productos' %}" {% if not marca_actual and not categoria_actual %}class="active"{% endif %}>Todas las Marcas</a></li>
             {% for marca_obj in marcas %} {# Renombrado para evitar conflicto con variable de bloque de template externa si existiera #}
                 <li>
-                    <a href="{% url 'post:productos_por_marca' marca_slug=marca_obj.slug %}" {% if marca_actual == marca_obj %}class="active"{% endif %}>
+                    <a href="{% url 'tienda:productos_por_marca' marca_slug=marca_obj.slug %}" {% if marca_actual == marca_obj %}class="active"{% endif %}>
                         {{ marca_obj.nombre }}
                     </a>
                 </li>
