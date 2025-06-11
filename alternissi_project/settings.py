@@ -62,6 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'post.context_processors.cart_processor', # Added cart processor
             ],
         },
     },
@@ -121,3 +122,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# --- Autenticación ---
+LOGIN_REDIRECT_URL = '/cuenta/' # o reverse_lazy('tienda:cuenta_dashboard')
+LOGOUT_REDIRECT_URL = '/'      # o reverse_lazy('tienda:inicio')
+# LOGIN_URL = '/login/' # Django por defecto usa /accounts/login/, pero lo hemos definido en post.urls
+
+# --- Email (para reseteo de contraseña en desarrollo) ---
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@mitienda.com'

@@ -6,11 +6,15 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView
 )
+# from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
+from .forms import CustomUserCreationForm # Añadido
+from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
+from .forms import ClienteForm, ResenaForm # Importar los nuevos formularios
 
 # Importa todos los modelos necesarios
 from .models import (
@@ -131,20 +135,24 @@ class DetalleProductoView(DetailView):
 class BuscarProductosView(ListView):
     """Vista para el motor de búsqueda de productos."""
     model = Producto
-    template_name = 'tienda/resultados_busqueda.html'
+    template_name = 'post/resultados_busqueda.html'    # Corregido
     context_object_name = 'productos'
-    
+    # paginate_by = 12 # Considerar añadir paginación para búsquedas con muchos resultados
+
     def get_queryset(self):
         query = self.request.GET.get('q')
         if query:
             return Producto.objects.filter(
                 Q(nombre__icontains=query) | Q(descripcion__icontains=query) | Q(sku__iexact=query)
-            ).filter(disponible=True)
+            ).filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes') # Optimización
         return Producto.objects.none()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
+
+        config = ConfiguracionTienda.obtener_configuracion() # Importar ConfiguracionTienda si no está
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
         return context
 
 # --- Vistas del Carrito de Compras ---
@@ -193,26 +201,76 @@ class ActualizarItemCarritoView(View):
     """Actualiza la cantidad de un item en el carrito (AJAX)."""
     def post(self, request, *args, **kwargs):
         try:
-            item = get_object_or_404(ItemCarrito, id=self.kwargs.get('item_id'))
+            item_id = self.kwargs.get('item_id')
+            # Obtener el carrito actual usando el mixin
+            cart = self.get_cart()
+
+            # Verificar que el item pertenezca al carrito del usuario
+            item = get_object_or_404(ItemCarrito, id=item_id, carrito=cart)
+
             cantidad = int(request.POST.get('cantidad', 1))
 
             if 0 < cantidad <= item.producto.stock:
                 item.cantidad = cantidad
                 item.save()
-                return JsonResponse({'success': True, 'item_subtotal': item.subtotal, 'cart_total': item.carrito.total})
+                descuento_aplicado = cart.subtotal - cart.total
+                response_data = {
+                    'success': True,
+                    'removed': False,
+                    'item_subtotal': item.subtotal,
+                    'cart_subtotal_display': cart.subtotal,
+                    'cart_total_display': cart.total,
+                    'cart_total_items_display': cart.total_items,
+                    'cart_discount_amount_display': descuento_aplicado,
+                    'cart_cupon_codigo': cart.cupon.codigo if cart.cupon else None,
+                    'message': 'Cantidad actualizada.'
+                }
+                return JsonResponse(response_data)
+            elif cantidad == 0: # Permitir eliminar poniendo cantidad a 0
+                 nombre_producto = item.producto.nombre
+                 item.delete()
+                 cart.save() # Actualizar timestamp y recalcular totales si es necesario
+                 descuento_aplicado = cart.subtotal - cart.total
+                 response_data = {
+                    'success': True,
+                    'removed': True,
+                    'cart_subtotal_display': cart.subtotal,
+                    'cart_total_display': cart.total,
+                    'cart_total_items_display': cart.total_items,
+                    'cart_discount_amount_display': descuento_aplicado,
+                    'cart_cupon_codigo': cart.cupon.codigo if cart.cupon else None,
+                    'message': f"'{nombre_producto}' eliminado del carrito."
+                 }
+                 return JsonResponse(response_data)
             else:
-                return JsonResponse({'success': False, 'message': 'Cantidad no válida o stock insuficiente.'})
+                return JsonResponse({'success': False, 'message': 'Cantidad no válida o stock insuficiente.'}, status=400)
+        except ItemCarrito.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Item no encontrado en tu carrito.'}, status=404)
         except Exception as e:
-            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+            # Log el error real en el servidor
+            print(f"Error en ActualizarItemCarritoView: {e}")
+            return JsonResponse({'success': False, 'message': 'Error interno del servidor.'}, status=500)
 
-class EliminarItemCarritoView(View):
+class EliminarItemCarritoView(CartMixin, View): # Asegurar que hereda de CartMixin
     """Elimina un item del carrito."""
-    def get(self, request, *args, **kwargs): # Se puede usar POST también
-        item = get_object_or_404(ItemCarrito, id=self.kwargs.get('item_id'))
-        nombre_producto = item.producto.nombre
-        item.delete()
-        messages.info(request, f"'{nombre_producto}' eliminado del carrito.")
-        return redirect('tienda:ver_carrito')
+    def post(self, request, *args, **kwargs): # Cambiado a POST
+        try:
+            item_id = self.kwargs.get('item_id')
+            cart = self.get_cart()
+
+            item = get_object_or_404(ItemCarrito, id=item_id, carrito=cart)
+
+            nombre_producto = item.producto.nombre
+            item.delete()
+            # cart.save() # Para actualizar 'actualizado' y si 'total' depende de una property que no se recalcula auto.
+            messages.info(request, f"'{nombre_producto}' eliminado del carrito.")
+        except ItemCarrito.DoesNotExist:
+            messages.error(request, "Item no encontrado o no pertenece a tu carrito.")
+        except Exception as e:
+            print(f"Error en EliminarItemCarritoView: {e}")
+            messages.error(request, "Ocurrió un error al eliminar el item.")
+
+        return redirect('tienda:ver_carrito') # Redirigir siempre al carrito
 
 class AplicarCuponView(CartMixin, View):
     """Aplica un código de cupón al carrito."""
@@ -259,28 +317,101 @@ class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
 
 class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
     """Procesa el carrito y lo convierte en un pedido."""
-    @transaction.atomic
+    @transaction.atomic # Asegurar que todas las operaciones sean atómicas
     def post(self, request, *args, **kwargs):
         cart = self.get_cart()
-        cliente = get_object_or_404(Cliente, usuario=request.user)
+        if not cart.items.all().exists():
+            messages.error(request, "Tu carrito está vacío. No puedes procesar un pedido.")
+            return redirect('tienda:ver_carrito')
 
-        # Reemplaza esto con la validación de tus formularios de dirección
-        direccion_envio = {'calle': 'Calle Falsa 123', 'ciudad': 'Springfield'}
-        direccion_facturacion = direccion_envio
+        # Usar get_or_create para el cliente, similar a como se hizo en CuentaDashboardView
+        # para asegurar que el cliente exista.
+        cliente, created = Cliente.objects.get_or_create(
+            usuario=request.user,
+            defaults={
+                'email': request.POST.get('shipping_email', request.user.email), # Usar email de form si disponible
+                'nombre': request.POST.get('shipping_nombre', request.user.first_name or ''),
+                'apellido': request.POST.get('shipping_apellido', request.user.last_name or ''),
+                'telefono': request.POST.get('shipping_telefono', ''),
+                'direccion': request.POST.get('shipping_direccion1', ''),
+                'ciudad': request.POST.get('shipping_ciudad', ''),
+                'codigo_postal': request.POST.get('shipping_codigo_postal', ''),
+                'pais': request.POST.get('shipping_pais', ''),
+            }
+        )
+        # Si el cliente ya existía y los datos del formulario son más recientes, actualizarlos.
+        if not created:
+            update_fields = []
+            # Comparar con los valores actuales del objeto cliente
+            if cliente.nombre != request.POST.get('shipping_nombre', cliente.nombre):
+                cliente.nombre = request.POST.get('shipping_nombre', cliente.nombre)
+                update_fields.append('nombre')
+            if cliente.apellido != request.POST.get('shipping_apellido', cliente.apellido):
+                cliente.apellido = request.POST.get('shipping_apellido', cliente.apellido)
+                update_fields.append('apellido')
+            if cliente.email != request.POST.get('shipping_email', cliente.email):
+                cliente.email = request.POST.get('shipping_email', cliente.email)
+                update_fields.append('email')
+            if cliente.telefono != request.POST.get('shipping_telefono', cliente.telefono):
+                cliente.telefono = request.POST.get('shipping_telefono', cliente.telefono)
+                update_fields.append('telefono')
+            # Aquí podrías añadir la lógica para actualizar direccion, ciudad, etc. del modelo Cliente si es necesario
+            if update_fields:
+                cliente.save(update_fields=update_fields)
+
+        # Recolectar datos de dirección de envío
+        direccion_envio_data = {
+            'nombre': request.POST.get('shipping_nombre', ''),
+            'apellido': request.POST.get('shipping_apellido', ''),
+            'email': request.POST.get('shipping_email', request.user.email),
+            'direccion1': request.POST.get('shipping_direccion1', ''),
+            'direccion2': request.POST.get('shipping_direccion2', ''),
+            'ciudad': request.POST.get('shipping_ciudad', ''),
+            'codigo_postal': request.POST.get('shipping_codigo_postal', ''),
+            'pais': request.POST.get('shipping_pais', ''),
+            'telefono': request.POST.get('shipping_telefono', ''),
+        }
+
+        # Recolectar datos de dirección de facturación
+        billing_same_as_shipping = request.POST.get('billing_same_as_shipping') == 'on'
+        if billing_same_as_shipping:
+            direccion_facturacion_data = direccion_envio_data.copy()
+        else:
+            direccion_facturacion_data = {
+                'nombre': request.POST.get('billing_nombre', direccion_envio_data['nombre']),
+                'apellido': request.POST.get('billing_apellido', direccion_envio_data['apellido']),
+                'direccion1': request.POST.get('billing_direccion1', ''),
+                'direccion2': request.POST.get('billing_direccion2', ''),
+                'ciudad': request.POST.get('billing_ciudad', ''),
+                'codigo_postal': request.POST.get('billing_codigo_postal', ''),
+                'pais': request.POST.get('billing_pais', ''),
+            }
+
         metodo_pago = request.POST.get('metodo_pago', Pedido.MetodoPago.TARJETA)
         
         try:
             pedido = cart.convertir_a_pedido(
-                cliente=cliente, direccion_envio=direccion_envio, 
-                direccion_facturacion=direccion_facturacion, metodo_pago=metodo_pago
+                cliente=cliente,
+                direccion_envio=direccion_envio_data,
+                direccion_facturacion=direccion_facturacion_data,
+                metodo_pago=metodo_pago
             )
-            # Lógica de pago iría aquí
-            # pedido.marcar_como_pagado('id_transaccion')
-            messages.success(request, f"¡Gracias! Tu pedido #{pedido.codigo} ha sido creado.")
+
+            if pedido.estado == Pedido.Estado.PENDIENTE:
+                 pedido.estado = Pedido.Estado.PROCESANDO
+                 # import uuid # Asegurar que uuid está importado si se usa
+                 # pedido.transaccion_id = "simulado_" + str(uuid.uuid4())
+                 pedido.save()
+
+            messages.success(request, f"¡Gracias! Tu pedido #{pedido.codigo} ha sido creado y está siendo procesado.")
             return redirect('tienda:pedido_completado', pedido_id=pedido.id)
         except ValueError as e:
             messages.error(request, str(e))
             return redirect('tienda:ver_carrito')
+        except Exception as e:
+            print(f"Error al procesar pedido: {e}")
+            messages.error(request, "Ocurrió un error inesperado al procesar tu pedido. Por favor, inténtalo de nuevo o contacta a soporte.")
+            return redirect('tienda:checkout')
 
 class PedidoCompletadoView(LoginRequiredMixin, DetailView):
     """Muestra la página de confirmación de pedido."""
@@ -384,10 +515,7 @@ class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
     model = Cliente
     template_name = 'post/cuenta/editar_perfil.html'    # Corregido
     success_url = reverse_lazy('tienda:cuenta_dashboard') # Ya estaba
-
-    # Actualizar fields para incluir los campos del template.
-    # Idealmente, esto sería un form_class = ClienteForm
-    fields = ['nombre', 'apellido', 'email', 'telefono', 'direccion', 'ciudad', 'codigo_postal', 'pais', 'fecha_nacimiento']
+    form_class = ClienteForm # Usar ClienteForm
 
     def get_object(self):
         # Asegurar que el cliente exista o se cree, similar a CuentaDashboardView
@@ -411,31 +539,156 @@ class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
         messages.success(self.request, "Tu perfil ha sido actualizado.")
         return super().form_valid(form)
 
+class AgregarAListaDeseosView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs): # Puede ser GET o POST
+        producto_id = self.kwargs.get('producto_id')
+        producto = get_object_or_404(Producto, id=producto_id)
+
+        cliente, _ = Cliente.objects.get_or_create(
+            usuario=request.user,
+            defaults={'email': request.user.email, 'nombre': request.user.first_name or request.user.username}
+        )
+        lista_deseos, _ = ListaDeseos.objects.get_or_create(cliente=cliente)
+
+        if producto not in lista_deseos.productos.all():
+            lista_deseos.agregar_producto(producto) # Usa el método del modelo
+            messages.success(request, f"'{producto.nombre}' ha sido añadido a tu lista de deseos.")
+        else:
+            messages.info(request, f"'{producto.nombre}' ya está en tu lista de deseos.")
+
+        referer_url = request.META.get('HTTP_REFERER')
+        if referer_url:
+            return redirect(referer_url)
+        return redirect('tienda:detalle_producto', pk=producto.id, slug=producto.slug)
+
+class EliminarDeListaDeseosView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs): # Usar POST para eliminar
+        producto_id = self.kwargs.get('producto_id')
+        producto = get_object_or_404(Producto, id=producto_id)
+
+        try:
+            cliente = Cliente.objects.get(usuario=request.user) # Asume que el cliente ya existe si tiene lista de deseos
+            lista_deseos = get_object_or_404(ListaDeseos, cliente=cliente)
+
+            if producto in lista_deseos.productos.all():
+                lista_deseos.remover_producto(producto) # Usa el método del modelo
+                messages.success(request, f"'{producto.nombre}' ha sido eliminado de tu lista de deseos.")
+            else:
+                messages.info(request, f"'{producto.nombre}' no estaba en tu lista de deseos.")
+        except Cliente.DoesNotExist:
+            messages.error(request, "No se encontró tu perfil de cliente.")
+        except ListaDeseos.DoesNotExist:
+             messages.info(request, "Tu lista de deseos está vacía.")
+
+        return redirect('tienda:ver_lista_deseos')
+
+class MoverDeseoACarritoView(LoginRequiredMixin, CartMixin, View):
+    def post(self, request, *args, **kwargs):
+        producto_id = self.kwargs.get('producto_id')
+        producto = get_object_or_404(Producto, id=producto_id)
+
+        try:
+            cliente, _ = Cliente.objects.get_or_create(
+                usuario=request.user,
+                defaults={'email': request.user.email, 'nombre': request.user.first_name or request.user.username}
+            )
+            lista_deseos, _ = ListaDeseos.objects.get_or_create(cliente=cliente)
+            carrito = self.get_cart()
+
+            if producto in lista_deseos.productos.all():
+                # Asumiendo que lista_deseos.mover_a_carrito(producto, carrito) existe y funciona
+                # Esta es la lógica que estaría dentro de ese método, adaptada aquí:
+
+                # 1. Añadir al carrito (o actualizar cantidad si ya existe)
+                item_carrito, created = ItemCarrito.objects.get_or_create(
+                    carrito=carrito,
+                    producto=producto,
+                    defaults={'precio': producto.precio_actual, 'cantidad': 1}
+                )
+                if not created:
+                    if item_carrito.cantidad < producto.stock: # Respetar stock
+                        item_carrito.cantidad += 1
+                        item_carrito.save()
+                        messages.info(request, f"Cantidad de '{producto.nombre}' actualizada en el carrito.")
+                    else:
+                        messages.warning(request, f"No se puede añadir más de '{producto.nombre}' al carrito (stock limitado).")
+                else:
+                     messages.success(request, f"'{producto.nombre}' añadido al carrito.")
+
+                # 2. Remover de la lista de deseos
+                lista_deseos.productos.remove(producto)
+
+                messages.success(request, f"'{producto.nombre}' ha sido movido de tu lista de deseos al carrito.")
+            else:
+                messages.warning(request, f"'{producto.nombre}' no se encontró en tu lista de deseos. Quizás ya fue movido o eliminado.")
+
+        except Producto.DoesNotExist:
+            messages.error(request, "El producto que intentas mover ya no existe.")
+            return redirect('tienda:ver_lista_deseos')
+        except Exception as e:
+            messages.error(request, f"Ocurrió un error al mover el producto: {str(e)}")
+            print(f"Error en MoverDeseoACarritoView: {e}")
+            return redirect('tienda:ver_lista_deseos')
+
+        return redirect('tienda:ver_carrito')
+
 # --- Vistas de Lista de Deseos y Reseñas ---
 
 class VerListaDeseosView(LoginRequiredMixin, DetailView):
     model = ListaDeseos
-    template_name = 'tienda/lista_deseos.html'
+    template_name = 'post/lista_deseos.html'    # Corregido
     context_object_name = 'lista_deseos'
     
     def get_object(self):
-        cliente = get_object_or_404(Cliente, usuario=self.request.user)
-        lista, _ = ListaDeseos.objects.get_or_create(cliente=cliente)
+        # El cliente se obtiene o crea en el dashboard o al editar perfil.
+        # Aquí asumimos que ya existe si el usuario está logueado y accede a su lista de deseos.
+        # Si no, get_or_create es seguro.
+        # cliente = get_object_or_404(Cliente, usuario=self.request.user) # Original get_object_or_404
+        # Reemplazado con get_or_create para mayor robustez, aunque otras vistas ya podrían haberlo creado.
+        cliente, _ = Cliente.objects.get_or_create(
+            usuario=self.request.user,
+            defaults={'email': self.request.user.email} # Añadir defaults mínimos si se crea aquí
+        )
+        lista, created = ListaDeseos.objects.get_or_create(cliente=cliente)
         return lista
+
+    def get_queryset(self):
+        # Aplicar prefetch_related al queryset base que get_object usará.
+        return super().get_queryset().filter(
+            cliente__usuario=self.request.user
+        ).prefetch_related(
+            'productos__categoria',
+            'productos__imagenes'
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        return context
 
 class CrearResenaView(LoginRequiredMixin, CreateView):
     model = Resena
-    # form_class = ResenaForm
-    fields = ['titulo', 'comentario', 'calificacion'] # Ejemplo
-    template_name = 'tienda/crear_resena.html'
+    form_class = ResenaForm # Usar ResenaForm
+    template_name = 'post/crear_resena.html'    # Corregido
 
     def dispatch(self, request, *args, **kwargs):
-        self.producto = get_object_or_404(Producto, id=self.kwargs['producto_id'])
-        self.cliente = get_object_or_404(Cliente, usuario=request.user)
+        # Optimización: prefetch_related para la imagen del producto
+        self.producto = get_object_or_404(
+            Producto.objects.prefetch_related('imagenes'),
+            id=self.kwargs['producto_id']
+        )
+        self.cliente, cliente_created = Cliente.objects.get_or_create(
+            usuario=request.user,
+            defaults={
+                'email': request.user.email,
+                'nombre': request.user.first_name or request.user.username,
+                'apellido': request.user.last_name or '',
+            }
+        )
         
-        # Validaciones antes de mostrar el formulario
         if not Pedido.objects.filter(cliente=self.cliente, detalles__producto=self.producto, estado=Pedido.Estado.COMPLETADO).exists():
-            messages.error(request, "Solo puedes reseñar productos que has comprado.")
+            messages.error(request, "Solo puedes reseñar productos que has comprado y cuyo pedido esté completado.")
             return redirect('tienda:detalle_producto', pk=self.producto.id, slug=self.producto.slug)
         if Resena.objects.filter(producto=self.producto, cliente=self.cliente).exists():
             messages.error(request, "Ya has dejado una reseña para este producto.")
@@ -445,12 +698,48 @@ class CrearResenaView(LoginRequiredMixin, CreateView):
         
     def form_valid(self, form):
         form.instance.producto = self.producto
-        form.instance.cliente = self.cliente
+        form.instance.cliente = self.cliente # Cliente obtenido/creado en dispatch
+        # form.instance.aprobado = False # Por defecto es False en el modelo
         messages.success(self.request, "Gracias por tu reseña. Será publicada tras su aprobación.")
         return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('tienda:detalle_producto', kwargs={'pk': self.producto.id, 'slug': self.producto.slug})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['producto'] = self.producto # Pasar producto al contexto
+        config = ConfiguracionTienda.obtener_configuracion()
+        context['moneda_simbolo'] = config.simbolo_moneda if config else '$' # Por consistencia
+        return context
+
+# Nueva vista de registro:
+def registro_view(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST) # Usar el nuevo form
+        if form.is_valid():
+            user = form.save() # El método save del CustomUserCreationForm ya guarda email, first_name, last_name
+
+            # Crear el objeto Cliente asociado
+            # Ahora podemos usar los datos directamente del 'user' object que ya tiene la info.
+            Cliente.objects.create(
+                usuario=user,
+                email=user.email,
+                nombre=user.first_name or user.username, # username como fallback si first_name está vacío
+                apellido=user.last_name or ''
+            )
+
+            auth_login(request, user) # Loguear al usuario automáticamente
+            messages.success(request, f"¡Bienvenido, {user.username}! Tu cuenta ha sido creada exitosamente.")
+            return redirect('tienda:cuenta_dashboard') # O 'tienda:inicio'
+    else:
+        form = CustomUserCreationForm() # Usar el nuevo form
+
+    # Añadir moneda_simbolo al contexto por consistencia con otras páginas
+    config = ConfiguracionTienda.obtener_configuracion()
+    moneda_simbolo = config.simbolo_moneda if config else '$'
+
+    return render(request, 'post/auth/registro.html', {'form': form, 'moneda_simbolo': moneda_simbolo})
 
 # --- Vistas de Páginas Estáticas/Informativas ---
 
@@ -462,10 +751,10 @@ class PaginaEstaticaView(TemplateView):
         return context
 
 class PaginaContactoView(PaginaEstaticaView):
-    template_name = 'tienda/contacto.html'
+    template_name = 'post/contacto.html'   # Corregido
 
 class PoliticaPrivacidadView(PaginaEstaticaView):
-    template_name = 'tienda/pagina_info.html'
+    template_name = 'post/pagina_info.html'    # Corregido
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Política de Privacidad'
@@ -473,7 +762,7 @@ class PoliticaPrivacidadView(PaginaEstaticaView):
         return context
 
 class TerminosCondicionesView(PaginaEstaticaView):
-    template_name = 'tienda/pagina_info.html'
+    template_name = 'post/pagina_info.html'    # Corregido
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo'] = 'Términos y Condiciones'

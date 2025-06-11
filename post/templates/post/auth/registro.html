@@ -1,0 +1,58 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Crear Cuenta - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+{# Reutilizar estilos de login.html si son similares, o definir específicos #}
+<style>
+    .auth-form-container { max-width: 450px; margin: 40px auto; padding: 30px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+    .auth-form-container h1 { text-align: center; margin-bottom: 25px; font-size: 2em; }
+    .form-group { margin-bottom: 15px; } /* Un poco menos de margen para más campos */
+    .form-group label { display: block; margin-bottom: 6px; font-weight: bold; } /* Un poco más pequeño el margen */
+    .form-group input[type="text"],
+    .form-group input[type="password"],
+    .form-group input[type="email"] {
+        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;
+    }
+    .form-group ul.errorlist { list-style: none; padding: 0; margin: 5px 0 0 0; color: #dc3545; font-size: 0.85em;}
+    .form-group .helptext { font-size: 0.8em; color: #6c757d; margin-top: 4px; display:block; }
+
+    .btn-submit-auth {
+        display: block; width: 100%; padding: 12px; background-color: #28a745; color: white; /* Color diferente para registro */
+        border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.2s;
+    }
+    .btn-submit-auth:hover { background-color: #218838; }
+    .auth-links { margin-top: 20px; text-align: center; font-size: 0.95em; }
+    .auth-links a { color: #007bff; text-decoration: none; }
+    .auth-links a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-form-container">
+    <h1>Crear Nueva Cuenta</h1>
+    <form method="post" action="{% url 'tienda:registro' %}">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <ul class="errorlist nonfield">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        {# UserCreationForm renderiza username, password1, password2 #}
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                {{ field }}
+                {% if field.help_text %}<small class="helptext">{{ field.help_text }}</small>{% endif %}
+                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-submit-auth">Registrarme</button>
+    </form>
+    <div class="auth-links">
+        <p>¿Ya tienes una cuenta? <a href="{% url 'tienda:login' %}">Inicia sesión aquí</a></p>
+    </div>
+</div>
+{% endblock %}

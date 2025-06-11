@@ -1,0 +1,82 @@
+{% extends "post/base.html" %}
+{% load static %}
+
+{% block title %}Escribir Reseña para {{ producto.nombre }} - {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    .review-form-container { max-width: 700px; margin: 20px auto; padding: 20px; }
+    .review-form-container h1 { text-align: center; margin-bottom: 20px; font-size: 2em; }
+    .product-info-review { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding: 15px; background-color:#f8f9fa; border-radius:5px;}
+    .product-info-review img { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; }
+    .product-info-review h2 { font-size: 1.3em; margin: 0; }
+    .product-info-review h2 a {text-decoration:none; color:#333;}
+    .product-info-review h2 a:hover {color:#007bff;}
+    .review-form { background-color: #f8f9fa; padding: 25px; border-radius: 8px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 0.95em; }
+    .form-group input[type="text"], .form-group textarea, .form-group select {
+        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;
+    }
+    .form-group textarea { min-height: 120px; }
+    .form-group ul.errorlist { list-style: none; padding: 0; margin: 5px 0 0 0; color: #dc3545; font-size: 0.9em;}
+    .rating-stars { display: flex; flex-direction: row-reverse; justify-content: flex-end; } /* Dirección invertida para hover correcto */
+    .rating-stars input[type="radio"] { display: none; }
+    .rating-stars label { font-size: 2em; color: #ccc; cursor: pointer; padding: 0 0.1em; transition: color 0.2s; }
+    .rating-stars input[type="radio"]:checked ~ label,      /* Estrellas a la izquierda de la seleccionada (porque el DOM está invertido) */
+    .rating-stars label:hover,                             /* Estrella actual bajo el mouse */
+    .rating-stars label:hover ~ label {                    /* Estrellas a la izquierda de la que está bajo el mouse */
+        color: #ffc107;
+    }
+    /* Deshacer el efecto hover cuando el mouse sale de una estrella que no está seleccionada */
+    .rating-stars:not(:hover) input[type="radio"]:not(:checked) ~ label {
+        color: #ccc;
+    }
+    /* Mantener el color de las estrellas seleccionadas y las anteriores (a su derecha en DOM, izquierda visualmente) */
+     .rating-stars input[type="radio"]:checked + label, /* La estrella seleccionada */
+     .rating-stars input[type="radio"]:checked + label ~ label { /* Las estrellas a la izquierda visual de la seleccionada */
+        color: #ffc107 !important; /* Important para sobreescribir el hover out de arriba */
+    }
+
+    .btn-submit-review { padding: 12px 25px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; }
+    .btn-submit-review:hover { background-color: #0056b3; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-form-container">
+    <h1>Escribir Reseña</h1>
+    {% if producto %}
+    <div class="product-info-review">
+        {% if producto.imagenes.first %}<img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}<img src="{% static 'post/images/placeholder.png' %}" alt="N/A">{% endif %}
+        <h2>Para: <a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h2>
+    </div>
+    {% endif %}
+
+    <form method="post" class="review-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<ul class="errorlist nonfield">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        <div class="form-group">
+            <label for="{{ form.titulo.id_for_label }}">Título de tu reseña:</label> {{ form.titulo }}
+            {% if form.titulo.errors %}<ul class="errorlist">{% for error in form.titulo.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.comentario.id_for_label }}">Tu comentario:</label> {{ form.comentario }}
+            {% if form.comentario.errors %}<ul class="errorlist">{% for error in form.comentario.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="form-group">
+            <label>Calificación:</label>
+            <div class="rating-stars" id="id_calificacion_stars">
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_5" value="5" {% if form.calificacion.value|stringformat:"s" == "5" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_5">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_4" value="4" {% if form.calificacion.value|stringformat:"s" == "4" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_4">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_3" value="3" {% if form.calificacion.value|stringformat:"s" == "3" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_3">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_2" value="2" {% if form.calificacion.value|stringformat:"s" == "2" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_2">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_1" value="1" {% if form.calificacion.value|stringformat:"s" == "1" %}checked{% endif %} required><label for="id_{{ form.calificacion.name }}_1">&#9733;</label>
+            </div>
+            {% if form.calificacion.errors %}<ul class="errorlist">{% for error in form.calificacion.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <button type="submit" class="btn-submit-review">Enviar Reseña</button>
+    </form>
+</div>
+{% endblock %}
