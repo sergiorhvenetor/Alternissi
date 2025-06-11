@@ -117,10 +117,10 @@
                     <span>Subtotal (<span id="cart-total-items">{{ carrito.total_items|default:0 }}</span> items):</span>
                     <span id="cart-subtotal">{{ carrito.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
                 </div>
-                {% if carrito.cupon and carrito.subtotal|sub:carrito.total > 0 %}
+                
                 <div class="summary-row" id="cart-discount-row">
                     <span>Descuento ({{ carrito.cupon.codigo }}):</span>
-                    <span id="cart-discount-amount">- {{ carrito.subtotal|sub:carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    
                 </div>
                 {% else %}
                 {# Fila de descuento oculta si no hay descuento inicialmente #}
@@ -141,13 +141,13 @@
             <a href="{% url 'tienda:checkout' %}" class="btn btn-checkout">Proceder al Pago</a>
         </div>
 
-    {% else %}
+
         <div class="empty-cart">
             <h2>Tu carrito está vacío.</h2>
             <p>Parece que no has añadido ningún producto a tu carrito todavía.</p>
             <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary">Explorar Productos</a>
         </div>
-    {% endif %}
+
 </div>
 {% endblock %}
 
