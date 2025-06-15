@@ -6,6 +6,8 @@ from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponse
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
 from .forms import CustomUserCreationForm # Añadido
 from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
@@ -775,3 +777,28 @@ class TerminosCondicionesView(PaginaEstaticaView):
         context['titulo'] = 'Términos y Condiciones'
         context['contenido'] = context['config'].terminos_condiciones if context['config'] else ""
         return context
+
+# --- Funciones de prueba para decoradores ---
+def es_administrador(user):
+    if not user.is_authenticated:
+        return False
+    # Asumimos que el perfil Cliente existe para usuarios autenticados
+    # y que tiene el campo 'rol' que añadimos.
+    try:
+        return user.cliente.rol == Cliente.ROL_ADMINISTRADOR
+    except Cliente.DoesNotExist:
+        return False
+
+# --- Vistas de Administración (Protegidas) ---
+@login_required # login_required puede ser redundante si user_passes_test redirige a login
+@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
+def admin_agregar_producto_view(request):
+    # Aquí iría la lógica para el formulario de agregar producto
+    return HttpResponse("<h1>Página para Agregar Productos (Solo Administradores)</h1><p>Formulario y lógica de creación de productos irían aquí.</p>")
+
+@login_required
+@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
+def admin_agregar_promocion_view(request):
+    # Aquí iría la lógica para el formulario de agregar promoción
+    # Podría ser para crear/gestionar modelos 'Cupon' o similar
+    return HttpResponse("<h1>Página para Agregar Promociones (Solo Administradores)</h1><p>Formulario y lógica de creación de promociones irían aquí.</p>")
