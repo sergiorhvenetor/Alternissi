@@ -5,13 +5,264 @@
 
 {% block extra_head %}
 <style>
-    .account-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
-    .account-grid { display: flex; gap: 30px; }
-    .account-nav { flex: 0 0 220px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; height: fit-content; }
-    .account-nav ul { list-style: none; padding: 0; margin: 0; }
-    .account-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-radius: 4px; margin-bottom: 5px; }
-    .account-nav li a:hover, .account-nav li a.active { background-color: #007bff; color: white; }
-    .account-content { flex: 1; }
+/* Estilos generales para el panel de cuenta */
+.account-container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 30px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.account-container h1 {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 2.5em;
+    color: var(--black);
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.account-container h1:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background-color: var(--gold);
+}
+
+/* Grid principal */
+.account-grid {
+    display: flex;
+    gap: 40px;
+}
+
+/* Navegación lateral */
+.account-nav {
+    flex: 0 0 250px;
+    background-color: var(--black);
+    padding: 25px;
+    border-radius: 8px;
+    height: fit-content;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.account-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-nav li a {
+    display: block;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: var(--light-gold);
+    border-radius: 4px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.account-nav li a:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+    transition: all 0.5s ease;
+}
+
+.account-nav li a:hover:before {
+    left: 100%;
+}
+
+.account-nav li a:hover,
+.account-nav li a.active {
+    background-color: rgba(212, 175, 55, 0.1);
+    color: var(--gold);
+    transform: translateX(5px);
+}
+
+.account-nav li a.active {
+    border-left: 3px solid var(--gold);
+}
+
+/* Contenido principal */
+.account-content {
+    flex: 1;
+}
+
+.account-content h2,
+.account-content h3 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--black);
+}
+
+.account-content h2 {
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.account-content h3 {
+    font-size: 1.5em;
+    position: relative;
+    padding-left: 15px;
+}
+
+.account-content h3:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 70%;
+    width: 4px;
+    background-color: var(--gold);
+}
+
+/* Sección de bienvenida */
+.welcome-box {
+    background-color: rgba(212, 175, 55, 0.1);
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 4px solid var(--gold);
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* Tabla de pedidos */
+.recent-orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 25px;
+    font-size: 0.95em;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.recent-orders-table th {
+    background-color: var(--black);
+    color: var(--gold);
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.recent-orders-table td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    color: var(--gray);
+}
+
+.recent-orders-table tr:hover td {
+    background-color: rgba(212, 175, 55, 0.05);
+}
+
+.recent-orders-table a {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.recent-orders-table a:hover {
+    color: var(--dark-gold);
+    text-decoration: underline;
+}
+
+/* Enlaces rápidos */
+.quick-links a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: var(--gold);
+    font-weight: 500;
+    padding: 8px 0;
+    display: inline-block;
+    position: relative;
+}
+
+.quick-links a:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--gold);
+    transition: width 0.3s ease;
+}
+
+.quick-links a:hover:after {
+    width: 100%;
+}
+
+/* Sección de información */
+.info-section p {
+    margin-bottom: 12px;
+    font-size: 1.05em;
+}
+
+.info-section strong {
+    color: var(--black);
+    font-weight: 600;
+    min-width: 120px;
+    display: inline-block;
+}
+
+/* Efectos hover para el botón de cerrar sesión */
+.account-nav li:last-child a {
+    color: #dc3545;
+}
+
+.account-nav li:last-child a:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .account-grid {
+        flex-direction: column;
+    }
+    
+    .account-nav {
+        margin-bottom: 30px;
+        flex: 0 0 auto;
+    }
+    
+    .account-container {
+        padding: 20px;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes goldPulse {
+    0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+
+.welcome-box:hover {
+    animation: goldPulse 1.5s infinite;
+}
     .account-content h2 { font-size: 1.8em; margin-top: 0; margin-bottom: 20px; }
     .wishlist-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; background-color: #fff; }
     .wishlist-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
@@ -46,7 +297,7 @@
                 <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
                 <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
                 <li><a href="{% url 'tienda:ver_lista_deseos' %}" class="active">Mi Lista de Deseos</a></li>
-                <li><a href="#">Cerrar Sesión</a></li>
+
             </ul>
         </aside>
         <main class="account-content">

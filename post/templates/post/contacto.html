@@ -1,36 +1,208 @@
-{% extends "post/base.html" %}
-{% load static %}
-{% block title %}Contacto - {{ block.super }}{% endblock %}
-{% block extra_head %}
-<style>
-    .static-page-container { max-width: 800px; margin: 20px auto; padding: 20px; }
-    .static-page-container h1 { text-align: center; margin-bottom: 30px; font-size: 2.2em; }
-    .contact-info-section { background-color: #f8f9fa; padding: 25px; border-radius: 8px; }
-    .contact-info-section h2 { font-size: 1.6em; margin-top: 0; margin-bottom: 20px; border-bottom:1px solid #eee; padding-bottom:10px;}
-    .contact-info-section p { margin: 10px 0; font-size: 1.1em; line-height: 1.6; }
-    .contact-info-section strong { color: #333; }
-    .contact-info-section ul { list-style:none; padding-left:0;}
-    .contact-info-section li { margin-bottom:8px;}
-    .contact-info-section .social-links a { margin-right:10px; text-decoration:none; font-size:1.2em;}
-</style>
-{% endblock %}
-{% block content %}
-<div class="static-page-container">
-    <h1>Contáctanos</h1>
-    {% if config %}
-    <section class="contact-info-section">
-        <h2>Nuestra Información de Contacto</h2>
-        {% if config.telefono_contacto %}<p><strong>Teléfono:</strong> <a href="tel:{{ config.telefono_contacto }}">{{ config.telefono_contacto }}</a></p>{% endif %}
-        {% if config.email_contacto %}<p><strong>Email:</strong> <a href="mailto:{{ config.email_contacto }}">{{ config.email_contacto }}</a></p>{% endif %}
-        {% if config.direccion %}<p><strong>Dirección:</strong><br>{{ config.direccion|linebreaksbr }}</p>{% endif %}
-        {% if config.horario_atencion %}<p><strong>Horario de Atención:</strong> {{ config.horario_atencion }}</p>{% endif %}
-        {% if config.redes_sociales %}
-            <h3>Síguenos en Redes Sociales</h3>
-            <ul class="social-links">
-            {% for red, url in config.redes_sociales.items %}{% if url %}<li><a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ red|capfirst }}</a></li>{% endif %}{% endfor %}
-            </ul>
-        {% endif %}
-    </section>
-    {% else %}<p>La información de contacto no está disponible en este momento.</p>{% endif %}
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto - Varios Métodos</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+        }
+        .contact-section {
+            margin-bottom: 30px;
+        }
+        .contact-section h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+        .contact-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .contact-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #eee;
+        }
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .contact-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        .contact-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        .contact-card p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        .contact-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 80%;
+        }
+        .whatsapp {
+            background-color: #25D366;
+            color: white;
+        }
+        .whatsapp:hover {
+            background-color: #128C7E;
+        }
+        .phone {
+            background-color: #3498db;
+            color: white;
+        }
+        .phone:hover {
+            background-color: #2980b9;
+        }
+        .email {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .email:hover {
+            background-color: #c0392b;
+        }
+        .social {
+            background-color: #9b59b6;
+            color: white;
+        }
+        .social:hover {
+            background-color: #8e44ad;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 600px) {
+            .contact-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Contáctame</h1>
+        
+        <div class="contact-section">
+            <h2>Métodos de Contacto Directo</h2>
+            <div class="contact-methods">
+                <!-- WhatsApp -->
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <h3>WhatsApp</h3>
+                    <p>Enviame un mensaje directo por WhatsApp</p>
+                    <a href="https://wa.me/584248927039" class="contact-btn whatsapp" target="_blank">
+                        <i class="fab fa-whatsapp"></i> Enviar Mensaje
+                    </a>
+                </div>
+                
+                <!-- Llamada Telefónica -->
+
+                
+                <!-- Correo Electrónico -->
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3>Correo Electrónico</h3>
+                    <p>Enviame un email (reemplaza con tu email)</p>
+                    <a href="mailto:tuemail@ejemplo.com" class="contact-btn email">
+                        <i class="fas fa-envelope"></i> Enviar Email
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="contact-section">
+            <h2>Redes Sociales</h2>
+            <div class="contact-methods">
+                <!-- Instagram -->
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fab fa-instagram"></i>
+                    </div>
+                    <h3>Instagram</h3>
+                    <p>Sígueme en Instagram (reemplaza con tu usuario)</p>
+                    <a href="https://instagram.com/tuusuario" class="contact-btn social" target="_blank">
+                        <i class="fab fa-instagram"></i> Seguir
+                    </a>
+                </div>
+                
+                <!-- Facebook -->
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fab fa-facebook-f"></i>
+                    </div>
+                    <h3>Facebook</h3>
+                    <p>Conéctate en Facebook (reemplaza con tu enlace)</p>
+                    <a href="https://facebook.com/tuperfil" class="contact-btn social" target="_blank">
+                        <i class="fab fa-facebook-f"></i> Conectar
+                    </a>
+                </div>
+                
+                <!-- Twitter -->
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fab fa-twitter"></i>
+                    </div>
+                    <h3>Twitter</h3>
+                    <p>Sígueme en Twitter (reemplaza con tu usuario)</p>
+                    <a href="https://twitter.com/tuusuario" class="contact-btn social" target="_blank">
+                        <i class="fab fa-twitter"></i> Seguir
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 Todos los derechos reservados. Contáctame usando cualquiera de los métodos anteriores.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import (
-    View, TemplateView, ListView, DetailView, CreateView, UpdateView
+    View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
 from .forms import CustomUserCreationForm # Añadido
@@ -15,6 +15,13 @@ from django.db.models import Q
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
 from .forms import ClienteForm, ResenaForm # Importar los nuevos formularios
+# views.py
+
+
+
+
+
+
 
 # Importa todos los modelos necesarios
 from .models import (

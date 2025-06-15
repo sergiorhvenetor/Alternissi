@@ -6,6 +6,81 @@
 {% block extra_head %}
 {# Reutilizar estilos de login.html si son similares, o definir específicos #}
 <style>
+/* Contenedor principal */
+.auth-links {
+    margin: 25px 0;
+    text-align: center;
+    position: relative;
+}
+
+/* Estilo base del texto */
+.auth-links p {
+    color: var(--black);
+    font-size: 0.95rem;
+    margin: 0;
+    padding: 10px 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Estilo del enlace */
+.auth-links a {
+    color: var(--light-gold);
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: all 0.4s ease;
+    padding: 0 2px;
+}
+
+/* Efecto hover básico */
+.auth-links a:hover {
+    color: var(--gold);
+}
+
+/* Subrayado animado */
+.auth-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--gold);
+    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.auth-links a:hover::after {
+    width: 100%;
+}
+
+/*********************/
+/* ANIMACIONES EXTRA */
+/*********************/
+
+/* 1. Efecto de pulsación suave */
+
+/* 3. Efecto de fondo resaltado */
+
+
+
+}
+
+.auth-links:hover p {
+    animation: floatUp 3s ease-in-out infinite;
+}
+
+/* Versión alternativa minimalista */
+.auth-links.minimalist a {
+    color: var(--white);
+    border-bottom: 1px dashed var(--light-gold);
+}
+
+.auth-links.minimalist a:hover {
+    color: var(--gold);
+    border-bottom-style: solid;
+    animation: none;
+}
     .auth-form-container { max-width: 450px; margin: 40px auto; padding: 30px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
     .auth-form-container h1 { text-align: center; margin-bottom: 25px; font-size: 2em; }
     .form-group { margin-bottom: 15px; } /* Un poco menos de margen para más campos */
@@ -19,12 +94,12 @@
     .form-group .helptext { font-size: 0.8em; color: #6c757d; margin-top: 4px; display:block; }
 
     .btn-submit-auth {
-        display: block; width: 100%; padding: 12px; background-color: #28a745; color: white; /* Color diferente para registro */
+        display: block; width: 100%; padding: 12px; background-color: rgb(0, 0, 0); color: gold; /* Color diferente para registro */
         border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.2s;
     }
-    .btn-submit-auth:hover { background-color: #218838; }
+    .btn-submit-auth:hover { background-color: rgb(204, 181, 47); }
     .auth-links { margin-top: 20px; text-align: center; font-size: 0.95em; }
-    .auth-links a { color: #007bff; text-decoration: none; }
+    .auth-links a { color: gold; text-decoration: none; }
     .auth-links a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
@@ -51,8 +126,8 @@
 
         <button type="submit" class="btn-submit-auth">Registrarme</button>
     </form>
-    <div class="auth-links">
-        <p>¿Ya tienes una cuenta? <a href="{% url 'tienda:login' %}">Inicia sesión aquí</a></p>
-    </div>
+<div class="auth-links">
+    <p>¿Ya tienes una cuenta? <a href="{% url 'tienda:login' %}">Inicia sesión aquí</a></p>
+</div>
 </div>
 {% endblock %}

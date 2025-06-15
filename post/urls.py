@@ -47,6 +47,9 @@ urlpatterns = [
          ),
          name='password_change_done'),
 
+
+    
+
     # --- URLs principales de la tienda ---
     path('', views.InicioTiendaView.as_view(), name='inicio'),
     path('productos/', views.ListaProductosView.as_view(), name='lista_productos'),

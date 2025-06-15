@@ -1,40 +1,307 @@
-<!DOCTYPE html>
-<head>
-</head>
 {% load static %}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mi Tienda{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'post/css/style.css' %}">
+    <title>{% block title %}Alternissi{% endblock %}</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+    
+    <!-- Para compatibilidad con diferentes dispositivos -->
+
+    <style>
+        
+        /* Estilos generales */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Paleta de colores */
+        :root {
+            --black: #000000;
+            --gold: #D4AF37;
+            --dark-gold: #B8860B;
+            --light-gold: #F5D98F;
+            --gray: #333333;
+            --light-gray: #f5f5f5;
+            --white: #ffffff;
+        }
+
+        /* Encabezado */
+        header {
+            background-color: var(--black);
+            color: var(--white);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        nav h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--white);
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--gold);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav li {
+            margin-left: 1.5rem;
+        }
+
+        nav li a {
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* Barra de búsqueda */
+        .search-bar {
+            display: flex;
+            max-width: 1200px;
+            margin: 1rem auto 0;
+            padding: 0 2rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gold);
+            border-radius: 4px 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            background-color: var(--gold);
+            color: var(--black);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .search-bar button:hover {
+            background-color: var(--dark-gold);
+        }
+
+        /* Contenido principal */
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            min-height: 70vh;
+        }
+
+        /* Mensajes */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1.5rem 0;
+        }
+
+        .messages li {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .messages .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .messages .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Pie de página */
+        footer {
+            background-color: var(--black);
+            color: var(--white);
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        footer p {
+            text-align: center;
+            margin: 0 0 1rem 0;
+            color: var(--gold);
+        }
+
+        footer ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        footer li {
+            margin: 0 1rem;
+        }
+
+        footer a {
+            color: var(--white);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: var(--gold);
+        }
+
+        /* Efectos y transiciones */
+        a, button {
+            transition: all 0.3s ease;
+        }
+
+        /* Botones */
+        button, .btn {
+            background-color: var(--gold);
+            color: var(--black);
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        button:hover, .btn:hover {
+            background-color: var(--dark-gold);
+            transform: translateY(-2px);
+        }
+
+        /* Efecto dorado especial */
+        .nav-link-special {
+            position: relative;
+        }
+
+        .nav-link-special:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--gold);
+            transition: width 0.3s;
+        }
+
+        .nav-link-special:hover:after {
+            width: 100%;
+        }
+
+        /* Responsividad */
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            nav h1 {
+                margin-bottom: 1rem;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            nav li {
+                margin: 0.5rem;
+            }
+            
+            .search-bar {
+                padding: 0 1rem;
+            }
+            
+            footer ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            footer li {
+                margin: 0.5rem 0;
+            }
+        }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
     {% block extra_head %}{% endblock %}
+
 </head>
 <body>
     <header>
         <nav>
-            <a href="{% url 'tienda:inicio' %}"><h1>Mi Tienda</h1></a>
-                <ul>
-                
-                
-                
-                    
-
-=======
-                <li><a href="{% url 'tienda:lista_productos' %}">Productos</a></li>
-                <li><a href="{% url 'tienda:ver_carrito' %}">Carrito (<span id="cart-count">{{ request.cart.total_items|default:0 }}</span>)</a></li>
+            <a href="{% url 'tienda:inicio' %}"><h1>Alternissi</h1></a>
+            <ul>
+                <li><a href="{% url 'tienda:lista_productos' %}" class="nav-link-special">Productos</a></li>
+                <li><a href="{% url 'tienda:ver_carrito' %}" class="nav-link-special">Carrito (<span id="cart-count">{{ request.cart.total_items|default:0 }}</span>)</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a></li>
+                    <li><a href="{% url 'tienda:cuenta_dashboard' %}" class="nav-link-special">Mi Cuenta</a></li>
                     <li>
                         <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
+                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-link-special">Logout</a>
                     </li>
-
                 {% else %}
-                    <li><a href="{% url 'tienda:login' %}">Login</a></li>
-                    <li><a href="{% url 'tienda:registro' %}">Registrarse</a></li>
+                    <li><a href="{% url 'tienda:login' %}" class="nav-link-special">Login</a></li>
+                    <li><a href="{% url 'tienda:registro' %}" class="nav-link-special">Registrarse</a></li>
                 {% endif %}
-                <li><a href="{% url 'tienda:contacto' %}">Contacto</a></li>
+                <li><a href="{% url 'tienda:contacto' %}" class="nav-link-special">Contacto</a></li>
             </ul>
         </nav>
         <form action="{% url 'tienda:buscar' %}" method="get" class="search-bar">
@@ -43,11 +310,11 @@
         </form>
     </header>
 
-    <main>
+    <main class="fade-in">
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
-                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
@@ -56,14 +323,19 @@
     </main>
 
     <footer>
-        <p>&copy; {% now "Y" %} Mi Tienda. Todos los derechos reservados.</p>
+        <p>&copy; {% now "Y" %} Alternissi. Todos los derechos reservados.</p>
         <ul>
             <li><a href="{% url 'tienda:politica_privacidad' %}">Política de Privacidad</a></li>
             <li><a href="{% url 'tienda:terminos_condiciones' %}">Términos y Condiciones</a></li>
         </ul>
     </footer>
 
-    <script src="{% static 'post/js/script.js' %}"></script>
+
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>
+
+{% load i18n %}
+
+
+
