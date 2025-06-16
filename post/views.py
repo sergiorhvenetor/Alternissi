@@ -7,9 +7,9 @@ from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
-from .forms import CustomUserCreationForm # Añadido
+from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
 from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -790,15 +790,38 @@ def es_administrador(user):
         return False
 
 # --- Vistas de Administración (Protegidas) ---
-@login_required # login_required puede ser redundante si user_passes_test redirige a login
+@login_required
 @user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
-def admin_agregar_producto_view(request):
-    # Aquí iría la lógica para el formulario de agregar producto
-    return HttpResponse("<h1>Página para Agregar Productos (Solo Administradores)</h1><p>Formulario y lógica de creación de productos irían aquí.</p>")
+def agregar_producto_admin_view(request):
+    if not es_administrador(request.user):
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES)
+        if form.is_valid():
+            producto = form.save()
+            messages.success(request, f"Producto '{producto.nombre}' agregado exitosamente.")
+            # Redirigir al detalle del producto o a la lista de productos del admin
+            return redirect(reverse('tienda:detalle_producto', kwargs={'pk': producto.pk, 'slug': producto.slug}))
+    else:
+        form = ProductoForm()
+
+    return render(request, 'post/admin/agregar_producto.html', {'form': form})
 
 @login_required
 @user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
-def admin_agregar_promocion_view(request):
-    # Aquí iría la lógica para el formulario de agregar promoción
-    # Podría ser para crear/gestionar modelos 'Cupon' o similar
-    return HttpResponse("<h1>Página para Agregar Promociones (Solo Administradores)</h1><p>Formulario y lógica de creación de promociones irían aquí.</p>")
+def agregar_promocion_admin_view(request):
+    if not es_administrador(request.user):
+        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+
+    if request.method == 'POST':
+        form = CuponForm(request.POST)
+        if form.is_valid():
+            cupon = form.save()
+            messages.success(request, f"Promoción '{cupon.codigo}' agregada exitosamente.")
+            # Redirigir a alguna página de administración de cupones o a la página principal del admin
+            return redirect(reverse('tienda:inicio')) # Placeholder, cambiar a una URL de admin relevante
+    else:
+        form = CuponForm()
+
+    return render(request, 'post/admin/agregar_promocion.html', {'form': form})

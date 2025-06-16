@@ -96,4 +96,8 @@ urlpatterns = [
     path('contacto/', views.PaginaContactoView.as_view(), name='contacto'),
     path('politica-privacidad/', views.PoliticaPrivacidadView.as_view(), name='politica_privacidad'),
     path('terminos-condiciones/', views.TerminosCondicionesView.as_view(), name='terminos_condiciones'),
+
+    # --- URLs de Administración ---
+    path('admin/productos/nuevo/', views.agregar_producto_admin_view, name='admin_agregar_producto'),
+    path('admin/promociones/nuevo/', views.agregar_promocion_admin_view, name='admin_agregar_promocion'),
 ]

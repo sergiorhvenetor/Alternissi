@@ -1,0 +1,16 @@
+{% extends "post/base.html" %}
+
+{% block title %}Agregar Nuevo Producto - Admin{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Agregar Nuevo Producto</h1>
+  <hr>
+  <form method="post" action="." enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Guardar Producto</button>
+    <a href="{% url 'tienda:inicio' %}" class="btn btn-secondary">Cancelar</a> {# Placeholder, idealmente sería un panel de admin #}
+  </form>
+</div>
+{% endblock content %}

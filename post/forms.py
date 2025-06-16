@@ -1,6 +1,6 @@
 # post/forms.py
 from django import forms
-from .models import Cliente, Resena
+from .models import Cliente, Resena, Producto, Cupon, Categoria
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User # Para acceder a los campos del modelo User
 
@@ -47,4 +47,43 @@ class ResenaForm(forms.ModelForm):
         widgets = {
             'comentario': forms.Textarea(attrs={'rows': 4}),
             'calificacion': forms.RadioSelect(choices=[(i, str(i)) for i in range(1, 6)]),
+        }
+
+
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = [
+            'nombre', 'descripcion', 'caracteristicas', 'precio',
+            'precio_descuento', 'categoria', 'marca', 'talla',
+            'genero', 'color', 'material', 'stock', 'disponible',
+            'destacado', 'nuevo', 'etiquetas'
+        ]
+        widgets = {
+            'descripcion': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class CuponForm(forms.ModelForm):
+    categorias = forms.ModelMultipleChoiceField(
+        queryset=Categoria.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+    productos = forms.ModelMultipleChoiceField(
+        queryset=Producto.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
+    class Meta:
+        model = Cupon
+        fields = [
+            'codigo', 'descripcion', 'tipo_descuento', 'descuento',
+            'fecha_inicio', 'fecha_fin', 'max_usos', 'activo',
+            'minimo_compra', 'categorias', 'productos', 'solo_nuevos_clientes'
+        ]
+        widgets = {
+            'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'fecha_fin': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'descripcion': forms.Textarea(attrs={'rows': 3}),
         }

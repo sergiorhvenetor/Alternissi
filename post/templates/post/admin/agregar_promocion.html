@@ -1,0 +1,30 @@
+{% extends "post/base.html" %}
+
+{% block title %}Agregar Nueva Promoción - Admin{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+  <h1>Agregar Nueva Promoción (Cupón)</h1>
+  <hr>
+  <form method="post" action=".">
+    {% csrf_token %}
+
+    {# Renderizar campos individualmente para mejor control, especialmente para ManyToMany con CheckboxSelectMultiple #}
+    {% for field in form %}
+      <div class="form-group mb-3">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+          <small class="form-text text-muted">{{ field.help_text }}</small>
+        {% endif %}
+        {% for error in field.errors %}
+          <div class="alert alert-danger mt-1">{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Guardar Promoción</button>
+    <a href="{% url 'tienda:inicio' %}" class="btn btn-secondary">Cancelar</a> {# Placeholder, idealmente sería un panel de admin #}
+  </form>
+</div>
+{% endblock content %}
