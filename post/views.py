@@ -206,7 +206,7 @@ class AgregarAlCarritoView(CartMixin, View):
             messages.success(request, f"'{producto.nombre}' añadido al carrito.")
         return redirect('tienda:ver_carrito')
 
-class ActualizarItemCarritoView(View):
+class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
     """Actualiza la cantidad de un item en el carrito (AJAX)."""
     def post(self, request, *args, **kwargs):
         try:
@@ -447,7 +447,7 @@ class PedidoCompletadoView(LoginRequiredMixin, DetailView):
 
 class PagoCanceladoView(TemplateView):
     """Página si el pago es cancelado."""
-    template_name = 'tienda/pago_cancelado.html'
+    template_name = 'post/pago_cancelado.html' # Corrected path
 
 # --- Vistas de la Cuenta del Cliente ---
 
@@ -789,13 +789,14 @@ def es_administrador(user):
     except Cliente.DoesNotExist:
         return False
 
+# --- Vista para Acceso Denegado ---
+class AccesoDenegadoView(TemplateView):
+    template_name = 'post/acceso_denegado.html'
+
 # --- Vistas de Administración (Protegidas) ---
 @login_required
-# @user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login')) # Removido
+@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:acceso_denegado'))
 def agregar_producto_admin_view(request):
-    if not es_administrador(request.user):
-        return render(request, 'post/acceso_denegado.html') # Cambiado
-
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -809,11 +810,8 @@ def agregar_producto_admin_view(request):
     return render(request, 'post/admin/agregar_producto.html', {'form': form})
 
 @login_required
-# @user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login')) # Removido
+@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:acceso_denegado'))
 def agregar_promocion_admin_view(request):
-    if not es_administrador(request.user):
-        return render(request, 'post/acceso_denegado.html') # Cambiado
-
     if request.method == 'POST':
         form = CuponForm(request.POST)
         if form.is_valid():
