@@ -1,0 +1,22 @@
+{% extends 'post/base.html' %}
+
+{% block title %}Acceso Denegado{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card text-center">
+        <div class="card-header">
+          <h4>Acceso Denegado</h4>
+        </div>
+        <div class="card-body">
+          <p class="card-text">Lo sentimos, no tienes los permisos necesarios para acceder a esta página.</p>
+          <p class="card-text">Se requiere rol de administrador.</p>
+          <a href="{% url 'tienda:inicio' %}" class="btn btn-primary">Volver al Inicio</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

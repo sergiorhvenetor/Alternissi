@@ -7,7 +7,7 @@ from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse # HttpResponseForbidden removed
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
 from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
 from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
@@ -791,10 +791,10 @@ def es_administrador(user):
 
 # --- Vistas de Administración (Protegidas) ---
 @login_required
-@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
+# @user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login')) # Removido
 def agregar_producto_admin_view(request):
     if not es_administrador(request.user):
-        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+        return render(request, 'post/acceso_denegado.html') # Cambiado
 
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
@@ -809,10 +809,10 @@ def agregar_producto_admin_view(request):
     return render(request, 'post/admin/agregar_producto.html', {'form': form})
 
 @login_required
-@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
+# @user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login')) # Removido
 def agregar_promocion_admin_view(request):
     if not es_administrador(request.user):
-        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
+        return render(request, 'post/acceso_denegado.html') # Cambiado
 
     if request.method == 'POST':
         form = CuponForm(request.POST)
