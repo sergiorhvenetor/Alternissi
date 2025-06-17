@@ -7,7 +7,7 @@ from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse # HttpResponseForbidden removed
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
 from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
 from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
@@ -206,7 +206,7 @@ class AgregarAlCarritoView(CartMixin, View):
             messages.success(request, f"'{producto.nombre}' añadido al carrito.")
         return redirect('tienda:ver_carrito')
 
-class ActualizarItemCarritoView(View):
+class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
     """Actualiza la cantidad de un item en el carrito (AJAX)."""
     def post(self, request, *args, **kwargs):
         try:
@@ -447,7 +447,7 @@ class PedidoCompletadoView(LoginRequiredMixin, DetailView):
 
 class PagoCanceladoView(TemplateView):
     """Página si el pago es cancelado."""
-    template_name = 'tienda/pago_cancelado.html'
+    template_name = 'post/pago_cancelado.html' # Corrected path
 
 # --- Vistas de la Cuenta del Cliente ---
 
@@ -778,24 +778,9 @@ class TerminosCondicionesView(PaginaEstaticaView):
         context['contenido'] = context['config'].terminos_condiciones if context['config'] else ""
         return context
 
-# --- Funciones de prueba para decoradores ---
-def es_administrador(user):
-    if not user.is_authenticated:
-        return False
-    # Asumimos que el perfil Cliente existe para usuarios autenticados
-    # y que tiene el campo 'rol' que añadimos.
-    try:
-        return user.cliente.rol == Cliente.ROL_ADMINISTRADOR
-    except Cliente.DoesNotExist:
-        return False
-
 # --- Vistas de Administración (Protegidas) ---
 @login_required
-@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
 def agregar_producto_admin_view(request):
-    if not es_administrador(request.user):
-        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
-
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -809,11 +794,7 @@ def agregar_producto_admin_view(request):
     return render(request, 'post/admin/agregar_producto.html', {'form': form})
 
 @login_required
-@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:login'))
 def agregar_promocion_admin_view(request):
-    if not es_administrador(request.user):
-        return HttpResponseForbidden("No tienes permiso para acceder a esta página.")
-
     if request.method == 'POST':
         form = CuponForm(request.POST)
         if form.is_valid():

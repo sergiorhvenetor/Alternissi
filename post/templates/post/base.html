@@ -293,12 +293,6 @@
                 <li><a href="{% url 'tienda:ver_carrito' %}" class="nav-link-special">Carrito (<span id="cart-count">{{ request.cart.total_items|default:0 }}</span>)</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'tienda:cuenta_dashboard' %}" class="nav-link-special">Mi Cuenta</a></li>
-                    {# --- INICIO BOTONES DE ADMINISTRADOR --- #}
-                    {% if user.cliente.rol == 'administrador' %}
-                        <li><a href="{% url 'tienda:admin_agregar_producto' %}" class="nav-link-special btn btn-sm btn-warning">Añadir Producto</a></li>
-                        <li><a href="{% url 'tienda:admin_agregar_promocion' %}" class="nav-link-special btn btn-sm btn-info">Añadir Promoción</a></li>
-                    {% endif %}
-                    {# --- FIN BOTONES DE ADMINISTRADOR --- #}
                     <li>
                         <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
                         <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-link-special">Logout</a>

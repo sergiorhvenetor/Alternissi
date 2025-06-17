@@ -83,12 +83,6 @@ urlpatterns = [
     path('deseos/eliminar/<int:producto_id>/', views.EliminarDeListaDeseosView.as_view(), name='eliminar_de_lista_deseos'),
     path('deseos/mover-a-carrito/<int:producto_id>/', views.MoverDeseoACarritoView.as_view(), name='mover_deseo_a_carrito'),
     
-    # NOTA: Las siguientes vistas para agregar/eliminar de la lista de deseos no están en el
-    # views.py que me pasaste, pero serían el siguiente paso lógico. Deberías crearlas
-    # de forma similar a 'AgregarAlCarritoView'.
-    # path('lista-deseos/agregar/<int:producto_id>/', views.AgregarAListaDeseosView.as_view(), name='agregar_a_lista_deseos'),
-    # path('lista-deseos/eliminar/<int:producto_id>/', views.EliminarDeListaDeseosView.as_view(), name='eliminar_de_lista_deseos'),
-    
     # --- URLs para Reseñas de Productos ---
     path('producto/<int:producto_id>/crear-resena/', views.CrearResenaView.as_view(), name='crear_resena'),
     

@@ -257,11 +257,11 @@ class CarritoAdmin(admin.ModelAdmin):
 
 @admin.register(Cliente)
 class ClienteAdmin(TimeStampedModelAdmin):
-    list_display = ('nombre_completo', 'email', 'rol', 'telefono', 'ciudad', 'pedidos_count', 'fecha_registro')
+    list_display = ('nombre_completo', 'email', 'telefono', 'ciudad', 'pedidos_count', 'fecha_registro')
     search_fields = ('nombre', 'apellido', 'email', 'telefono', 'ciudad')
-    list_filter = ('rol', 'ciudad', 'acepta_marketing', 'creado')
+    list_filter = ('ciudad', 'acepta_marketing', 'creado')
     fieldsets = (
-        (None, {'fields': ('usuario', 'nombre', 'apellido', 'email', 'rol', 'telefono')}),
+        (None, {'fields': ('usuario', 'nombre', 'apellido', 'email', 'telefono')}),
         ('Dirección', {'fields': ('direccion', 'ciudad', 'codigo_postal', 'pais')}),
         ('Otros', {'fields': ('fecha_nacimiento', 'acepta_marketing')}),
     )
