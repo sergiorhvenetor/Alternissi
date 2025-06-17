@@ -778,10 +778,6 @@ class TerminosCondicionesView(PaginaEstaticaView):
         context['contenido'] = context['config'].terminos_condiciones if context['config'] else ""
         return context
 
-# --- Vista para Acceso Denegado ---
-class AccesoDenegadoView(TemplateView):
-    template_name = 'post/acceso_denegado.html'
-
 # --- Vistas de Administración (Protegidas) ---
 @login_required
 def agregar_producto_admin_view(request):
