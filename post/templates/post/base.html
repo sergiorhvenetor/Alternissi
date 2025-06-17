@@ -295,8 +295,8 @@
                     <li><a href="{% url 'tienda:cuenta_dashboard' %}" class="nav-link-special">Mi Cuenta</a></li>
                     {# --- INICIO BOTONES DE ADMINISTRADOR --- #}
                     {% if user.cliente.rol == 'administrador' %}
-                        <li><a href="{% url 'tienda:admin_agregar_producto' %}" class="nav-link-special btn btn-sm btn-warning">Añadir Producto</a></li>
-                        <li><a href="{% url 'tienda:admin_agregar_promocion' %}" class="nav-link-special btn btn-sm btn-info">Añadir Promoción</a></li>
+                        <li><a href="{% url 'tienda:admin_agregar_producto' %}" class="btn btn-sm btn-warning">Añadir Producto</a></li>
+                        <li><a href="{% url 'tienda:admin_agregar_promocion' %}" class="btn btn-sm btn-info">Añadir Promoción</a></li>
                     {% endif %}
                     {# --- FIN BOTONES DE ADMINISTRADOR --- #}
                     <li>
