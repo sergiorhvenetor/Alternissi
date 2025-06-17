@@ -778,24 +778,12 @@ class TerminosCondicionesView(PaginaEstaticaView):
         context['contenido'] = context['config'].terminos_condiciones if context['config'] else ""
         return context
 
-# --- Funciones de prueba para decoradores ---
-def es_administrador(user):
-    if not user.is_authenticated:
-        return False
-    # Asumimos que el perfil Cliente existe para usuarios autenticados
-    # y que tiene el campo 'rol' que añadimos.
-    try:
-        return user.cliente.rol == Cliente.ROL_ADMINISTRADOR
-    except Cliente.DoesNotExist:
-        return False
-
 # --- Vista para Acceso Denegado ---
 class AccesoDenegadoView(TemplateView):
     template_name = 'post/acceso_denegado.html'
 
 # --- Vistas de Administración (Protegidas) ---
 @login_required
-@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:acceso_denegado'))
 def agregar_producto_admin_view(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES)
@@ -810,7 +798,6 @@ def agregar_producto_admin_view(request):
     return render(request, 'post/admin/agregar_producto.html', {'form': form})
 
 @login_required
-@user_passes_test(es_administrador, login_url=reverse_lazy('tienda:acceso_denegado'))
 def agregar_promocion_admin_view(request):
     if request.method == 'POST':
         form = CuponForm(request.POST)

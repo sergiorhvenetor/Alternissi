@@ -274,18 +274,6 @@ class Cliente(TimeStampedModel):
     pais = models.CharField(max_length=100, blank=True)
     fecha_nacimiento = models.DateField(null=True, blank=True)
     acepta_marketing = models.BooleanField(default=False)
-    ROL_CLIENTE = 'cliente'
-    ROL_ADMINISTRADOR = 'administrador'
-    ROLES_USUARIO = [
-        (ROL_CLIENTE, 'Cliente'),
-        (ROL_ADMINISTRADOR, 'Administrador'),
-    ]
-    rol = models.CharField(
-        max_length=20,
-        choices=ROLES_USUARIO,
-        default=ROL_CLIENTE,
-        help_text='Rol del usuario en el sistema'
-    )
 
     class Meta:
         ordering = ['apellido', 'nombre']
