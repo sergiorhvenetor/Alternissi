@@ -204,7 +204,16 @@ class AgregarAlCarritoView(CartMixin, View):
             messages.success(request, f"Cantidad de '{producto.nombre}' actualizada.")
         else:
             messages.success(request, f"'{producto.nombre}' añadido al carrito.")
-        return redirect('tienda:ver_carrito')
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            cart.refresh_from_db() # Asegurar que el carrito esté actualizado
+            return JsonResponse({
+                'success': True,
+                'message': f"'{producto.nombre}' añadido al carrito.",
+                'cart_total_items': cart.total_items
+            })
+        else:
+            return redirect('tienda:ver_carrito')
 
 class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
     """Actualiza la cantidad de un item en el carrito (AJAX)."""
@@ -278,8 +287,31 @@ class EliminarItemCarritoView(CartMixin, View): # Asegurar que hereda de CartMix
         except Exception as e:
             print(f"Error en EliminarItemCarritoView: {e}")
             messages.error(request, "Ocurrió un error al eliminar el item.")
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': 'Ocurrió un error al eliminar el item.'}, status=500)
 
-        return redirect('tienda:ver_carrito') # Redirigir siempre al carrito
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            # Es crucial que el carrito se actualice DESPUÉS de la eliminación del item.
+            # get_cart() llamado aquí de nuevo o refresh_from_db() en el 'cart' existente
+            # debería darnos el estado actualizado. Las propiedades del modelo Carrito
+            # (subtotal, total, total_items) deben calcularse dinámicamente.
+            cart.refresh_from_db() # Opcionalmente, se podría llamar a cart.save() si actualiza timestamps o campos cacheados.
+                                   # Sin embargo, las propiedades suelen ser @property y se calculan al acceder.
+
+            descuento_aplicado = cart.subtotal - cart.total # Calcular después de la actualización del carrito.
+            response_data = {
+                'success': True,
+                'removed': True, # Indicar que el item fue eliminado.
+                'message': f"'{nombre_producto}' eliminado del carrito.",
+                'cart_total_items': cart.total_items,
+                'cart_subtotal_display': cart.subtotal,
+                'cart_total_display': cart.total,
+                'cart_discount_amount_display': descuento_aplicado,
+                'cart_cupon_codigo': cart.cupon.codigo if cart.cupon else None,
+            }
+            return JsonResponse(response_data)
+        else:
+            return redirect('tienda:ver_carrito') # Redirigir siempre al carrito
 
 class AplicarCuponView(CartMixin, View):
     """Aplica un código de cupón al carrito."""
