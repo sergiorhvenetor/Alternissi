@@ -290,7 +290,7 @@
             <a href="{% url 'tienda:inicio' %}"><h1>Alternissi</h1></a>
             <ul>
                 <li><a href="{% url 'tienda:lista_productos' %}" class="nav-link-special">Productos</a></li>
-                <li><a href="{% url 'tienda:ver_carrito' %}" class="nav-link-special">Carrito (<span id="cart-count">{{ request.cart.total_items|default:0 }}</span>)</a></li>
+                <li><a href="{% url 'tienda:ver_carrito' %}" class="nav-link-special">Carrito (<span id="cart-count">{{ cart.total_items|default:0 }}</span>)</a></li>
                 {% if user.is_authenticated %}
                     <li><a href="{% url 'tienda:cuenta_dashboard' %}" class="nav-link-special">Mi Cuenta</a></li>
                     <li>
