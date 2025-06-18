@@ -148,10 +148,10 @@
                         <span>Subtotal:</span>
                         <span>{{ carrito.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
                     </div>
-                    {% if carrito.cupon and carrito.subtotal|sub:carrito.total > 0 %}
+
                     <div class="summary-item">
                         <span>Descuento ({{ carrito.cupon.codigo }}):</span>
-                        <span>- {{ carrito.subtotal|sub:carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+
                     </div>
                     {% endif %}
                     <div class="summary-item summary-total">
@@ -159,9 +159,9 @@
                         <span>{{ carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
                     </div>
                      <button type="submit" class="btn-place-order">Realizar Pedido</button>
-                {% else %}
+               
                     <p>Tu carrito está vacío. No puedes proceder al pago.</p>
-                {% endif %}
+                
             </aside>
         </div>
     </form>

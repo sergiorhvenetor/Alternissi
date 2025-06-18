@@ -52,8 +52,8 @@
             <div class="thumbnail-images">
                 {% for imagen_obj in producto.imagenes.all %}
                     <img src="{{ imagen_obj.imagen.url }}" alt="{{ imagen_obj.alt_text|default:producto.nombre }}"
-                         onclick="document.getElementById('mainProductImage').src='{{ imagen_obj.imagen.url }}'; setActiveThumbnail(this);"
-                         class="{% if imagen_obj.principal or (forloop.first and not producto.imagenes.all.filter.principal) %}active{% endif %}">
+                onclick="document.getElementById('mainProductImage').src='{{ imagen_obj.imagen.url }}'; setActiveThumbnail(this);"
+
                 {% endfor %}
             </div>
         {% endif %}
