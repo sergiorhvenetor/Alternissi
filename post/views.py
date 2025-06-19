@@ -478,6 +478,24 @@ class PedidoCompletadoView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        pedido = self.get_object()  # Pedido ya está en el contexto como 'pedido'
+
+        # Buscar cupón de recompensa generado
+        # El código del cupón de recompensa tiene un prefijo basado en el código del pedido
+        # Formato: f"RECOMP-{pedido.codigo[:10]}-{str(uuid.uuid4())[:4].upper()}"
+        if pedido and pedido.codigo:
+            cupon_recompensa_prefijo = f"RECOMP-{pedido.codigo[:10]}"
+            # Buscamos el cupón que comience con ese prefijo, sea de tipo FIJO y tenga max_usos=1
+            # Ordenamos por '-creado' para obtener el más reciente si hubiera múltiples (aunque no debería)
+            cupon_recompensa = Cupon.objects.filter(
+                codigo__startswith=cupon_recompensa_prefijo,
+                tipo_descuento=Cupon.TipoDescuento.FIJO, # Aseguramos que sea el tipo correcto
+                max_usos=1 # Los cupones de recompensa son de un solo uso
+            ).order_by('-creado').first()
+
+            if cupon_recompensa:
+                context['cupon_recompensa_generado'] = cupon_recompensa
+
         config = ConfiguracionTienda.obtener_configuracion()
         context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
         return context
