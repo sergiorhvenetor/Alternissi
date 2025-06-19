@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Sum, F
 import uuid
+from decimal import Decimal
 
 User = get_user_model()
 
@@ -135,6 +136,13 @@ class Producto(TimeStampedModel):
     destacado = models.BooleanField(default=False)
     nuevo = models.BooleanField(default=False)
     etiquetas = models.ManyToManyField('EtiquetaProducto', blank=True)
+    porcentaje_recompensa = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        null=True,
+        help_text="Porcentaje de recompensa para este producto (ej. 0.10 para 10%)."
+    )
 
     class Meta:
         ordering = ['-creado']
@@ -604,6 +612,32 @@ class Carrito(models.Model):
                 self.cupon.incrementar_uso()
 
             self.vaciar()
+
+            # Calcular y crear cupón de recompensa
+            valor_total_recompensa = Decimal(0.0)
+            for detalle_pedido in pedido.detalles.all():
+                if detalle_pedido.producto.porcentaje_recompensa and detalle_pedido.producto.porcentaje_recompensa > 0:
+                    recompensa_item = (
+                        detalle_pedido.precio *
+                        detalle_pedido.cantidad *
+                        detalle_pedido.producto.porcentaje_recompensa
+                    )
+                    valor_total_recompensa += recompensa_item
+
+            if valor_total_recompensa > Decimal(0.0):
+                codigo_cupon = f"RECOMP-{pedido.codigo[:10]}-{str(uuid.uuid4())[:4].upper()}"
+                Cupon.objects.create(
+                    codigo=codigo_cupon,
+                    descripcion=f"Cupón de recompensa por pedido #{pedido.codigo}. Valor: ${valor_total_recompensa:.2f}",
+                    tipo_descuento=Cupon.TipoDescuento.FIJO,
+                    descuento=valor_total_recompensa.quantize(Decimal('0.01')),
+                    fecha_inicio=timezone.now(),
+                    fecha_fin=timezone.now() + timezone.timedelta(days=30),
+                    max_usos=1,
+                    usos_actuales=0,
+                    activo=True,
+                    minimo_compra=None
+                )
 
         return pedido
 
