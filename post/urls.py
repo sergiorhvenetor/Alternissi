@@ -80,6 +80,7 @@ urlpatterns = [
     # --- URLs de la Lista de Deseos (ListaDeseos) ---
     path('lista-deseos/', views.VerListaDeseosView.as_view(), name='ver_lista_deseos'),
     path('deseos/agregar/<int:producto_id>/', views.AgregarAListaDeseosView.as_view(), name='agregar_a_lista_deseos'),
+    path('deseos/estado/<int:producto_id>/', views.EstadoProductoListaDeseosView.as_view(), name='estado_producto_lista_deseos'), # Nueva URL
     path('deseos/eliminar/<int:producto_id>/', views.EliminarDeListaDeseosView.as_view(), name='eliminar_de_lista_deseos'),
     path('deseos/mover-a-carrito/<int:producto_id>/', views.MoverDeseoACarritoView.as_view(), name='mover_deseo_a_carrito'),
     

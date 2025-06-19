@@ -116,9 +116,10 @@
              <p><small>Stock disponible: {{ producto.stock }}</small></p>
         </form>
         <div style="margin-top: 15px;">
-            <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" class="btn btn-outline-secondary" style="padding:8px 15px; text-decoration:none; border:1px solid #6c757d; color:#6c757d; border-radius:4px;">
-                &#9825; Añadir a Lista de Deseos
-            </a>
+            <span class="boton-lista-deseos" data-producto-id="{{ producto.id }}" style="cursor:pointer; font-size: 1.2em; padding: 8px 10px; border: 1px solid #6c757d; color:#6c757d; border-radius:4px;">
+                <span class="icono-corazon">&#9825;</span> <span class="texto-lista-deseos">Añadir a Lista de Deseos</span>
+            </span>
+            <span class="mensaje-lista-deseos" data-producto-id="{{ producto.id }}" style="display:none; margin-left: 10px;"></span>
         </div>
     </section>
 </div>
