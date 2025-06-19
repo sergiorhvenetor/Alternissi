@@ -14,47 +14,7 @@
 
 {% block content %}
 <div class="container product-listing-page">
-    <!-- Carrusel de productos destacados - Solo se muestra en la página principal -->
-    {% if not categoria_actual and not marca_actual %}
-    <section class="featured-products-slider">
-        <h2>Nuestras 
-            promociones</h2>
-        <div class="slider-container">
-            <div class="slider-track">
-                {% for producto in productos_destacados %}
-                <div class="slide">
-                    <div class="slide-content">
-                        {% if producto.imagenes.first %}
-                            <a href="{{ producto.get_absolute_url }}">
-                                <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
-                            </a>
-                        {% else %}
-                            <a href="{{ producto.get_absolute_url }}">
-                                <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
-                            </a>
-                        {% endif %}
-                        <div class="product-info">
-                            <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
-                            <p class="precio">
-                                {% if producto.tiene_descuento %}
-                                    <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                                    <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                                {% else %}
-                                    {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
-                                {% endif %}
-                            </p>
-                            <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            <button class="slider-btn prev-btn">&lt;</button>
-            <button class="slider-btn next-btn">&gt;</button>
-            <div class="slider-dots"></div>
-        </div>
-    </section>
-    {% endif %}
+
 
     <aside class="filters">
         <h3>Categorías</h3>
