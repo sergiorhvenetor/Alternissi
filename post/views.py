@@ -13,7 +13,7 @@ from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
 from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.db.models import Q, Sum, Value
+from django.db.models import F, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
@@ -75,7 +75,7 @@ class InicioTiendaView(TemplateView):
         # context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True)[:8]
 
         # Modificado:
-        productos_destacados_query = Producto.objects.filter(disponible=True).annotate(
+        productos_destacados_query = Producto.objects.filter(disponible=True, precio_descuento__isnull=False, precio_descuento__lt=F('precio')).annotate(
             total_vendido=Coalesce(Sum('ventas__cantidad'), Value(0))
         ).order_by('-total_vendido', '-destacado', '-creado')
 
