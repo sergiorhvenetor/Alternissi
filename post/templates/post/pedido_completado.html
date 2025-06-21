@@ -103,18 +103,6 @@
         </div>
     </div>
 
-    {% if cupon_recompensa_generado %}
-    <div class="reward-coupon-info" style="margin-top: 20px; padding:15px; background-color:#d1ecf1; border-left:4px solid #007bff; color:#0c5460; text-align:left;">
-        <h4>¡Has ganado un cupón de recompensa!</h4>
-        <p>Gracias por tu compra. Puedes usar el siguiente cupón en tu próximo pedido:</p>
-        <ul>
-            <li><strong>Código:</strong> {{ cupon_recompensa_generado.codigo }}</li>
-            <li><strong>Descuento:</strong> {{ cupon_recompensa_generado.descuento|floatformat:2 }} {{ moneda_simbolo|default:'$' }}</li>
-            <li><strong>Válido hasta:</strong> {{ cupon_recompensa_generado.fecha_fin|date:"d F Y" }}</li>
-        </ul>
-        <p>Guarda este código para tu futura compra.</p>
-    </div>
-    {% endif %}
 
     <div class="next-steps">
         <p>Recibirás un correo electrónico de confirmación en breve con los detalles de tu pedido. Puedes revisar el estado de tu pedido en la sección "Mis Pedidos" de tu cuenta.</p>

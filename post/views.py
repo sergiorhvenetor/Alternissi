@@ -604,52 +604,25 @@ class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 class AgregarAListaDeseosView(LoginRequiredMixin, View):
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs): # Puede ser GET o POST
         producto_id = self.kwargs.get('producto_id')
-        try:
-            producto = get_object_or_404(Producto, id=producto_id)
-            cliente, _ = Cliente.objects.get_or_create(
-                usuario=request.user,
-                defaults={'email': request.user.email, 'nombre': request.user.first_name or request.user.username}
-            )
-            lista_deseos, _ = ListaDeseos.objects.get_or_create(cliente=cliente)
+        producto = get_object_or_404(Producto, id=producto_id)
 
-            agregado = False
-            if producto in lista_deseos.productos.all():
-                lista_deseos.remover_producto(producto) # Usa el método del modelo
-                mensaje = f"{producto.nombre} se quitó de la lista de deseos"
-                agregado = False
-                if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    messages.success(request, mensaje) # Usar success para indicar operación exitosa
-            else:
-                lista_deseos.agregar_producto(producto) # Usa el método del modelo
-                mensaje = f"{producto.nombre} se añadió en la lista de deseos"
-                agregado = True
-                if not request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    messages.success(request, mensaje)
+        cliente, _ = Cliente.objects.get_or_create(
+            usuario=request.user,
+            defaults={'email': request.user.email, 'nombre': request.user.first_name or request.user.username}
+        )
+        lista_deseos, _ = ListaDeseos.objects.get_or_create(cliente=cliente)
 
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'agregado': agregado, 'mensaje': mensaje})
-
-        except Producto.DoesNotExist:
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'error': 'Producto no encontrado.'}, status=404)
-            messages.error(request, "El producto no existe.")
-            # Redirigir a una página segura, como la lista de productos o el inicio
-            return redirect('tienda:lista_productos')
-        except Exception as e:
-            # Loguear el error e
-            print(f"Error en AgregarAListaDeseosView: {e}")
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'error': 'Ocurrió un error inesperado.'}, status=500)
-            messages.error(request, "Ocurrió un error inesperado.")
-            # Redirigir a una página segura
-            return redirect('tienda:lista_productos')
+        if producto not in lista_deseos.productos.all():
+            lista_deseos.agregar_producto(producto) # Usa el método del modelo
+            messages.success(request, f"'{producto.nombre}' ha sido añadido a tu lista de deseos.")
+        else:
+            messages.info(request, f"'{producto.nombre}' ya está en tu lista de deseos.")
 
         referer_url = request.META.get('HTTP_REFERER')
         if referer_url:
             return redirect(referer_url)
-        # Fallback si no hay referer (aunque para POST es menos común que falte)
         return redirect('tienda:detalle_producto', pk=producto.id, slug=producto.slug)
 
 class EliminarDeListaDeseosView(LoginRequiredMixin, View):
@@ -722,36 +695,6 @@ class MoverDeseoACarritoView(LoginRequiredMixin, CartMixin, View):
             return redirect('tienda:ver_lista_deseos')
 
         return redirect('tienda:ver_carrito')
-
-class EstadoProductoListaDeseosView(LoginRequiredMixin, View):
-    """
-    Comprueba si un producto específico está en la lista de deseos del usuario actual
-    y devuelve el estado como JSON.
-    """
-    def get(self, request, *args, **kwargs):
-        producto_id = self.kwargs.get('producto_id')
-        try:
-            producto = get_object_or_404(Producto, id=producto_id)
-
-            # No es necesario crear el cliente aquí si solo estamos consultando.
-            # Si el cliente no existe, tampoco tendrá lista de deseos.
-            # Usar filter().first() para evitar crear un cliente innecesariamente.
-            cliente = Cliente.objects.filter(usuario=request.user).first()
-            esta_en_lista = False
-
-            if cliente:
-                lista_deseos = ListaDeseos.objects.filter(cliente=cliente).first()
-                if lista_deseos and producto in lista_deseos.productos.all():
-                    esta_en_lista = True
-
-            return JsonResponse({'esta_en_lista': esta_en_lista})
-
-        except Producto.DoesNotExist:
-            return JsonResponse({'error': 'Producto no encontrado.', 'esta_en_lista': False}, status=404)
-        except Exception as e:
-            # Loguear el error real en el servidor
-            print(f"Error en EstadoProductoListaDeseosView: {e}")
-            return JsonResponse({'error': 'Ocurrió un error inesperado.', 'esta_en_lista': False}, status=500)
 
 # --- Vistas de Lista de Deseos y Reseñas ---
 

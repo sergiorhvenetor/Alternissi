@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Sum, F
 import uuid
-from decimal import Decimal
+
 
 User = get_user_model()
 
@@ -51,6 +51,38 @@ class Categoria(TimeStampedModel):
         # Validación adicional si es necesaria
         if len(self.nombre) < 2:
             raise ValidationError("El nombre de la categoría es demasiado corto.")
+
+class ItemCarrito(models.Model):
+    carrito = models.ForeignKey(
+        Carrito, 
+        related_name='items', 
+        on_delete=models.CASCADE
+    )
+    producto = models.ForeignKey(
+        Producto, 
+        on_delete=models.CASCADE
+    )
+    cantidad = models.PositiveIntegerField(default=1)
+    precio = models.DecimalField(max_digits=12, decimal_places=2)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('carrito', 'producto')
+        verbose_name = 'ítem de carrito'
+        verbose_name_plural = 'ítems de carrito'
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre}"
+
+    @property
+    def subtotal(self):
+        return self.precio * self.cantidad
+
+    def save(self, *args, **kwargs):
+        # Actualizar el precio al guardar para reflejar cambios en el producto
+        self.precio = self.producto.precio_actual
+        super().save(*args, **kwargs)
 
 
 class Marca(TimeStampedModel):
@@ -136,13 +168,7 @@ class Producto(TimeStampedModel):
     destacado = models.BooleanField(default=False)
     nuevo = models.BooleanField(default=False)
     etiquetas = models.ManyToManyField('EtiquetaProducto', blank=True)
-    porcentaje_recompensa = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=0,
-        null=True,
-        help_text="Porcentaje de recompensa para este producto (ej. 0.10 para 10%)."
-    )
+    
 
     class Meta:
         ordering = ['-creado']
@@ -614,40 +640,15 @@ class Carrito(models.Model):
             self.vaciar()
 
             # Calcular y crear cupón de recompensa
-            valor_total_recompensa = Decimal(0.0)
-            for detalle_pedido in pedido.detalles.all():
-                if detalle_pedido.producto.porcentaje_recompensa and detalle_pedido.producto.porcentaje_recompensa > 0:
-                    recompensa_item = (
-                        detalle_pedido.precio *
-                        detalle_pedido.cantidad *
-                        detalle_pedido.producto.porcentaje_recompensa
-                    )
-                    valor_total_recompensa += recompensa_item
+            # valor_total_recompensa = Decimal(0.0)
+            # for detalle_pedido in pedido.detalles.all():
+            #     if detalle_pedido.producto.porcentaje_recompensa and detalle_pedido.producto.porcentaje_recompensa > 0:
+            #         recompensa_item = (
+            #             detalle_pedido.precio *
 
-            if valor_total_recompensa > Decimal(0.0):
-                codigo_cupon = f"RECOMP-{pedido.codigo[:10]}-{str(uuid.uuid4())[:4].upper()}"
-                Cupon.objects.create(
-                    codigo=codigo_cupon,
-                    descripcion=f"Cupón de recompensa por pedido #{pedido.codigo}. Valor: ${valor_total_recompensa:.2f}",
-                    tipo_descuento=Cupon.TipoDescuento.FIJO,
-                    descuento=valor_total_recompensa.quantize(Decimal('0.01')),
-                    fecha_inicio=timezone.now(),
-                    fecha_fin=timezone.now() + timezone.timedelta(days=30),
-                    max_usos=1,
-                    usos_actuales=0,
-                    activo=True,
-                    minimo_compra=None
-                )
-
-        return pedido
-
-
-class ItemCarrito(models.Model):
-    carrito = models.ForeignKey(
-        Carrito, 
-        related_name='items', 
-        on_delete=models.CASCADE
-    )
+                # related_name='items', 
+                # on_delete=models.CASCADE
+                    # )
     producto = models.ForeignKey(
         Producto, 
         on_delete=models.CASCADE

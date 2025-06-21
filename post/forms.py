@@ -57,7 +57,7 @@ class ProductoForm(forms.ModelForm):
             'nombre', 'descripcion', 'caracteristicas', 'precio',
             'precio_descuento', 'categoria', 'marca', 'talla',
             'genero', 'color', 'material', 'stock', 'disponible',
-            'destacado', 'nuevo', 'etiquetas', 'porcentaje_recompensa'
+            'destacado', 'nuevo', 'etiquetas', 
         ]
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 4}),

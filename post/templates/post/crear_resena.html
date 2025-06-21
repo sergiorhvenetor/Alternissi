@@ -68,10 +68,11 @@
         <div class="form-group">
             <label>Calificación:</label>
             <div class="rating-stars" id="id_calificacion_stars">
-                {% for radio_input in form.calificacion reversed %}
-                    <input type="radio" name="{{ radio_input.name }}" id="{{ radio_input.id_for_label }}" value="{{ radio_input.choice_value }}" {% if radio_input.choice_value == form.calificacion.value|stringformat:"s" %}checked{% endif %} {% if radio_input.choice_value == "1" and not form.calificacion.value and form.calificacion.field.required %}required{% endif %}>
-                    <label for="{{ radio_input.id_for_label }}">&#9733;</label>
-                {% endfor %}
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_5" value="5" {% if form.calificacion.value|stringformat:"s" == "5" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_5">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_4" value="4" {% if form.calificacion.value|stringformat:"s" == "4" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_4">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_3" value="3" {% if form.calificacion.value|stringformat:"s" == "3" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_3">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_2" value="2" {% if form.calificacion.value|stringformat:"s" == "2" %}checked{% endif %}><label for="id_{{ form.calificacion.name }}_2">&#9733;</label>
+                <input type="radio" name="{{ form.calificacion.name }}" id="id_{{ form.calificacion.name }}_1" value="1" {% if form.calificacion.value|stringformat:"s" == "1" %}checked{% endif %} required><label for="id_{{ form.calificacion.name }}_1">&#9733;</label>
             </div>
             {% if form.calificacion.errors %}<ul class="errorlist">{% for error in form.calificacion.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
         </div>
