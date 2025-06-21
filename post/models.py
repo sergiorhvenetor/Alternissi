@@ -52,39 +52,6 @@ class Categoria(TimeStampedModel):
         if len(self.nombre) < 2:
             raise ValidationError("El nombre de la categoría es demasiado corto.")
 
-class ItemCarrito(models.Model):
-    carrito = models.ForeignKey(
-        'Carrito',
-        related_name='items', 
-        on_delete=models.CASCADE
-    )
-    producto = models.ForeignKey(
-        Producto, 
-        on_delete=models.CASCADE
-    )
-    cantidad = models.PositiveIntegerField(default=1)
-    precio = models.DecimalField(max_digits=12, decimal_places=2)
-    creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('carrito', 'producto')
-        verbose_name = 'ítem de carrito'
-        verbose_name_plural = 'ítems de carrito'
-
-    def __str__(self):
-        return f"{self.cantidad} x {self.producto.nombre}"
-
-    @property
-    def subtotal(self):
-        return self.precio * self.cantidad
-
-    def save(self, *args, **kwargs):
-        # Actualizar el precio al guardar para reflejar cambios en el producto
-        self.precio = self.producto.precio_actual
-        super().save(*args, **kwargs)
-
-
 class Marca(TimeStampedModel):
     nombre = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True, allow_unicode=True)
@@ -109,6 +76,23 @@ class Marca(TimeStampedModel):
             self.slug = slugify(self.nombre, allow_unicode=True)
         super().save(*args, **kwargs)
 
+class EtiquetaProducto(TimeStampedModel):
+    nombre = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(max_length=50, unique=True, allow_unicode=True)
+    color = models.CharField(max_length=7, default='#000000')  # Código HEX
+
+    class Meta:
+        ordering = ['nombre']
+        verbose_name = 'etiqueta de producto'
+        verbose_name_plural = 'etiquetas de producto'
+
+    def __str__(self):
+        return self.nombre
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nombre, allow_unicode=True)
+        super().save(*args, **kwargs)
 
 class Producto(TimeStampedModel):
     class Talla(models.TextChoices):
@@ -169,7 +153,6 @@ class Producto(TimeStampedModel):
     nuevo = models.BooleanField(default=False)
     etiquetas = models.ManyToManyField('EtiquetaProducto', blank=True)
     
-
     class Meta:
         ordering = ['-creado']
         indexes = [
@@ -223,26 +206,6 @@ class Producto(TimeStampedModel):
         self.stock -= cantidad
         self.save()
 
-
-class EtiquetaProducto(TimeStampedModel):
-    nombre = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=50, unique=True, allow_unicode=True)
-    color = models.CharField(max_length=7, default='#000000')  # Código HEX
-
-    class Meta:
-        ordering = ['nombre']
-        verbose_name = 'etiqueta de producto'
-        verbose_name_plural = 'etiquetas de producto'
-
-    def __str__(self):
-        return self.nombre
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.nombre, allow_unicode=True)
-        super().save(*args, **kwargs)
-
-
 class ImagenProducto(TimeStampedModel):
     producto = models.ForeignKey(
         Producto, 
@@ -289,7 +252,6 @@ class ImagenProducto(TimeStampedModel):
             
         super().save(*args, **kwargs)
 
-
 class Cliente(TimeStampedModel):
     usuario = models.OneToOneField(
         User,
@@ -323,6 +285,191 @@ class Cliente(TimeStampedModel):
     def nombre_completo(self):
         return f"{self.nombre} {self.apellido}"
 
+class Cupon(TimeStampedModel):
+    class TipoDescuento(models.TextChoices):
+        PORCENTAJE = 'porcentaje', 'Porcentaje'
+        FIJO = 'fijo', 'Monto Fijo'
+
+    codigo = models.CharField(max_length=50, unique=True)
+    descripcion = models.TextField(blank=True)
+    tipo_descuento = models.CharField(
+        max_length=10,
+        choices=TipoDescuento.choices,
+        default=TipoDescuento.PORCENTAJE
+    )
+    descuento = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha_inicio = models.DateTimeField()
+    fecha_fin = models.DateTimeField()
+    max_usos = models.PositiveIntegerField(default=0)  # 0 = ilimitado
+    usos_actuales = models.PositiveIntegerField(default=0, editable=False)
+    activo = models.BooleanField(default=True)
+    minimo_compra = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    categorias = models.ManyToManyField(Categoria, blank=True)
+    productos = models.ManyToManyField(Producto, blank=True)
+    solo_nuevos_clientes = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-fecha_inicio']
+        verbose_name_plural = 'cupones'
+        indexes = [
+            models.Index(fields=['codigo']),
+            models.Index(fields=['activo']),
+            models.Index(fields=['fecha_inicio', 'fecha_fin']),
+        ]
+
+    def __str__(self):
+        return self.codigo
+
+    def es_valido(self, cliente=None, subtotal=0):
+        """Verifica si el cupón es válido para su uso."""
+        ahora = timezone.now()
+
+        condiciones = [
+            self.activo,
+            self.fecha_inicio <= ahora <= self.fecha_fin,
+            self.max_usos == 0 or self.usos_actuales < self.max_usos,
+            subtotal >= (self.minimo_compra or 0)
+        ]
+
+        if self.solo_nuevos_clientes and cliente:
+            # Se necesita el modelo Pedido aquí, así que lo importamos localmente
+            # o nos aseguramos que Pedido esté definido antes si es posible.
+            # Por ahora, asumimos que Pedido ya está definido o se importará.
+            condiciones.append(
+                not Pedido.objects.filter(cliente=cliente, estado=Pedido.Estado.COMPLETADO).exists()
+            )
+
+        return all(condiciones)
+
+    def aplicar_descuento(self, monto):
+        """Aplica el descuento al monto especificado."""
+        if self.tipo_descuento == self.TipoDescuento.PORCENTAJE:
+            return monto * (self.descuento / 100)
+        return min(self.descuento, monto)
+
+    def incrementar_uso(self):
+        """Incrementa el contador de usos del cupón."""
+        self.usos_actuales = models.F('usos_actuales') + 1
+        self.save(update_fields=['usos_actuales'])
+
+class Carrito(models.Model):
+    cliente = models.OneToOneField(
+        Cliente,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='carrito'
+    )
+    session_key = models.CharField(max_length=40, blank=True, db_index=True)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+    cupon = models.ForeignKey(
+        Cupon,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['session_key']),
+        ]
+
+    def __str__(self):
+        if self.cliente:
+            return f"Carrito de {self.cliente}"
+        return f"Carrito (sesión: {self.session_key})"
+
+    @property
+    def total_items(self):
+        # Asegurarse que ItemCarrito esté definido.
+        return self.items.aggregate(total=Sum('cantidad'))['total'] or 0
+
+    @property
+    def subtotal(self):
+        # Asegurarse que ItemCarrito esté definido.
+        return sum(item.subtotal for item in self.items.all())
+
+    @property
+    def total(self):
+        descuento = 0
+        if self.cupon and self.cupon.es_valido(subtotal=self.subtotal): # cliente es None aquí.
+            descuento = self.cupon.aplicar_descuento(self.subtotal)
+        return self.subtotal - descuento
+
+    def vaciar(self):
+        """Elimina todos los items del carrito."""
+        self.items.all().delete() # Asegurarse que ItemCarrito esté definido
+        self.cupon = None
+        self.save()
+
+    def convertir_a_pedido(self, cliente, direccion_envio, direccion_facturacion, metodo_pago):
+        """Convierte el carrito en un pedido."""
+        from django.db import transaction # Pedido y DetallePedido deben estar definidos.
+
+        with transaction.atomic():
+            pedido = Pedido.objects.create(
+                cliente=cliente,
+                direccion_envio=direccion_envio,
+                direccion_facturacion=direccion_facturacion,
+                metodo_pago=metodo_pago,
+                subtotal=self.subtotal,
+                descuento=self.subtotal - self.total, # self.total llama a cupon.es_valido sin cliente
+                total=self.total,
+                cupon=self.cupon
+            )
+
+            for item in self.items.all(): # ItemCarrito debe estar definido
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    producto=item.producto,
+                    precio=item.precio,
+                    cantidad=item.cantidad
+                )
+                item.producto.reducir_stock(item.cantidad)
+
+            if self.cupon:
+                self.cupon.incrementar_uso()
+
+            self.vaciar()
+            # El código de recompensa estaba comentado, se mantiene así.
+
+class ItemCarrito(models.Model):
+    carrito = models.ForeignKey(
+        'Carrito', # Ahora Carrito está antes, así que esto es seguro.
+        related_name='items',
+        on_delete=models.CASCADE
+    )
+    producto = models.ForeignKey(
+        Producto, # Producto está antes, seguro.
+        on_delete=models.CASCADE
+    )
+    cantidad = models.PositiveIntegerField(default=1)
+    precio = models.DecimalField(max_digits=12, decimal_places=2)
+    creado = models.DateTimeField(auto_now_add=True)
+    actualizado = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('carrito', 'producto')
+        verbose_name = 'ítem de carrito'
+        verbose_name_plural = 'ítems de carrito'
+
+    def __str__(self):
+        return f"{self.cantidad} x {self.producto.nombre}"
+
+    @property
+    def subtotal(self):
+        return self.precio * self.cantidad
+
+    def save(self, *args, **kwargs):
+        # Actualizar el precio al guardar para reflejar cambios en el producto
+        self.precio = self.producto.precio_actual
+        super().save(*args, **kwargs)
 
 class Pedido(TimeStampedModel):
     class Estado(models.TextChoices):
@@ -340,7 +487,7 @@ class Pedido(TimeStampedModel):
         CONTRAENTREGA = 'contraentrega', 'Contraentrega'
 
     cliente = models.ForeignKey(
-        Cliente, 
+        Cliente, # Cliente está antes, seguro.
         related_name='pedidos', 
         on_delete=models.PROTECT
     )
@@ -359,7 +506,7 @@ class Pedido(TimeStampedModel):
         max_length=20, 
         choices=MetodoPago.choices
     )
-    direccion_envio = models.JSONField()  # Almacena la dirección como JSON
+    direccion_envio = models.JSONField()
     direccion_facturacion = models.JSONField()
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
     descuento = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -369,7 +516,7 @@ class Pedido(TimeStampedModel):
     notas = models.TextField(blank=True)
     transaccion_id = models.CharField(max_length=100, blank=True)
     cupon = models.ForeignKey(
-        'Cupon', 
+        Cupon, # Cupon está antes, seguro.
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True
@@ -402,10 +549,12 @@ class Pedido(TimeStampedModel):
 
     @property
     def items(self):
+        # DetallePedido debe estar definido
         return self.detalles.all()
 
     def calcular_total(self):
         """Calcula el total del pedido basado en sus items."""
+        # DetallePedido debe estar definido
         agregado = self.detalles.aggregate(
             subtotal=Sum(F('precio') * F('cantidad'))
         )
@@ -419,15 +568,14 @@ class Pedido(TimeStampedModel):
         self.transaccion_id = transaccion_id
         self.save()
 
-
 class DetallePedido(TimeStampedModel):
     pedido = models.ForeignKey(
-        Pedido, 
+        Pedido, # Pedido está antes, seguro.
         related_name='detalles', 
         on_delete=models.CASCADE
     )
     producto = models.ForeignKey(
-        Producto, 
+        Producto, # Producto está antes, seguro.
         on_delete=models.PROTECT,
         related_name='ventas'
     )
@@ -447,15 +595,14 @@ class DetallePedido(TimeStampedModel):
         self.subtotal = self.precio * self.cantidad
         super().save(*args, **kwargs)
 
-
 class Resena(TimeStampedModel):
     producto = models.ForeignKey(
-        Producto, 
+        Producto, # Producto está antes, seguro.
         related_name='resenas', 
         on_delete=models.CASCADE
     )
     cliente = models.ForeignKey(
-        Cliente, 
+        Cliente, # Cliente está antes, seguro.
         on_delete=models.CASCADE,
         related_name='resenas'
     )
@@ -489,174 +636,13 @@ class Resena(TimeStampedModel):
         self.respuesta_fecha = timezone.now()
         self.save()
 
-
-class Cupon(TimeStampedModel):
-    class TipoDescuento(models.TextChoices):
-        PORCENTAJE = 'porcentaje', 'Porcentaje'
-        FIJO = 'fijo', 'Monto Fijo'
-
-    codigo = models.CharField(max_length=50, unique=True)
-    descripcion = models.TextField(blank=True)
-    tipo_descuento = models.CharField(
-        max_length=10, 
-        choices=TipoDescuento.choices,
-        default=TipoDescuento.PORCENTAJE
-    )
-    descuento = models.DecimalField(max_digits=10, decimal_places=2)
-    fecha_inicio = models.DateTimeField()
-    fecha_fin = models.DateTimeField()
-    max_usos = models.PositiveIntegerField(default=0)  # 0 = ilimitado
-    usos_actuales = models.PositiveIntegerField(default=0, editable=False)
-    activo = models.BooleanField(default=True)
-    minimo_compra = models.DecimalField(
-        max_digits=12, 
-        decimal_places=2, 
-        null=True, 
-        blank=True
-    )
-    categorias = models.ManyToManyField(Categoria, blank=True)
-    productos = models.ManyToManyField(Producto, blank=True)
-    solo_nuevos_clientes = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ['-fecha_inicio']
-        verbose_name_plural = 'cupones'
-        indexes = [
-            models.Index(fields=['codigo']),
-            models.Index(fields=['activo']),
-            models.Index(fields=['fecha_inicio', 'fecha_fin']),
-        ]
-
-    def __str__(self):
-        return self.codigo
-
-    def es_valido(self, cliente=None, subtotal=0):
-        """Verifica si el cupón es válido para su uso."""
-        ahora = timezone.now()
-        
-        condiciones = [
-            self.activo,
-            self.fecha_inicio <= ahora <= self.fecha_fin,
-            self.max_usos == 0 or self.usos_actuales < self.max_usos,
-            subtotal >= (self.minimo_compra or 0)
-        ]
-        
-        if self.solo_nuevos_clientes and cliente:
-            condiciones.append(
-                not cliente.pedidos.filter(estado=Pedido.Estado.COMPLETADO).exists()
-            )
-            
-        return all(condiciones)
-
-    def aplicar_descuento(self, monto):
-        """Aplica el descuento al monto especificado."""
-        if self.tipo_descuento == self.TipoDescuento.PORCENTAJE:
-            return monto * (self.descuento / 100)
-        return min(self.descuento, monto)
-
-    def incrementar_uso(self):
-        """Incrementa el contador de usos del cupón."""
-        self.usos_actuales = models.F('usos_actuales') + 1
-        self.save(update_fields=['usos_actuales'])
-
-
-class Carrito(models.Model):
-    cliente = models.OneToOneField(
-        Cliente,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='carrito'
-    )
-    session_key = models.CharField(max_length=40, blank=True, db_index=True)
-    creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
-    cupon = models.ForeignKey(
-        Cupon,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['session_key']),
-        ]
-
-    def __str__(self):
-        if self.cliente:
-            return f"Carrito de {self.cliente}"
-        return f"Carrito (sesión: {self.session_key})"
-
-    @property
-    def total_items(self):
-        return self.items.aggregate(total=Sum('cantidad'))['total'] or 0
-
-    @property
-    def subtotal(self):
-        return sum(item.subtotal for item in self.items.all())
-
-    @property
-    def total(self):
-        descuento = 0
-        if self.cupon and self.cupon.es_valido(subtotal=self.subtotal):
-            descuento = self.cupon.aplicar_descuento(self.subtotal)
-        return self.subtotal - descuento
-
-    def vaciar(self):
-        """Elimina todos los items del carrito."""
-        self.items.all().delete()
-        self.cupon = None
-        self.save()
-
-    def convertir_a_pedido(self, cliente, direccion_envio, direccion_facturacion, metodo_pago):
-        """Convierte el carrito en un pedido."""
-        from django.db import transaction
-
-        with transaction.atomic():
-            pedido = Pedido.objects.create(
-                cliente=cliente,
-                direccion_envio=direccion_envio,
-                direccion_facturacion=direccion_facturacion,
-                metodo_pago=metodo_pago,
-                subtotal=self.subtotal,
-                descuento=self.subtotal - self.total,
-                total=self.total,
-                cupon=self.cupon
-            )
-
-            for item in self.items.all():
-                DetallePedido.objects.create(
-                    pedido=pedido,
-                    producto=item.producto,
-                    precio=item.precio,
-                    cantidad=item.cantidad
-                )
-                item.producto.reducir_stock(item.cantidad)
-
-            if self.cupon:
-                self.cupon.incrementar_uso()
-
-            self.vaciar()
-
-            # Calcular y crear cupón de recompensa
-            # valor_total_recompensa = Decimal(0.0)
-            # for detalle_pedido in pedido.detalles.all():
-            #     if detalle_pedido.producto.porcentaje_recompensa and detalle_pedido.producto.porcentaje_recompensa > 0:
-            #         recompensa_item = (
-            #             detalle_pedido.precio *
-
-                # related_name='items', 
-                # on_delete=models.CASCADE
-                    # )
-
 class ListaDeseos(models.Model):
     cliente = models.OneToOneField(
-        Cliente,
+        Cliente, # Cliente está antes, seguro.
         on_delete=models.CASCADE,
         related_name='lista_deseos'
     )
-    productos = models.ManyToManyField(Producto)
+    productos = models.ManyToManyField(Producto) # Producto está antes, seguro.
     creado = models.DateTimeField(auto_now_add=True)
     actualizado = models.DateTimeField(auto_now=True)
 
@@ -675,7 +661,7 @@ class ListaDeseos(models.Model):
         """Remueve un producto de la lista de deseos."""
         self.productos.remove(producto)
 
-    def mover_a_carrito(self, producto, carrito):
+    def mover_a_carrito(self, producto, carrito): # Carrito e ItemCarrito deben estar definidos
         """Mueve un producto de la lista de deseos al carrito."""
         item, created = carrito.items.get_or_create(
             producto=producto,
@@ -685,7 +671,6 @@ class ListaDeseos(models.Model):
             item.cantidad += 1
             item.save()
         self.remover_producto(producto)
-
 
 class ConfiguracionTienda(models.Model):
     nombre_tienda = models.CharField(max_length=100)
@@ -705,7 +690,7 @@ class ConfiguracionTienda(models.Model):
     email_contacto = models.EmailField(blank=True)
     direccion = models.TextField(blank=True)
     horario_atencion = models.CharField(max_length=100, blank=True)
-    redes_sociales = models.JSONField(default=dict, blank=True)  # {facebook: url, instagram: url, etc.}
+    redes_sociales = models.JSONField(default=dict, blank=True)
     politica_privacidad = models.TextField(blank=True)
     terminos_condiciones = models.TextField(blank=True)
     activo = models.BooleanField(default=True)
@@ -733,7 +718,6 @@ class ConfiguracionTienda(models.Model):
         return self.nombre_tienda
 
     def save(self, *args, **kwargs):
-        # Asegurarse de que solo haya una configuración activa
         if self.activo:
             ConfiguracionTienda.objects.exclude(id=self.id).update(activo=False)
         super().save(*args, **kwargs)
