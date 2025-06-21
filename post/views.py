@@ -70,11 +70,6 @@ class InicioTiendaView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Original:
-        # context['productos_destacados'] = Producto.objects.filter(disponible=True, destacado=True)[:8]
-        # context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True)[:8]
-
-        # Modificado:
         productos_destacados_query = Producto.objects.filter(disponible=True, precio_descuento__isnull=False, precio_descuento__lt=F('precio')).annotate(
             total_vendido=Coalesce(Sum('ventas__cantidad'), Value(0))
         ).order_by('-total_vendido', '-destacado', '-creado')
@@ -96,7 +91,6 @@ class ListaProductosView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        # Original: queryset = super().get_queryset().filter(disponible=True)
         queryset = super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes')
 
         categoria_slug = self.kwargs.get('categoria_slug')
@@ -128,7 +122,6 @@ class DetalleProductoView(DetailView):
     # slug_url_kwarg = 'slug' # Already present in models.py get_absolute_url
 
     def get_queryset(self):
-        # Original: return super().get_queryset().filter(disponible=True)
         return super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes', 'resenas__cliente')
 
     def get_context_data(self, **kwargs):
@@ -527,8 +520,6 @@ class CuentaDashboardView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # self.object es el cliente obtenido por get_object()
-        # Original: context['ultimos_pedidos'] = self.object.pedidos.all()[:5]
-        # Optimizado:
         context['ultimos_pedidos'] = self.object.pedidos.select_related('cupon').order_by('-creado')[:5]
 
         config = ConfiguracionTienda.obtener_configuracion()
@@ -542,7 +533,6 @@ class ListaPedidosClienteView(LoginRequiredMixin, ListView):
     paginate_by = 10 # Añadir paginación
 
     def get_queryset(self):
-        # Original: return Pedido.objects.filter(cliente__usuario=self.request.user)
         return Pedido.objects.filter(
             cliente__usuario=self.request.user
         ).select_related('cupon').order_by('-creado') # Optimizar y ordenar
@@ -560,7 +550,6 @@ class DetallePedidoClienteView(LoginRequiredMixin, DetailView):
     pk_url_kwarg = 'pedido_id' # Ya estaba definido
 
     def get_queryset(self):
-        # Original: return super().get_queryset().filter(cliente__usuario=self.request.user)
         return super().get_queryset().filter(
             cliente__usuario=self.request.user
         ).select_related(
@@ -707,8 +696,6 @@ class VerListaDeseosView(LoginRequiredMixin, DetailView):
         # El cliente se obtiene o crea en el dashboard o al editar perfil.
         # Aquí asumimos que ya existe si el usuario está logueado y accede a su lista de deseos.
         # Si no, get_or_create es seguro.
-        # cliente = get_object_or_404(Cliente, usuario=self.request.user) # Original get_object_or_404
-        # Reemplazado con get_or_create para mayor robustez, aunque otras vistas ya podrían haberlo creado.
         cliente, _ = Cliente.objects.get_or_create(
             usuario=self.request.user,
             defaults={'email': self.request.user.email} # Añadir defaults mínimos si se crea aquí
