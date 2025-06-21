@@ -52,99 +52,9 @@ class Categoria(TimeStampedModel):
         if len(self.nombre) < 2:
             raise ValidationError("El nombre de la categoría es demasiado corto.")
 
-class Carrito(models.Model):
-    cliente = models.OneToOneField(
-        Cliente,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='carrito'
-    )
-    session_key = models.CharField(max_length=40, blank=True, db_index=True)
-    creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
-    cupon = models.ForeignKey(
-        Cupon,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['session_key']),
-        ]
-
-    def __str__(self):
-        if self.cliente:
-            return f"Carrito de {self.cliente}"
-        return f"Carrito (sesión: {self.session_key})"
-
-    @property
-    def total_items(self):
-        return self.items.aggregate(total=Sum('cantidad'))['total'] or 0
-
-    @property
-    def subtotal(self):
-        return sum(item.subtotal for item in self.items.all())
-
-    @property
-    def total(self):
-        descuento = 0
-        if self.cupon and self.cupon.es_valido(subtotal=self.subtotal):
-            descuento = self.cupon.aplicar_descuento(self.subtotal)
-        return self.subtotal - descuento
-
-    def vaciar(self):
-        """Elimina todos los items del carrito."""
-        self.items.all().delete()
-        self.cupon = None
-        self.save()
-
-    def convertir_a_pedido(self, cliente, direccion_envio, direccion_facturacion, metodo_pago):
-        """Convierte el carrito en un pedido."""
-        from django.db import transaction
-
-        with transaction.atomic():
-            pedido = Pedido.objects.create(
-                cliente=cliente,
-                direccion_envio=direccion_envio,
-                direccion_facturacion=direccion_facturacion,
-                metodo_pago=metodo_pago,
-                subtotal=self.subtotal,
-                descuento=self.subtotal - self.total,
-                total=self.total,
-                cupon=self.cupon
-            )
-
-            for item in self.items.all():
-                DetallePedido.objects.create(
-                    pedido=pedido,
-                    producto=item.producto,
-                    precio=item.precio,
-                    cantidad=item.cantidad
-                )
-                item.producto.reducir_stock(item.cantidad)
-
-            if self.cupon:
-                self.cupon.incrementar_uso()
-
-            self.vaciar()
-
-            # Calcular y crear cupón de recompensa
-            # valor_total_recompensa = Decimal(0.0)
-            # for detalle_pedido in pedido.detalles.all():
-            #     if detalle_pedido.producto.porcentaje_recompensa and detalle_pedido.producto.porcentaje_recompensa > 0:
-            #         recompensa_item = (
-            #             detalle_pedido.precio *
-
-                # related_name='items',
-                # on_delete=models.CASCADE
-                    # )
-
 class ItemCarrito(models.Model):
     carrito = models.ForeignKey(
-        Carrito, 
+        'Carrito',
         related_name='items', 
         on_delete=models.CASCADE
     )
@@ -739,32 +649,6 @@ class Carrito(models.Model):
                 # related_name='items', 
                 # on_delete=models.CASCADE
                     # )
-    producto = models.ForeignKey(
-        Producto, 
-        on_delete=models.CASCADE
-    )
-    cantidad = models.PositiveIntegerField(default=1)
-    precio = models.DecimalField(max_digits=12, decimal_places=2)
-    creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('carrito', 'producto')
-        verbose_name = 'ítem de carrito'
-        verbose_name_plural = 'ítems de carrito'
-
-    def __str__(self):
-        return f"{self.cantidad} x {self.producto.nombre}"
-
-    @property
-    def subtotal(self):
-        return self.precio * self.cantidad
-
-    def save(self, *args, **kwargs):
-        # Actualizar el precio al guardar para reflejar cambios en el producto
-        self.precio = self.producto.precio_actual
-        super().save(*args, **kwargs)
-
 
 class ListaDeseos(models.Model):
     cliente = models.OneToOneField(
