@@ -11,36 +11,22 @@
 </section>
 
 <section class="productos-destacados">
-    <h2>Productos Destacados</h2>
+    <h2>Nuestros Productos Destacados</h2>
     {% if productos_destacados %}
-        <div class="product-grid">
-            {% for producto in productos_destacados %}
-                <div class="product-card">
-                    {% if producto.imagenes.first %}
-                        <a href="{{ producto.get_absolute_url }}">
-                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
-                        </a>
-                    {% else %}
-                        <a href="{{ producto.get_absolute_url }}">
-                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
-                        </a>
-                    {% endif %}
-                    <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
-                    <p class="precio">
-                        {% if producto.tiene_descuento %}
-                            <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                            <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                        {% else %}
-                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
-                        {% endif %}
-                    </p>
-                    <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>No hay productos destacados en este momento.</p>
-    {% endif %}
+    <ul>
+        {% for producto in productos_destacados %}
+            <li>
+                {% if producto.imagenes.first %}
+                    {{ producto.imagenes.first.alt_text|default:producto.nombre }}
+                {% else %}
+                    {{ producto.nombre }}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No hay productos destacados en este momento.</p>
+{% endif %}
 </section>
 
 <section class="productos-nuevos">
