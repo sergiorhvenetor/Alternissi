@@ -7,7 +7,7 @@ from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse # HttpResponseForbidden removed
+from django.http import JsonResponse, HttpResponseBadRequest
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
 from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
 from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
