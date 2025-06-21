@@ -834,6 +834,7 @@ class TerminosCondicionesView(PaginaEstaticaView):
         return context
 
 # --- Vistas de Administración (Protegidas) ---
+@user_passes_test(lambda u: u.is_staff)
 @login_required
 def agregar_producto_admin_view(request):
     if request.method == 'POST':
@@ -848,6 +849,7 @@ def agregar_producto_admin_view(request):
 
     return render(request, 'post/admin/agregar_producto.html', {'form': form})
 
+@user_passes_test(lambda u: u.is_staff)
 @login_required
 def agregar_promocion_admin_view(request):
     if request.method == 'POST':
@@ -855,8 +857,8 @@ def agregar_promocion_admin_view(request):
         if form.is_valid():
             cupon = form.save()
             messages.success(request, f"Promoción '{cupon.codigo}' agregada exitosamente.")
-            # Redirigir a alguna página de administración de cupones o a la página principal del admin
-            return redirect(reverse('tienda:inicio')) # Placeholder, cambiar a una URL de admin relevante
+            # Redirigir al índice del panel de administración
+            return redirect(reverse('admin:index')) # Redirección corregida
     else:
         form = CuponForm()
 
