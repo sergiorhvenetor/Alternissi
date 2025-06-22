@@ -40,4 +40,4 @@ def cart_processor(request):
                 # No creamos un carrito aquí; CartMixin se encargará si es necesario en una vista.
                 pass
 
-    return {'cart': current_cart}
+    return {'cart': current_cart, 'global_cart_items': current_cart.total_items if current_cart else 0}

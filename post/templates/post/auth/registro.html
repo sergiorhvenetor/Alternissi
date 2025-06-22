@@ -1,133 +1,102 @@
 {% extends "post/base.html" %}
 {% load static %}
 
-{% block title %}Crear Cuenta - {{ block.super }}{% endblock %}
+{% block title %}Crear Cuenta - Alternissi{% endblock %}
 
 {% block extra_head %}
-{# Reutilizar estilos de login.html si son similares, o definir específicos #}
+{{ block.super }}
 <style>
-/* Contenedor principal */
-.auth-links {
-    margin: 25px 0;
-    text-align: center;
-    position: relative;
-}
-
-/* Estilo base del texto */
-.auth-links p {
-    color: var(--black);
-    font-size: 0.95rem;
-    margin: 0;
-    padding: 10px 0;
-    position: relative;
-    z-index: 1;
-}
-
-/* Estilo del enlace */
-.auth-links a {
-    color: var(--light-gold);
-    text-decoration: none;
-    font-weight: 500;
-    position: relative;
-    transition: all 0.4s ease;
-    padding: 0 2px;
-}
-
-/* Efecto hover básico */
-.auth-links a:hover {
-    color: var(--gold);
-}
-
-/* Subrayado animado */
-.auth-links a::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 2px;
-    bottom: -2px;
-    left: 0;
-    background-color: var(--gold);
-    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.auth-links a:hover::after {
-    width: 100%;
-}
-
-/*********************/
-/* ANIMACIONES EXTRA */
-/*********************/
-
-/* 1. Efecto de pulsación suave */
-
-/* 3. Efecto de fondo resaltado */
-
-
-
-}
-
-.auth-links:hover p {
-    animation: floatUp 3s ease-in-out infinite;
-}
-
-/* Versión alternativa minimalista */
-.auth-links.minimalist a {
-    color: var(--white);
-    border-bottom: 1px dashed var(--light-gold);
-}
-
-.auth-links.minimalist a:hover {
-    color: var(--gold);
-    border-bottom-style: solid;
-    animation: none;
-}
-    .auth-form-container { max-width: 450px; margin: 40px auto; padding: 30px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-    .auth-form-container h1 { text-align: center; margin-bottom: 25px; font-size: 2em; }
-    .form-group { margin-bottom: 15px; } /* Un poco menos de margen para más campos */
-    .form-group label { display: block; margin-bottom: 6px; font-weight: bold; } /* Un poco más pequeño el margen */
-    .form-group input[type="text"],
-    .form-group input[type="password"],
-    .form-group input[type="email"] {
-        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;
+    /* .auth-container y .form-group ya están definidos en style.css */
+    .auth-container h2 {
+        font-family: var(--font-secondary);
+        color: var(--color-dark-gray);
+        text-align: center;
+        margin-bottom: 1.8rem;
+        font-size: 2rem;
     }
-    .form-group ul.errorlist { list-style: none; padding: 0; margin: 5px 0 0 0; color: #dc3545; font-size: 0.85em;}
-    .form-group .helptext { font-size: 0.8em; color: #6c757d; margin-top: 4px; display:block; }
-
-    .btn-submit-auth {
-        display: block; width: 100%; padding: 12px; background-color: rgb(0, 0, 0); color: gold; /* Color diferente para registro */
-        border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.2s;
+     .auth-container .form-label {
+        font-weight: 500;
+        margin-bottom: 0.3rem;
     }
-    .btn-submit-auth:hover { background-color: rgb(204, 181, 47); }
-    .auth-links { margin-top: 20px; text-align: center; font-size: 0.95em; }
-    .auth-links a { color: gold; text-decoration: none; }
-    .auth-links a:hover { text-decoration: underline; }
+    .auth-container .form-control {
+        border-color: var(--color-medium-gray);
+        padding: 0.75rem 1rem;
+    }
+    .auth-container .form-control:focus {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb, 176, 141, 87), 0.25);
+    }
+    .auth-container .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+        font-size: 0.85rem;
+        color: var(--color-error);
+    }
+     .auth-container .errorlist li {
+        margin-bottom: 0.2rem;
+    }
+    .auth-container .helptext { /* Estilo para el texto de ayuda de Django forms */
+        font-size: 0.8rem;
+        color: #6c757d; /* Gris suave */
+        display: block; /* Para que ocupe su propia línea */
+        margin-top: 0.3rem;
+    }
+    .auth-container .btn-primary {
+        width: 100%;
+        padding: 0.8rem;
+        font-size: 1.05rem;
+        margin-top: 0.8rem; /* Más espacio sobre el botón */
+    }
+    .auth-links {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+    }
+    .auth-links p {
+        margin-bottom: 0.5rem;
+    }
+    .auth-links a {
+        color: var(--color-accent);
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .auth-links a:hover {
+        text-decoration: underline;
+        color: var(--color-accent-hover);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-form-container">
-    <h1>Crear Nueva Cuenta</h1>
+<div class="auth-container"> {# Usar la clase global de style.css #}
+    <h2>Crear Nueva Cuenta</h2>
+
     <form method="post" action="{% url 'tienda:registro' %}">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-            <ul class="errorlist nonfield">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            <div class="alert alert-danger mb-3" role="alert">
+                {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                {% endfor %}
+            </div>
         {% endif %}
 
-        {# UserCreationForm renderiza username, password1, password2 #}
         {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+            <div class="form-group mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}:</label>
                 {{ field }}
-                {% if field.help_text %}<small class="helptext">{{ field.help_text }}</small>{% endif %}
-                {% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                {% if field.help_text %}<div class="helptext">{{ field.help_text|safe }}</div>{% endif %}
+                {% if field.errors %}<div class="errorlist">{{ field.errors }}</div>{% endif %}
             </div>
         {% endfor %}
 
-        <button type="submit" class="btn-submit-auth">Registrarme</button>
+        <button type="submit" class="btn btn-primary">Registrarme</button>
     </form>
-<div class="auth-links">
-    <p>¿Ya tienes una cuenta? <a href="{% url 'tienda:login' %}">Inicia sesión aquí</a></p>
-</div>
+
+    <div class="auth-links">
+        <p>¿Ya tienes una cuenta? <a href="{% url 'tienda:login' %}">Inicia sesión aquí</a></p>
+    </div>
 </div>
 {% endblock %}

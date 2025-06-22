@@ -1,532 +1,393 @@
 {% extends "post/base.html" %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Tu Carrito de Compras - {{ block.super }}{% endblock %}
-
-{% block extra_css %}
-    <!-- Puedes cargar aquí CSS específico para esta plantilla si lo separaste -->
-    <link rel="stylesheet" href="{% static 'css/carrito.css' %}">
-{% endblock %}
+{% block title %}Carrito de Compras - Alternissi{% endblock %}
 
 {% block extra_head %}
+{{ block.super }}
+<!-- Incluir CDN para Material Icons (si se usa para el botón de eliminar) -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-/* Estilos para carrito de compras - Tema negro y dorado */
-.cart-container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 20px;
-    background-color: var(--black);
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-}
-
-/* En tu CSS */
-.title-cart {
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    background-color: var(--black);
-    padding: 10px 20px;
-    border-radius: 4px;
-    display: inline-block;
-    border-left: 4px solid var(--gold);
-}
-.cart-container h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2.2em;
-    color: var(--gold);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    padding-bottom: 15px;
-}
-
-.cart-container h1:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 3px;
-    background-color: var(--gold);
-}
-
-.cart-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 30px;
-}
-
-.cart-table th {
-    background-color: var(--black);
-    color: var(--gold);
-    padding: 15px;
-    text-align: left;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.cart-table td {
-    padding: 15px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    vertical-align: middle;
-}
-
-.cart-table img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.cart-table .product-name a {
-    text-decoration: none;
-    color: var(--black);
-    font-weight: 500;
-    transition: color 0.3s;
-}
-
-.cart-table .product-name a:hover {
-    color: var(--gold);
-    text-decoration: none;
-}
-
-.cart-table .product-name p {
-    font-size: 0.85em;
-    color: var(--gray);
-    margin-top: 5px;
-}
-
-.cart-table input[type="number"] {
-    width: 70px;
-    padding: 8px;
-    text-align: center;
-    border: 1px solid var(--gold);
-    border-radius: 4px;
-    font-weight: 500;
-}
-
-.cart-table .btn-remove-item {
-    background-color: transparent;
-    color: #dc3545;
-    border: 1px solid #dc3545;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-
-.cart-table .btn-remove-item:hover {
-    background-color: #dc3545;
-    color: white;
-}
-
-/* Área de cupón y resumen */
-.cart-summary-actions-wrapper {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-}
-
-.coupon-area, .cart-summary {
-    flex: 1;
-    min-width: 300px;
-    background-color: var(--light-gray);
-    padding: 25px;
-    border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.coupon-area h2, .cart-summary h2 {
-    font-size: 1.5em;
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: var(--black);
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--gold);
-}
-
-.coupon-form {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.coupon-form input[type="text"] {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid var(--gold);
-    border-radius: 4px;
-    font-size: 1em;
-}
-
-.coupon-form button {
-    padding: 10px 20px;
-    background-color: var(--gold);
-    color: var(--black);
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s;
-}
-
-.coupon-form button:hover {
-    background-color: var(--dark-gold);
-}
-
-.coupon-form button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-.applied-coupon {
-    color: #28a745;
-    margin-top: 15px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Resumen del pedido */
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    font-size: 1.1em;
-    color: var(--gray);
-}
-
-.summary-row.total {
-    font-weight: bold;
-    font-size: 1.3em;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 2px solid var(--gold);
-    color: var(--black);
-}
-
-/* Acciones del carrito */
-.cart-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 30px;
-}
-
-.cart-actions .btn {
-    padding: 12px 30px;
-    text-decoration: none;
-    border-radius: 4px;
-    font-size: 1.1em;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s;
-}
-
-.cart-actions .btn-continue-shopping {
-    background-color: var(--black);
-    color: var(--gold);
-    border: 2px solid var(--black);
-}
-
-.cart-actions .btn-continue-shopping:hover {
-    background-color: transparent;
-    color: var(--black);
-}
-
-.cart-actions .btn-checkout {
-    background-color: var(--gold);
-    color: var(--black);
-    border: 2px solid var(--gold);
-}
-
-.cart-actions .btn-checkout:hover {
-    background-color: var(--dark-gold);
-    border-color: var(--dark-gold);
-}
-
-/* Carrito vacío */
-.empty-cart {
-    text-align: center;
-    padding: 50px 20px;
-    background-color: var(--light-gray);
-    border-radius: 8px;
-    margin-top: 30px;
-    border: 1px dashed var(--gold);
-}
-
-.empty-cart h2 {
-    font-size: 1.8em;
-    margin-bottom: 15px;
-    color: var(--black);
-}
-
-.empty-cart p {
-    font-size: 1.1em;
-    margin-bottom: 25px;
-    color: var(--gray);
-}
-
-.empty-cart .btn-primary {
-    background-color: var(--gold);
-    color: var(--black);
-    padding: 12px 30px;
-    text-decoration: none;
-    border-radius: 4px;
-    font-weight: 600;
-    transition: background-color 0.3s;
-    display: inline-block;
-}
-
-.empty-cart .btn-primary:hover {
-    background-color: var(--dark-gold);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .cart-table {
-        display: block;
-        overflow-x: auto;
+    /* Estilos generales para la página del carrito */
+    .cart-page-container { /* Renombrar .cart-container para evitar conflictos con style.css general */
+        margin-top: 2rem;
+        margin-bottom: 3rem;
     }
-    
-    .cart-summary-actions-wrapper {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .cart-actions {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .cart-actions .btn {
-        width: 100%;
+    .cart-page-header h2 {
+        font-family: var(--font-secondary);
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
         text-align: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--color-medium-gray);
     }
-}
+
+    /* Tabla del carrito: .cart-table y sus elementos internos ya están definidos en style.css */
+    /* Ajustes específicos si son necesarios: */
+    .cart-table th {
+        font-size: 0.95rem; /* Ligeramente más pequeño para caber mejor */
+        font-weight: 600; /* Menos bold que el default de style.css */
+        background-color: var(--color-light-gray); /* Fondo sutil para encabezados */
+        color: var(--color-dark-gray);
+    }
+    .cart-table img {
+        max-width: 80px; /* Ajustar según diseño */
+        height: auto;
+        border-radius: var(--border-radius-sm);
+    }
+    .cart-item-name a {
+        color: var(--color-dark-gray);
+        font-weight: 500;
+        font-size: 1rem;
+    }
+    .cart-item-name a:hover { color: var(--color-accent); }
+    .cart-item-name .variation-info {
+        font-size: 0.8rem;
+        color: #6c757d; /* Un gris más oscuro */
+    }
+    .item-price .original-price { /* Precio original tachado */
+        text-decoration: line-through;
+        color: var(--color-medium-gray);
+        font-size: 0.85em;
+        margin-right: 0.4em;
+    }
+    .item-price .current-price { /* Precio actual (con o sin descuento) */
+        font-weight: 500;
+        color: var(--color-dark-gray); /* Color base, el descuento lo puede sobreescribir */
+    }
+    .item-price .current-price.discounted { /* Si hay descuento activo */
+        color: var(--color-error); /* O un color de oferta */
+        font-weight: bold;
+    }
+
+    .cart-item-actions input[type="number"] {
+        width: 65px; /* Un poco más angosto */
+        padding: 0.4rem;
+        text-align: center;
+        border: 1px solid var(--color-medium-gray);
+        border-radius: var(--border-radius-sm);
+    }
+    .cart-item-actions .btn-remove-item { /* Botón de eliminar */
+        color: var(--color-error);
+        background-color: transparent;
+        border: none;
+        font-size: 1.4rem; /* Icono de eliminar más grande */
+        padding: 0.2rem 0.4rem;
+        line-height: 1; /* Para mejor alineación vertical del icono */
+        vertical-align: middle;
+    }
+    .cart-item-actions .btn-remove-item:hover {
+        color: #a71d2a; /* Rojo más oscuro al hover */
+    }
+
+    /* Resumen del Carrito: .cart-summary y sus elementos ya están definidos en style.css */
+    /* Ajustes específicos: */
+    .cart-summary {
+        background-color: var(--color-light-gray); /* Fondo del resumen */
+        padding: 1.5rem; /* Ajustar padding */
+        border-radius: var(--border-radius-md);
+    }
+    .cart-summary h4 {
+        font-family: var(--font-secondary);
+        font-size: 1.5rem; /* Título del resumen */
+        margin-bottom: 1.2rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--color-medium-gray);
+    }
+    .cart-summary .list-group-item {
+        padding: 0.75rem 0; /* Espaciado vertical para items del resumen */
+        background-color: transparent; /* Heredar fondo de .cart-summary */
+        border-color: var(--color-medium-gray); /* Color de borde más sutil */
+    }
+     .cart-summary .list-group-item:first-child { border-top: none; }
+     .cart-summary .list-group-item:last-child { border-bottom: none; }
+
+    .cart-summary .total-label { font-weight: 700; font-size: 1.1em; }
+    .cart-summary .total-value { font-weight: 700; font-size: 1.3em; color: var(--color-accent); }
+
+    .coupon-form .input-group { /* Contenedor del input y botón de cupón */
+        display: flex;
+    }
+    .coupon-form input[type="text"] {
+        flex-grow: 1;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        border-color: var(--color-medium-gray); /* Borde consistente */
+    }
+    .coupon-form button { /* Botón Aplicar Cupón */
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background-color: var(--color-dark-gray); /* Fondo oscuro para botón de cupón */
+        color: var(--color-white);
+        border-color: var(--color-dark-gray);
+    }
+    .coupon-form button:hover {
+        background-color: var(--color-black);
+        border-color: var(--color-black);
+    }
+    .coupon-applied-info { /* Información del cupón aplicado */
+        font-size: 0.9rem;
+        color: var(--color-success); /* Verde para cupón aplicado */
+    }
+    .coupon-applied-info strong { font-weight: 600; }
+    .coupon-applied-info .remove-coupon-btn { /* Botón para eliminar cupón */
+        font-size: 0.85rem;
+        padding: 0.1rem 0.3rem;
+        margin-left: 0.5rem;
+        line-height: 1;
+        color: var(--color-error);
+        text-decoration: none;
+        border: none;
+        background: none;
+    }
+     .coupon-applied-info .remove-coupon-btn:hover {
+        text-decoration: underline;
+     }
+
+
+    .cart-page-actions .btn { /* Botones de Pagar y Seguir Comprando */
+        padding: 0.9rem 1.8rem; /* Botones más grandes */
+        font-size: 1.1rem; /* Texto más grande */
+    }
+
+    /* Estilos para carrito vacío */
+    .empty-cart-container {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: var(--color-white); /* Fondo blanco */
+        border: 1px dashed var(--color-medium-gray); /* Borde punteado */
+        border-radius: var(--border-radius-md);
+        margin-top: 2rem;
+    }
+    .empty-cart-container .lead {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--color-dark-gray);
+    }
+    .empty-cart-container .empty-cart-icon { /* Para un posible icono SVG o Font Icon */
+        font-size: 4rem; /* Tamaño del icono */
+        color: var(--color-medium-gray);
+        margin-bottom: 1.5rem;
+        display: block; /* Para que el margen funcione */
+    }
+    .empty-cart-container img { /* Si se usa una imagen */
+        max-width: 180px;
+        opacity: 0.8; /* Ligeramente transparente */
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Media queries para responsividad (ya existen en style.css, se pueden refinar aquí) */
+    @media (max-width: 768px) {
+        /* .cart-table thead se oculta y .cart-table tbody td se ajusta en style.css */
+        .cart-item-actions input[type="number"] {
+             width: 60px; /* Más angosto en móvil */
+        }
+        .coupon-form {
+            flex-direction: column; /* Apilar input y botón de cupón */
+            gap: 0.5rem; /* Menos espacio */
+        }
+        .coupon-form input[type="text"], .coupon-form button {
+            border-radius: var(--border-radius-sm); /* Restaurar bordes redondeados */
+            width: 100%;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="cart-container">
-    <h1>Tu Carrito de Compras</h1>
+<div class="container cart-page-container">
+    <div class="cart-page-header">
+        <h2>Tu Carrito de Compras</h2>
+    </div>
+
+    {% if messages %}
+        {# Los mensajes flash ya se muestran en base.html, no es necesario repetirlos aquí. #}
+    {% endif %}
 
     {% if carrito and carrito.items.all %}
-        {# No se necesita un form global si cada acción tiene su propio form/link o es AJAX #}
-            <table class="cart-table">
+        <div class="table-responsive mb-4"> {# Añadido mb-4 para espacio antes del resumen #}
+            <table class="cart-table table align-middle">
                 <thead>
                     <tr>
-                        <th colspan="2">Producto</th>
-                        <th>Precio Unitario</th>
-                        <th>Cantidad</th>
-                        <th>Subtotal</th>
-                        <th>Acciones</th>
+                        <th scope="col" style="width: 10%;">Producto</th>
+                        <th scope="col" style="width: 30%;"></th>
+                        <th scope="col" style="width: 15%; text-align: right;">Precio Unit.</th>
+                        <th scope="col" style="width: 15%; text-align: center;">Cantidad</th>
+                        <th scope="col" style="width: 15%; text-align: right;">Subtotal</th>
+                        <th scope="col" style="width: 15%; text-align: center;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in carrito.items.all %} {# Asume items están prefetched con producto e imagenes #}
-                    <tr>
-                        <td>
-                            <a href="{{ item.producto.get_absolute_url }}">
+                    {% for item in carrito.items.all %}
+                        <tr>
+                            <td data-label="Producto Imagen:">
+                                <a href="{{ item.producto.get_absolute_url }}">
                                 {% if item.producto.imagenes.first %}
                                     <img src="{{ item.producto.imagenes.first.imagen.url }}" alt="{{ item.producto.nombre }}">
                                 {% else %}
                                     <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
                                 {% endif %}
-                            </a>
-                        </td>
-                        <td class="product-name">
-                            <a href="{{ item.producto.get_absolute_url }}">{{ item.producto.nombre }}</a>
-                            <p style="font-size:0.85em; color:#666;">SKU: {{ item.producto.sku }}</p>
-                        </td>
-                        <td>{{ item.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
-                        <td>
-                            <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1"
-                                   max="{{ item.producto.stock }}" data-item-id="{{ item.id }}"
-                                   onchange="updateCartItem('{% url 'tienda:actualizar_item_carrito' item_id=0 %}'.replace('0', this.dataset.itemId), this.dataset.itemId, this.value, this)">
-                                   {# URL se construye dinámicamente para evitar error si item.id es None en template parsing inicial #}
-                        </td>
-                        <td id="subtotal-{{ item.id }}">{{ item.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
-                        <td>
-                            <form action="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" method="post" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-remove-item"
-                                        onclick="return confirm('¿Estás seguro de que quieres eliminar este producto del carrito?');">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
+                                </a>
+                            </td>
+                            <td data-label="Nombre:" class="cart-item-name">
+                                <a href="{{ item.producto.get_absolute_url }}">{{ item.producto.nombre }}</a>
+                                {% if item.variacion %} <br><small class="variation-info">{{ item.variacion.tipo }}: {{ item.variacion.valor }}</small>{% endif %}
+                                {% if item.producto.sku %}<br><small class="variation-info">SKU: {{ item.producto.sku }}</small>{% endif %}
+                            </td>
+                            <td data-label="Precio Unit.:" class="item-price" style="text-align: right;">
+                                {% if item.producto.tiene_descuento_activo %}
+                                    <span class="original-price">${{ item.precio_original|intcomma }}</span>
+                                    <span class="current-price discounted">${{ item.precio_unitario_con_descuento|intcomma }}</span>
+                                {% else %}
+                                    <span class="current-price">${{ item.precio_unitario|intcomma }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Cantidad:" class="cart-item-actions" style="text-align: center;">
+                                <form action="{% url 'tienda:actualizar_item_carrito' item_id=item.id %}" method="post" class="d-inline-flex align-items-center justify-content-center update-item-form">
+                                    {% csrf_token %}
+                                    <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1"
+                                           {% if item.producto.stock %}max="{{ item.producto.stock }}"{% endif %}
+                                           aria-label="Cantidad para {{ item.producto.nombre }}"
+                                           onchange="this.form.submit()">
+                                </form>
+                            </td>
+                            <td data-label="Subtotal:" class="item-subtotal" style="text-align: right; font-weight: 600;">${{ item.subtotal|intcomma }}</td>
+                            <td data-label="Acciones:" class="cart-item-actions" style="text-align: center;">
+                                <form action="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-remove-item" title="Eliminar {{ item.producto.nombre }} del carrito"
+                                            onclick="return confirm('¿Estás seguro de que quieres eliminar este producto del carrito?');">
+                                        <span class="material-icons">delete_outline</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
 
-        <div class="cart-summary-actions-wrapper">
-            <div class="coupon-area">
-                <h2>Aplicar Cupón</h2>
-                <form action="{% url 'tienda:aplicar_cupon' %}" method="post" class="coupon-form">
-                    {% csrf_token %}
-                    <input type="text" name="codigo" placeholder="Ingresa tu código de cupón" {% if carrito.cupon %}value="{{ carrito.cupon.codigo }}" readonly{% endif %}>
-                    <button type="submit" {% if carrito.cupon %}disabled title="Ya hay un cupón aplicado. Elimínalo para aplicar otro."{% endif %}>Aplicar</button>
-                </form>
-                {% if carrito.cupon %}
-                    <p class="applied-coupon">Cupón aplicado: {{ carrito.cupon.codigo }}
-                        {# Podríamos añadir un botón para quitar el cupón #}
-                    </p>
-                {% endif %}
-            </div>
-
-            <div class="cart-summary">
-                <h2>Resumen del Pedido</h2>
-                <div class="summary-row">
-                    <span>Subtotal (<span id="cart-total-items">{{ carrito.total_items|default:0 }}</span> items):</span>
-                    <span id="cart-subtotal">{{ carrito.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                </div>
-                
-                <div class="summary-row" id="cart-discount-row">
-                    <span>Descuento ({{ carrito.cupon.codigo }}):</span>
+        <div class="row justify-content-end mt-4">
+            <div class="col-md-6 col-lg-5">
+                <div class="cart-summary">
+                    <h4>Resumen del Pedido</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Subtotal ({{ carrito.total_items }} item{{ carrito.total_items|pluralize }})
+                            <span>${{ carrito.subtotal_sin_descuento|intcomma }}</span>
+                        </li>
+                        {% if carrito.descuento_total > 0 %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center text-success">
+                            Descuento por Promociones
+                            <span>-${{ carrito.descuento_total|intcomma }}</span>
+                        </li>
+                        {% endif %}
+                         {% if carrito.cupon %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center coupon-applied-info">
+                                <div>
+                                    Cupón: <strong>{{ carrito.cupon.codigo }}</strong> ({{ carrito.cupon.porcentaje_descuento }}% off)
+                                    <form action="{% url 'tienda:eliminar_cupon_carrito' %}" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="remove-coupon-btn" title="Eliminar cupón">(Eliminar)</button>
+                                    </form>
+                                </div>
+                                <span class="text-success">-${{ carrito.descuento_por_cupon|intcomma }}</span>
+                            </li>
+                        {% endif %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                            <span class="total-label">Total</span>
+                            <span class="total-value">${{ carrito.total_final|intcomma }}</span>
+                        </li>
+                    </ul>
                     
-                </div>
-                {% else %}
-                {# Fila de descuento oculta si no hay descuento inicialmente #}
-                <div class="summary-row" id="cart-discount-row" style="display: none;">
-                    <span>Descuento (<span id="cart-cupon-code-display"></span>):</span> {# Para mostrar el código del cupón dinámicamente #}
-                    <span id="cart-discount-amount"></span>
-                </div>
-                {% endif %}
-                <div class="summary-row total">
-                    <span>Total:</span>
-                    <span id="cart-total">{{ carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    {% if not carrito.cupon %}
+                    <form action="{% url 'tienda:aplicar_cupon' %}" method="post" class="mt-3 coupon-form">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="codigo" class="form-control" placeholder="Código de Cupón" aria-label="Código de Cupón">
+                            <button type="submit" class="btn btn-secondary">Aplicar</button> {# Cambiado a btn-secondary para diferenciarlo de los principales #}
+                        </div>
+                         {% if form_cupon.errors %} {# Asumiendo que la vista pasa form_cupon con errores #}
+                            {% for field, errors in form_cupon.errors.items %}
+                                {% for error in errors %}
+                                    <div class="text-danger mt-1"><small>{{ error }}</small></div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                    </form>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 mt-4 cart-page-actions">
+                        <a href="{% url 'tienda:checkout' %}" class="btn btn-primary btn-lg">Proceder al Pago</a>
+                        <a href="{% url 'tienda:lista_productos' %}" class="btn btn-outline-secondary">Seguir Comprando</a>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="cart-actions">
-            <a href="{% url 'tienda:lista_productos' %}" class="btn btn-continue-shopping">Continuar Comprando</a>
-            <a href="{% url 'tienda:checkout' %}" class="btn btn-checkout">Proceder al Pago</a>
-        </div>
-
-
-        <div class="empty-cart">
-            <h2>Tu carrito está vacío.</h2>
+    {% else %}
+        <div class="empty-cart-container">
+            <span class="material-icons empty-cart-icon">shopping_cart_off</span>
+            <p class="lead">Tu carrito de compras está vacío.</p>
             <p>Parece que no has añadido ningún producto a tu carrito todavía.</p>
-            <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary">Explorar Productos</a>
+            <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary btn-lg">Explorar Productos</a>
         </div>
-
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+{{ block.super }}
 <script>
-function updateCartItem(url, itemId, quantity, inputElement) {
-    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
-    const originalQuantity = inputElement.defaultValue;
-    const monedaSimbolo = "{{ moneda_simbolo|default:'$' }}"; // Obtener el símbolo de moneda del contexto
+// El onchange="this.form.submit()" en el input de cantidad ya maneja la actualización.
+// Si se quisiera una actualización AJAX sin recarga de página, el script iría aquí.
+// Ejemplo básico de cómo podría ser (requiere que la vista de actualizar devuelva JSON):
+/*
+document.querySelectorAll('.update-item-form input[name="cantidad"]').forEach(input => {
+    input.addEventListener('change', function() {
+        const form = this.closest('form');
+        const formData = new FormData(form);
 
-    // Deshabilitar el input mientras se procesa para evitar múltiples envíos
-    inputElement.disabled = true;
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar el subtotal del item
+                const subtotalCell = form.closest('tr').querySelector('.item-subtotal');
+                if (subtotalCell) subtotalCell.textContent = '$' + data.item_subtotal;
 
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken
-        },
-        body: `cantidad=${quantity}`
-    })
-    .then(response => {
-        if (!response.ok) {
-            // Si el servidor devuelve un error (4xx, 5xx), intenta parsear el JSON del error.
-            return response.json().then(errData => Promise.reject(errData));
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            if (data.removed) {
-                // Eliminar la fila del item de la tabla
-                inputElement.closest('tr').remove();
-            } else {
-                // Actualizar subtotal del item
-                const itemSubtotalEl = document.getElementById(`subtotal-${itemId}`);
-                if (itemSubtotalEl) {
-                    itemSubtotalEl.textContent = parseFloat(data.item_subtotal).toFixed(2) + " " + monedaSimbolo;
+                // Actualizar resumen del carrito (subtotal, total, número de items)
+                // Esto requeriría que la respuesta JSON incluya estos datos actualizados.
+                // document.getElementById('cart-subtotal-value').textContent = '$' + data.cart_subtotal;
+                // document.getElementById('cart-total-value').textContent = '$' + data.cart_total;
+                // document.getElementById('cart-item-count').textContent = data.cart_item_count;
+                // Actualizar contador en el header
+                // document.getElementById('cart-count').textContent = data.cart_item_count;
+
+                if (data.item_removed) { // Si la cantidad es 0 y el item se eliminó
+                    form.closest('tr').remove();
                 }
-                inputElement.defaultValue = quantity; // Actualizar el valor original si es exitoso
-            }
-
-            // Actualizar totales del carrito
-            const cartSubtotalEl = document.getElementById('cart-subtotal');
-            if (cartSubtotalEl) {
-                cartSubtotalEl.textContent = parseFloat(data.cart_subtotal_display).toFixed(2) + " " + monedaSimbolo;
-            }
-            const cartTotalEl = document.getElementById('cart-total');
-            if (cartTotalEl) {
-                cartTotalEl.textContent = parseFloat(data.cart_total_display).toFixed(2) + " " + monedaSimbolo;
-            }
-            const cartTotalItemsEl = document.getElementById('cart-total-items');
-            if (cartTotalItemsEl) {
-                cartTotalItemsEl.textContent = data.cart_total_items_display;
-            }
-
-            // Actualizar contador en la navbar
-            const navbarCartCountEl = document.getElementById('cart-count');
-            if (navbarCartCountEl) {
-                navbarCartCountEl.textContent = data.cart_total_items_display;
-            }
-
-            // Manejar la fila de descuento
-            const discountRowEl = document.getElementById('cart-discount-row');
-            const discountAmountEl = document.getElementById('cart-discount-amount');
-            const cuponCodeDisplayEl = document.getElementById('cart-cupon-code-display');
-
-            if (data.cart_discount_amount_display && parseFloat(data.cart_discount_amount_display) > 0) {
-                if (discountAmountEl) {
-                    discountAmountEl.textContent = "- " + parseFloat(data.cart_discount_amount_display).toFixed(2) + " " + monedaSimbolo;
-                }
-                if (cuponCodeDisplayEl && data.cart_cupon_codigo) {
-                     cuponCodeDisplayEl.textContent = data.cart_cupon_codigo;
-                } else if (cuponCodeDisplayEl) {
-                     cuponCodeDisplayEl.textContent = ''; // Limpiar si no hay código
-                }
-                if (discountRowEl) {
-                    discountRowEl.style.display = 'flex'; // O el display original que tuviera
+                 if (data.cart_empty) { // Si el carrito quedó vacío
+                    window.location.reload(); // Recargar para mostrar mensaje de carrito vacío
                 }
             } else {
-                if (discountRowEl) {
-                    discountRowEl.style.display = 'none';
-                }
+                alert(data.error || 'Error al actualizar la cantidad.');
+                this.value = this.defaultValue; // Revertir cambio si hay error
             }
-
-            if (data.cart_total_items_display === 0) {
-                // Si el carrito queda vacío, recargar la página para mostrar el estado "carrito vacío".
-                window.location.reload();
-            }
-
-        } else {
-            alert('Error al actualizar el carrito: ' + (data.message || 'Error desconocido'));
-            inputElement.value = originalQuantity; // Revertir al valor original
-        }
-    })
-    .catch(error => {
-        let errorMsg = 'Hubo un error al conectar con el servidor.';
-        if (error && error.message) {
-            errorMsg = error.message;
-        } else if (typeof error === 'string') {
-            errorMsg = error;
-        }
-        console.error('Error en AJAX:', error);
-        alert(errorMsg);
-        inputElement.value = originalQuantity;
-    })
-    .finally(() => {
-        inputElement.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ocurrió un error al actualizar el carrito.');
+            this.value = this.defaultValue; // Revertir cambio
+        });
     });
-}
+});
+*/
 </script>
 {% endblock %}

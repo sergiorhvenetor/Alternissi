@@ -6,83 +6,178 @@
 {% endblock %}
 
 {% block extra_head %}
+{{ block.super }}
 <style>
-    .search-results-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
-    .search-results-container h1 { text-align: center; margin-bottom: 10px; font-size: 2em; }
-    .search-query-display { text-align: center; font-size: 1.2em; color: #555; margin-bottom: 30px; }
-    .no-results { text-align:center; padding: 30px; background-color:#f8f9fa; border-radius:5px;}
+/* Estilos específicos para la página de resultados de búsqueda si son necesarios */
+.search-results-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+}
+.search-results-header h1 { /* Cambiado de h2 a h1 para el título principal de la página */
+    font-size: 2.2rem; /* Ajustar tamaño */
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+.search-query-display { /* Estilo para "Has buscado: ..." */
+    text-align: center;
+    font-size: 1.2rem; /* Aumentar tamaño */
+    color: var(--color-dark-gray); /* Usar variable de color */
+    margin-bottom: 2rem; /* Más espacio abajo */
+}
+.search-query-display strong {
+    color: var(--color-accent); /* Destacar el término de búsqueda */
+}
 
-    /* Reutilizar estilos de product-grid y product-card si son globales o definirlos */
-    .product-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 20px;
-    }
-    .product-card {
-        border: 1px solid #ddd; border-radius: 8px; padding: 15px;
-        text-align: center; background-color: #fff;
-    }
-    .product-card img {
-        max-width: 100%; height: 180px; object-fit: cover;
-        border-radius: 4px; margin-bottom: 10px;
-    }
-    .product-card h3 { font-size: 1.1em; margin-bottom: 8px; }
-    .product-card h3 a { text-decoration: none; color: #333; }
-    .product-card h3 a:hover { color: #007bff; }
-    .precio { font-size: 1em; color: #28a745; margin-bottom: 10px; }
-    .precio .precio-original { text-decoration: line-through; color: #dc3545; margin-right: 8px; font-size: 0.9em; }
-    .precio .precio-descuento { font-weight: bold; }
-    .btn-primary, .btn-secondary {
-        display: inline-block; padding: 8px 12px; text-decoration: none;
-        border-radius: 5px; font-size: 0.9em; margin-top: 5px;
-    }
-    .btn-primary { background-color: #007bff; color: white; border: none; cursor: pointer; }
-    .btn-secondary { background-color: #6c757d; color: white; }
+.results-count { /* Para el contador de productos */
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    background-color: var(--color-light-gray); /* Usar variable */
+    border-radius: var(--border-radius-md); /* Usar variable */
+    margin-top: 2rem;
+}
+.no-results p {
+    font-size: 1.1rem; /* Ajustar tamaño */
+    margin-bottom: 1rem;
+}
+.no-results ul {
+    list-style-position: inside;
+    margin-bottom: 1.5rem;
+    padding-left: 0; /* Quitar padding por defecto si se centra el texto */
+}
+.no-results li {
+    margin-bottom: 0.3rem;
+}
+
+/* Los estilos de .product-grid y .product-card ya están en style.css */
+/* Ajustes de precio (ya deberían estar en style.css, pero para asegurar consistencia) */
+.product-card__price .original-price {
+    text-decoration: line-through;
+    color: var(--color-medium-gray);
+    font-size: 0.9em;
+    margin-right: 0.5em;
+}
+.product-card__price .discounted-price {
+    font-weight: bold;
+    color: var(--color-error);
+}
+.product-card__price span:not(.original-price):not(.discounted-price) {
+    font-weight: bold;
+    color: var(--color-accent);
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="search-results-container">
-    <h1>Resultados de Búsqueda</h1>
-    <p class="search-query-display">Has buscado: "<strong>{{ query }}</strong>"</p>
+<div class="container mt-4"> {# Usar .container para consistencia de padding/ancho #}
+    <div class="search-results-header">
+        <h1>Resultados de Búsqueda</h1>
+        {% if query %}
+            <p class="search-query-display">Has buscado: <strong>"{{ query }}"</strong></p>
+        {% else %}
+            <p class="search-query-display">Por favor, ingresa un término de búsqueda.</p>
+        {% endif %}
+    </div>
 
     {% if productos %}
+        <p class="results-count">{{ productos|length }} producto(s) encontrado(s).</p>
         <div class="product-grid">
             {% for producto in productos %}
                 <div class="product-card">
+                    <a href="{{ producto.get_absolute_url }}" class="product-card__image-container">
                     {% if producto.imagenes.first %}
-                        <a href="{{ producto.get_absolute_url }}">
-                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
-                        </a>
+                        <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
                     {% else %}
-                        <a href="{{ producto.get_absolute_url }}">
-                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
-                        </a>
+                        <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
                     {% endif %}
-                    <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
-                    <p class="precio">
-                        {% if producto.tiene_descuento %}
-                            <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                            <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                        {% else %}
-                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
-                        {% endif %}
-                    </p>
-                    <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
-                    <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post" style="margin-top: 10px;">
-                        {% csrf_token %}
-                        <input type="hidden" name="cantidad" value="1">
-                        <button type="submit" class="btn-primary">Añadir al Carrito</button>
-                    </form>
+                    </a>
+                    <div class="product-card__info">
+                        <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
+                        <p class="product-card__description text-muted">{{ producto.descripcion_corta|truncatewords:12 }}</p>
+                        <p class="product-card__price">
+                            {% if producto.tiene_descuento %}
+                                <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
+                                <span class="discounted-price">${{ producto.precio_actual|floatformat:2 }}</span>
+                            {% else %}
+                                <span>${{ producto.precio_actual|floatformat:2 }}</span>
+                            {% endif %}
+                        </p>
+                        <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post" class="mt-auto">
+                            {% csrf_token %}
+                            <input type="hidden" name="cantidad" value="1">
+                            <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>
+                        </form>
+                    </div>
                 </div>
             {% endfor %}
         </div>
-        {# Aquí podría ir paginación si BuscarProductosView la implementara #}
-    {% else %}
+
+        <!-- Paginación (asumiendo que la vista de búsqueda la provee como page_obj e is_paginated) -->
+        {% if is_paginated %}
+            <nav aria-label="Paginación de resultados" class="mt-4">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query }}&page=1{{ request.GET.urlencode|cut:'&page='|cut:'page='|cut:'&q='|cut:'q=' }}" aria-label="Primero">&laquo;&laquo;</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|cut:'&page='|cut:'page='|cut:'&q='|cut:'q=' }}" aria-label="Anterior">&laquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&laquo;&laquo;</span></li>
+                        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                    {% endif %}
+
+                    {% for i in page_obj.paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link" href="?q={{ query }}&page={{ i }}{{ request.GET.urlencode|cut:'&page='|cut:'page='|cut:'&q='|cut:'q=' }}">{{ i }}</a></li>
+                        {% elif i == page_obj.number|add:'-3' and page_obj.number > 4 %}
+                             <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% elif i == page_obj.number|add:'3' and page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+                             <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}{{ request.GET.urlencode|cut:'&page='|cut:'page='|cut:'&q='|cut:'q=' }}" aria-label="Siguiente">&raquo;</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|cut:'&page='|cut:'page='|cut:'&q='|cut:'q=' }}" aria-label="Último">&raquo;&raquo;</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                        <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% elif query %} {# query existe pero no hay productos #}
         <div class="no-results">
              <p>No se encontraron productos para "<strong>{{ query }}</strong>".</p>
-             <p>Intenta con otro término de búsqueda o <a href="{% url 'tienda:lista_productos' %}">explora todos nuestros productos</a>.</p>
+             <p>Sugerencias para mejorar tu búsqueda:</p>
+             <ul>
+                <li>Verifica la ortografía.</li>
+                <li>Utiliza términos más generales.</li>
+                <li>Prueba con diferentes palabras clave.</li>
+             </ul>
+             <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary mt-3">Explorar todos nuestros productos</a>
         </div>
+    {% else %} {# No hay query (aunque la vista usualmente no permitiría esto sin query) #}
+         <div class="no-results">
+            <p>Por favor, ingresa un término en la barra de búsqueda para encontrar productos.</p>
+            <a href="{% url 'tienda:inicio' %}" class="btn btn-primary mt-3">Volver al Inicio</a>
+         </div>
     {% endif %}
 </div>
 {% endblock %}

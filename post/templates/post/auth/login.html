@@ -2,187 +2,103 @@
 {% extends "post/base.html" %}
 {% load static %}
 
-{% block title %}Iniciar Sesión - {{ block.super }}{% endblock %}
+{% block title %}Iniciar Sesión - Alternissi{% endblock %}
 
 {% block extra_head %}
+{{ block.super }}
 <style>
-    .auth-form-container { max-width: 450px; margin: 40px auto; padding: 30px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
-    .auth-form-container h1 { text-align: center; margin-bottom: 25px; font-size: 2em; }
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
-    .form-group input[type="text"],
-    .form-group input[type="password"],
-    .form-group input[type="email"] { /* Para futuro registro */
-        width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1em;
+    /* .auth-container y .form-group ya están definidos en style.css */
+    /* Se pueden añadir ajustes específicos aquí si es necesario */
+    .auth-container h2 { /* El título es h2 en style.css, aquí se usa h1 */
+        font-family: var(--font-secondary);
+        color: var(--color-dark-gray);
+        text-align: center;
+        margin-bottom: 1.8rem; /* Un poco más de espacio */
+        font-size: 2rem; /* Ajustar tamaño si es necesario */
     }
-
-.cart-container {
-    max-width: 1200px;
-    margin: 30px auto;
-    padding: 20px;
-    background-color: var(--black);
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-}
-
-/* En tu CSS */
-.title-cart {
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-    background-color: var(--black);
-    padding: 10px 20px;
-    border-radius: 4px;
-    display: inline-block;
-    border-left: 4px solid var(--gold);
-}
-.cart-container h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 2.2em;
-    color: var(--gold);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    padding-bottom: 15px;
-}
-
-.cart-container h1:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 3px;
-    background-color: var(--gold);
-}
-/* Estilo para los enlaces de "Olvidaste contraseña" y "Regístrate" */
-.password-actions {
-    margin-top: 20px;
-    text-align: center;
-    color: var(--black);
-}
-
-.password-actions p {
-    margin: 12px 0;
-    font-size: 0.95em;
-}
-
-.password-actions a {
-    color: var(--light-gold);
-    text-decoration: none;
-    font-weight: 500;
-    position: relative;
-    transition: color 0.3s ease;
-    padding-bottom: 2px;
-}
-
-.password-actions a:hover {
-    color: var(--gold);
-}
-
-.password-actions a:after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 1px;
-    bottom: 0;
-    left: 0;
-    background-color: var(--gold);
-    transition: width 0.3s ease;
-}
-
-    :root {
-        --black: #000000;
-        --gold: #D4AF37;
-        --dark-gold: #B8860B;
-        --light-gold: #F5D98F;
-        --white: #ffffff;
+    .auth-container .form-label { /* Si se usa {{ form.as_p }} o similar */
+        font-weight: 500;
+        margin-bottom: 0.3rem;
     }
-
-.password-actions a:hover:after {
-    width: 100%;
-}
-
-/* Versión alternativa más destacada (opcional) */
-.password-actions .highlight-link {
-    color: var(--gold);
-    font-weight: 600;
-}
-
-.password-actions .highlight-link:hover {
-    color: var(--dark-gold);
-}
-
-    @keyframes gentlePulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+    .auth-container .form-control { /* Para inputs de Django form widget */
+        border-color: var(--color-medium-gray);
+        padding: 0.75rem 1rem; /* Padding consistente con otros forms */
     }
-    
-    .password-actions a {
-        animation: gentlePulse 6s infinite;
-        color: var(--light-gold);
+    .auth-container .form-control:focus {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb, 176, 141, 87), 0.25);
+    }
+    .auth-container .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0 0 0;
+        font-size: 0.85rem;
+        color: var(--color-error);
+    }
+    .auth-container .errorlist li {
+        margin-bottom: 0.2rem;
+    }
+    .auth-container .btn-primary { /* Botón de Ingresar */
+        width: 100%;
+        padding: 0.8rem;
+        font-size: 1.05rem; /* Ligeramente más grande */
+        margin-top: 0.5rem; /* Espacio sobre el botón */
+    }
+    .auth-links { /* Contenedor para "¿Olvidaste contraseña?" y "Regístrate" */
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem; /* Texto un poco más pequeño */
+    }
+    .auth-links p {
+        margin-bottom: 0.5rem;
+    }
+    .auth-links a {
+        color: var(--color-accent);
+        font-weight: 500;
         text-decoration: none;
-        transition: all 0.3s;
     }
-    
-    .password-actions a:hover {
-        animation: none;
-        color: var(--gold);
+    .auth-links a:hover {
+        text-decoration: underline;
+        color: var(--color-accent-hover);
     }
-    
-    @keyframes goldSpark {
-        0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); }
-        70% { box-shadow: 0 0 0 6px rgba(212, 175, 55, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
-    }
-    
-
-    .form-group ul.errorlist { list-style: none; padding: 0; margin: 6px 0 0 0; color: #dc3545; font-size: 0.9em; }
-    .form-group .helptext { font-size: 0.85em; color: #666; margin-top: 6px; }
-
-    .btn-submit-auth {
-        display: block; width: 100%; padding: 12px; background-color: #000000; color: gold;
-        border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; transition: background-color 0.2s;
-    }
-    .btn-submit-auth:hover { background-color: #423b3b; }
-    .auth-links { margin-top: 20px; text-align: center; font-size: 0.95em; }
-    .auth-links a { color: #007bff; text-decoration: none; }
-    .auth-links a:hover { text-decoration: underline; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-form-container">
-    <h1>Iniciar Sesión</h1>
+<div class="auth-container"> {# Usar la clase global de style.css #}
+    <h2>Iniciar Sesión</h2> {# Cambiado h1 a h2 para consistencia con style.css #}
+
     <form method="post" action="{% url 'tienda:login' %}">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
-            <ul class="errorlist nonfield">
-                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
-            </ul>
+            <div class="alert alert-danger mb-3" role="alert">
+                {% for error in form.non_field_errors %}
+                    <p class="mb-0">{{ error }}</p>
+                {% endfor %}
+            </div>
         {% endif %}
 
-        <div class="form-group">
-            <label for="{{ form.username.id_for_label }}">Usuario o Email:</label>
+        <div class="form-group mb-3">
+            <label for="{{ form.username.id_for_label }}" class="form-label">Usuario o Email:</label>
             {{ form.username }}
-            {% if form.username.errors %}<ul class="errorlist">{% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            {% if form.username.errors %}<div class="errorlist">{{ form.username.errors }}</div>{% endif %}
         </div>
 
-        <div class="form-group">
-            <label for="{{ form.password.id_for_label }}">Contraseña:</label>
+        <div class="form-group mb-3">
+            <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña:</label>
             {{ form.password }}
-            {% if form.password.errors %}<ul class="errorlist">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+            {% if form.password.errors %}<div class="errorlist">{{ form.password.errors }}</div>{% endif %}
         </div>
 
         <input type="hidden" name="next" value="{{ request.GET.next|default:'tienda:cuenta_dashboard' }}">
 
-        <button type="submit" class="btn-submit-auth">Ingresar</button>
+        <button type="submit" class="btn btn-primary">Ingresar</button>
     </form>
-    <div class="password-actions">
-    <p><a href="{% url 'tienda:password_reset' %}">¿Olvidaste tu contraseña?</a></p>
-    <p>¿No tienes una cuenta? <a href="{% url 'tienda:registro' %}" class="highlight-link">Regístrate aquí</a></p>
-</div>
+
+    <div class="auth-links">
+        <p><a href="{% url 'tienda:password_reset' %}">¿Olvidaste tu contraseña?</a></p>
+        <p>¿No tienes una cuenta? <a href="{% url 'tienda:registro' %}">Regístrate aquí</a></p>
+    </div>
 </div>
 {% endblock %}

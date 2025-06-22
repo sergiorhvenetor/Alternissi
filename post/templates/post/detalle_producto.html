@@ -1,155 +1,537 @@
 {% extends "post/base.html" %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}{{ producto.nombre }} - {{ block.super }}{% endblock %}
+{% block title %}{{ producto.nombre }} - Alternissi{% endblock %}
 
 {% block extra_head %}
-{# Los estilos <style> se han movido a post/static/post/css/style.css o se han integrado/eliminado #}
+{{ block.super }}
+<!-- Incluir CDN para Material Icons si se usa para el corazón y stock -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+    /* Estilos para breadcrumbs (migas de pan) */
+    .breadcrumb {
+        background-color: transparent;
+        padding: 0.75rem 0;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem; /* Ligeramente más pequeño */
+    }
+    .breadcrumb-item a {
+        color: var(--color-accent);
+        text-decoration: none;
+    }
+    .breadcrumb-item a:hover {
+        text-decoration: underline;
+    }
+    .breadcrumb-item.active {
+        color: var(--color-dark-gray);
+        font-weight: 500;
+    }
+
+    /* Contenedor principal del detalle del producto */
+    .product-detail-layout { /* Renombrado de .product-detail-container para evitar colisión con CSS global */
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Dos columnas: galería e info */
+        gap: 2.5rem;
+        margin-bottom: 3rem; /* Espacio antes de las pestañas */
+    }
+
+    /* Galería de Imágenes */
+    .product-detail__image-gallery .main-image img {
+        width: 100%;
+        max-height: 550px;
+        object-fit: contain; /* o 'cover' si se prefiere recorte */
+        border-radius: var(--border-radius-md);
+        border: 1px solid var(--color-medium-gray);
+        box-shadow: var(--box-shadow-light);
+        margin-bottom: 1rem; /* Espacio antes de las miniaturas */
+    }
+    .product-detail__image-gallery .thumbnail-images {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: flex-start; /* Alinear miniaturas a la izquierda */
+    }
+    .product-detail__image-gallery .thumbnail-images img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        cursor: pointer;
+        border-radius: var(--border-radius-sm);
+        border: 2px solid transparent;
+        transition: border-color 0.3s ease;
+    }
+    .product-detail__image-gallery .thumbnail-images img:hover,
+    .product-detail__image-gallery .thumbnail-images img.active-thumbnail {
+        border-color: var(--color-accent);
+    }
+
+    /* Información del Producto */
+    .product-detail__info h1 { /* Título del producto */
+        font-size: 2.4rem;
+        margin-bottom: 0.5rem; /* Reducir margen inferior */
+        font-family: var(--font-secondary);
+        color: var(--color-dark-gray);
+    }
+    .product-detail__meta { /* Para categoría, marca, SKU */
+        font-size: 0.9rem;
+        color: #777;
+        margin-bottom: 1rem;
+    }
+    .product-detail__meta a {
+        color: #555;
+        text-decoration: none;
+    }
+    .product-detail__meta a:hover {
+        color: var(--color-accent);
+    }
+    .product-detail__meta span:not(:last-child)::after {
+        content: "|";
+        margin: 0 0.5em;
+    }
+
+    .product-detail__price { /* Precio */
+        font-size: 2rem;
+        color: var(--color-accent);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    .product-detail__price .original-price {
+        text-decoration: line-through;
+        color: var(--color-medium-gray);
+        font-size: 0.7em;
+        margin-left: 0.5em;
+        font-weight: normal;
+    }
+    .product-detail__price .discount-badge { /* Para el % de descuento */
+        background-color: var(--color-error);
+        color: var(--color-white);
+        font-size: 0.7em;
+        padding: 0.2em 0.5em;
+        border-radius: var(--border-radius-sm);
+        margin-left: 0.5em;
+        font-weight: bold;
+        vertical-align: middle;
+    }
+
+    .stock-info { /* Información de stock */
+        font-size: 0.95em;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+        display: flex; /* Para alinear icono y texto */
+        align-items: center;
+    }
+    .stock-info .material-icons {
+        margin-right: 0.3em;
+        font-size: 1.3em; /* Icono un poco más grande */
+    }
+    .stock-info.disponible { color: var(--color-success); }
+    .stock-info.agotado { color: var(--color-error); }
+
+    .product-detail__description h3 { /* Título "Descripción" */
+        font-family: var(--font-secondary);
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        margin-top: 1.5rem; /* Espacio antes de la descripción */
+    }
+    .product-detail__description p {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #444; /* Texto un poco más oscuro para mejor lectura */
+        margin-bottom: 1.5rem;
+    }
+
+    .product-detail__actions { /* Formulario de añadir al carrito y botón de deseos */
+        display: flex;
+        align-items: center;
+        gap: 1rem; /* Espacio entre el form y el botón de deseos */
+        margin-bottom: 1.5rem;
+    }
+    .product-detail__actions form {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .product-detail__actions label { /* Etiqueta de cantidad */
+        font-weight: 500;
+    }
+    .product-detail__actions input[type="number"] {
+        width: 70px;
+        padding: 0.7rem 0.5rem; /* Ajustar padding */
+        text-align: center;
+        border: 1px solid var(--color-medium-gray);
+        border-radius: var(--border-radius-sm);
+        font-size: 1rem;
+    }
+    .product-detail__actions .btn-primary { /* Botón Añadir al carrito */
+        padding: 0.7rem 1.2rem;
+        display: inline-flex; /* Para alinear icono y texto */
+        align-items: center;
+    }
+    .product-detail__actions .btn-primary .material-icons {
+        margin-right: 0.4em;
+    }
+
+    .wishlist-btn { /* Botón de lista de deseos */
+        padding: 0.7rem 1rem;
+        font-size: 1rem;
+        background-color: transparent;
+        color: var(--color-accent);
+        border: 2px solid var(--color-accent);
+        border-radius: var(--border-radius-sm);
+        text-decoration: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+    }
+    .wishlist-btn:hover {
+        background-color: var(--color-accent);
+        color: var(--color-white);
+        text-decoration: none;
+    }
+    .wishlist-btn .material-icons {
+        margin-right: 0.3em;
+        font-size: 1.3em; /* Icono de corazón un poco más grande */
+    }
+
+    /* Pestañas (Tabs) para descripción larga, especificaciones, reseñas */
+    .product-tabs-section { margin-top: 3rem; }
+    .nav-tabs {
+        border-bottom: 1px solid var(--color-medium-gray);
+        margin-bottom: 0; /* Quitar margen inferior para que el contenido pegue */
+    }
+    .nav-tabs .nav-item {
+        margin-bottom: -1px;
+    }
+    .nav-tabs .nav-link {
+        border: 1px solid transparent;
+        border-top-left-radius: var(--border-radius-sm);
+        border-top-right-radius: var(--border-radius-sm);
+        color: var(--color-accent);
+        padding: 0.8rem 1.5rem; /* Más padding */
+        font-weight: 500;
+        font-size: 1.05rem; /* Ligeramente más grande */
+    }
+    .nav-tabs .nav-link:hover,
+    .nav-tabs .nav-link:focus {
+        border-color: var(--color-light-gray) var(--color-light-gray) var(--color-medium-gray);
+        background-color: var(--color-light-gray); /* Sutil hover */
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--color-dark-gray);
+        background-color: var(--color-white);
+        border-color: var(--color-medium-gray) var(--color-medium-gray) var(--color-white);
+        font-weight: 700; /* Más bold para activo */
+    }
+    .tab-content {
+        padding: 2rem 1.5rem; /* Más padding interno */
+        border: 1px solid var(--color-medium-gray);
+        border-top: none;
+        border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); /* Redondear esquinas inferiores */
+        background-color: var(--color-white);
+        min-height: 200px; /* Altura mínima para el contenido de las pestañas */
+    }
+    .tab-content ul { /* Para listas dentro de especificaciones */
+        padding-left: 1.2rem;
+    }
+    .tab-content ul li {
+        margin-bottom: 0.4rem;
+    }
+
+    /* Sección de Reseñas */
+    .reviews-section h4 {
+        font-family: var(--font-secondary);
+        font-size: 1.6rem; /* Título más grande */
+        margin-bottom: 1.5rem;
+    }
+    .review {
+        border-bottom: 1px solid var(--color-light-gray);
+        padding: 1rem 0;
+        margin-bottom: 1rem;
+    }
+    .review:last-child { border-bottom: none; margin-bottom: 0; }
+    .review .rating { color: var(--color-accent); font-size: 1.1rem; margin-bottom: 0.3rem; }
+    .review .review-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.3rem; }
+    .review .review-comment { margin-bottom: 0.5rem; line-height: 1.6; }
+    .review .author { font-size: 0.9em; color: #777; }
+    .no-reviews { color: #777; font-style: italic; }
+    .add-review-link.btn { margin-top: 1.5rem; } /* Usar clase .btn de style.css */
+
+    /* Productos Relacionados */
+    .related-products-section { margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid var(--color-medium-gray); }
+    .related-products-section h3 {
+        text-align: center;
+        font-family: var(--font-secondary);
+        font-size: 2rem; /* Título más grande */
+        margin-bottom: 2.5rem;
+    }
+    /* .product-grid y .product-card se reutilizan de style.css */
+
+    /* Responsividad */
+    @media (max-width: 992px) { /* Tablets */
+        .product-detail-layout {
+            grid-template-columns: 1fr; /* Una columna en tablets y móviles */
+        }
+        .product-detail__info {
+            padding-left: 0;
+        }
+    }
+    @media (max-width: 768px) { /* Móviles */
+        .product-detail__image-gallery .main-image img {
+             max-height: 400px;
+        }
+        .product-detail__image-gallery .thumbnail-images img {
+            width: 65px;
+            height: 65px;
+        }
+        .product-detail__info h1 { font-size: 2rem; }
+        .product-detail__price { font-size: 1.8rem; }
+        .product-detail__actions {
+            flex-direction: column; /* Apilar form y botón de deseos */
+            align-items: flex-start; /* Alinear a la izquierda */
+        }
+        .product-detail__actions form {
+            width: 100%; /* El form ocupa todo el ancho */
+            margin-bottom: 1rem; /* Espacio antes del botón de deseos */
+        }
+         .product-detail__actions .btn-primary {
+            width: 100%; /* Botón de carrito ocupa todo el ancho */
+        }
+        .wishlist-btn {
+            width: 100%; /* Botón de deseos ocupa todo el ancho */
+            justify-content: center; /* Centrar contenido del botón */
+        }
+        .nav-tabs .nav-link {
+            padding: 0.7rem 1rem; /* Menos padding en tabs en móvil */
+            font-size: 0.95rem;
+        }
+        .tab-content {
+            padding: 1.5rem 1rem;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="product-detail-container">
-    <section class="product-gallery">
-        <div class="main-image">
-            {% if producto.imagenes.first %}
-                <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}" id="mainProductImage">
-            {% else %}
-                <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible" id="mainProductImage">
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'tienda:inicio' %}">Inicio</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'tienda:lista_productos' %}">Productos</a></li>
+            {% if producto.categoria %}
+            <li class="breadcrumb-item"><a href="{{ producto.categoria.get_absolute_url }}">{{ producto.categoria.nombre }}</a></li>
             {% endif %}
-        </div>
-        {% if producto.imagenes.all|length > 1 %}
+            <li class="breadcrumb-item active" aria-current="page">{{ producto.nombre }}</li>
+        </ol>
+    </nav>
+
+    <div class="product-detail-layout">
+        <div class="product-detail__image-gallery">
+            <div class="main-image">
+                {% if producto.imagenes.first %}
+                    <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}" id="mainProductImage">
+                {% else %}
+                    <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible" id="mainProductImage">
+                {% endif %}
+            </div>
+            {% if producto.imagenes.all|length > 1 %}
             <div class="thumbnail-images">
                 {% for imagen_obj in producto.imagenes.all %}
                     <img src="{{ imagen_obj.imagen.url }}" alt="{{ imagen_obj.alt_text|default:producto.nombre }}"
-                onclick="document.getElementById('mainProductImage').src='{{ imagen_obj.imagen.url }}'; setActiveThumbnail(this);"
-
+                         onclick="changeMainImage('{{ imagen_obj.imagen.url }}', this)"
+                         class="{% if forloop.first %}active-thumbnail{% endif %}">
                 {% endfor %}
             </div>
-        {% endif %}
-    </section>
-
-    <section class="product-info">
-        <h1>{{ producto.nombre }}</h1>
-
-        <div class="product-meta">
-            {% if producto.categoria %}
-                <span>Categoría: <a href="{{ producto.categoria.get_absolute_url }}">{{ producto.categoria.nombre }}</a></span> |
             {% endif %}
-            {% if producto.marca %}
-                <span>Marca: <a href="{% url 'tienda:productos_por_marca' marca_slug=producto.marca.slug %}">{{ producto.marca.nombre }}</a></span> |
-            {% endif %}
-            <span>SKU: {{ producto.sku }}</span>
         </div>
 
-        <div class="product-price">
-            <p class="precio">
+        <div class="product-detail__info">
+            <h1>{{ producto.nombre }}</h1>
+
+            <div class="product-detail__meta">
+                {% if producto.categoria %}
+                    <span>Categoría: <a href="{{ producto.categoria.get_absolute_url }}">{{ producto.categoria.nombre }}</a></span>
+                {% endif %}
+                {% if producto.marca %}
+                    <span>Marca: <a href="{% url 'tienda:productos_por_marca' marca_slug=producto.marca.slug %}">{{ producto.marca.nombre }}</a></span>
+                {% endif %}
+                {% if producto.sku %}
+                    <span>SKU: {{ producto.sku }}</span>
+                {% endif %}
+            </div>
+
+            <p class="product-detail__price">
                 {% if producto.tiene_descuento %}
-                    <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                    <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                    <span>${{ producto.precio_actual|floatformat:2 }}</span>
+                    <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
                     {% if producto.porcentaje_descuento > 0 %}
-                        <span class="badge-descuento">{{ producto.porcentaje_descuento }}% OFF</span>
+                        <span class="discount-badge">{{ producto.porcentaje_descuento|floatformat:0 }}% OFF</span>
                     {% endif %}
                 {% else %}
-                    {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                    <span>${{ producto.precio_actual|floatformat:2 }}</span>
                 {% endif %}
             </p>
-        </div>
 
-        <div class="product-description">
-            <h3>Descripción</h3>
-            <p>{{ producto.descripcion|linebreaks }}</p>
-        </div>
+            <p class="stock-info {% if producto.stock > 0 and producto.disponible %}disponible{% else %}agotado{% endif %}">
+                {% if producto.stock > 0 and producto.disponible %}
+                    <span class="material-icons">check_circle</span> Disponible ({{ producto.stock }} en stock)
+                {% else %}
+                    <span class="material-icons">cancel</span> Agotado
+                {% endif %}
+            </p>
 
-        {% if producto.caracteristicas %}
-        <div class="product-features">
-            <h3>Características</h3>
-            <ul>
+            <div class="product-detail__description">
+                {# Mostrar descripción corta aquí, la larga irá en la pestaña #}
+                <p>{{ producto.descripcion|linebreaksbr }}</p>
+            </div>
+
+            {% if producto.stock > 0 and producto.disponible %}
+            <div class="product-detail__actions">
+                <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post">
+                    {% csrf_token %}
+                    <label for="cantidad">Cantidad:</label>
+                    <input type="number" name="cantidad" id="cantidad" value="1" min="1" max="{{ producto.stock }}" aria-label="Cantidad">
+                    <button type="submit" class="btn btn-primary"><span class="material-icons">add_shopping_cart</span>Añadir al Carrito</button>
+                </form>
+                <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" class="wishlist-btn" title="Añadir a Lista de Deseos">
+                    <span class="material-icons">favorite_border</span> <span class="d-none d-md-inline">Añadir a Deseos</span>
+                </a>
+            </div>
+            {% else %}
+                 <p class="text-danger lead">Este producto no está disponible actualmente.</p>
+                 <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" class="wishlist-btn mt-2" title="Añadir a Lista de Deseos">
+                     <span class="material-icons">favorite_border</span> <span class="d-none d-md-inline">Notificarme si vuelve</span>
+                 </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pestañas para Descripción Detallada, Especificaciones, Reseñas -->
+    <div class="product-tabs-section">
+        <ul class="nav nav-tabs" id="productTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="descripcion-tab" data-bs-toggle="tab" data-bs-target="#descripcionContent" type="button" role="tab" aria-controls="descripcionContent" aria-selected="true">Descripción Detallada</button>
+            </li>
+            {% if producto.caracteristicas %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="especificaciones-tab" data-bs-toggle="tab" data-bs-target="#especificacionesContent" type="button" role="tab" aria-controls="especificacionesContent" aria-selected="false">Características</button>
+            </li>
+            {% endif %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reseñas-tab" data-bs-toggle="tab" data-bs-target="#reseñasContent" type="button" role="tab" aria-controls="reseñasContent" aria-selected="false">Reseñas ({{ resenas.count }})</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="productTabContent">
+            <div class="tab-pane fade show active" id="descripcionContent" role="tabpanel" aria-labelledby="descripcion-tab">
+                {{ producto.descripcion_larga|default:producto.descripcion|linebreaksbr|default:"No hay descripción detallada disponible para este producto." }}
+            </div>
+            {% if producto.caracteristicas %}
+            <div class="tab-pane fade" id="especificacionesContent" role="tabpanel" aria-labelledby="especificaciones-tab">
+                <ul class="list-unstyled">
                 {% for key, value in producto.caracteristicas.items %}
                     <li><strong>{{ key|capfirst }}:</strong> {{ value }}</li>
                 {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post" class="add-to-cart-form">
-            {% csrf_token %}
-            <div>
-                <label for="cantidad">Cantidad:</label>
-                <input type="number" name="cantidad" id="cantidad" value="1" min="1" {% if producto.stock > 0 %}max="{{ producto.stock }}"{% else %}max="0"{% endif %}>
+                </ul>
             </div>
-            {% if producto.stock > 0 and producto.disponible %}
-                <button type="submit" class="btn-add-to-cart">Añadir al Carrito</button>
-            {% else %}
-                <p style="color: red; font-weight: bold;">Producto no disponible actualmente.</p>
             {% endif %}
-             <p><small>Stock disponible: {{ producto.stock }}</small></p>
-        </form>
-        <div style="margin-top: 15px;">
-            <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" class="btn btn-outline-secondary" style="padding:8px 15px; text-decoration:none; border:1px solid #6c757d; color:#6c757d; border-radius:4px;">
-                &#9825; Añadir a Lista de Deseos
-            </a>
-        </div>
-    </section>
-</div>
-
-<section class="reviews-section container" style="max-width: 1200px; margin-left:auto; margin-right:auto; padding-left:20px; padding-right:20px;">
-    <h2>Reseñas de Clientes ({{ resenas|length }})</h2>
-    {% if resenas %}
-        {% for resena in resenas %}
-            <article class="review">
-                <strong>{{ resena.titulo }}</strong>
-                <div class="rating">
-                    {% for i in "x"|rjust:resena.calificacion|slice:"1:" %}★{% endfor %}{% for i in "x"|rjust:resena.calificacion|slice:":4"|slice:"1:"|ljust:5|slice:resena.calificacion|slice:"1:" %}☆{% endfor %}
-                    ({{ resena.calificacion }}/5)
-                </div>
-                <p>{{ resena.comentario|linebreaks }}</p>
-                <p class="review-author">Por: {{ resena.cliente.nombre_completo|default:resena.cliente.email }}</p>
-                <p class="review-date">Fecha: {{ resena.creado|date:"d M Y" }}</p>
-                {% if resena.respuesta %}
-                    <div class="review-reply" style="margin-left: 20px; padding-left:15px; border-left: 2px solid #eee; margin-top:10px;">
-                        <strong>Respuesta de la tienda:</strong>
-                        <p>{{ resena.respuesta|linebreaks }}</p>
-                        <p class="review-date">Fecha: {{ resena.respuesta_fecha|date:"d M Y" }}</p>
-                    </div>
+            <div class="tab-pane fade reviews-section" id="reseñasContent" role="tabpanel" aria-labelledby="reseñas-tab">
+                <h4>Reseñas de Clientes</h4>
+                {% if resenas %}
+                    {% for resena in resenas %}
+                        <div class="review">
+                            <p class="review-title">{{ resena.titulo }}</p>
+                            <p class="rating">
+                                {% for i in "x"|rjust:resena.calificacion %}★{% endfor %}{% for i in "x"|rjust:resena.calificacion_restante %}☆{% endfor %}
+                                <span class="ms-2">({{ resena.calificacion }}/5)</span>
+                            </p>
+                            <p class="review-comment">{{ resena.comentario|linebreaksbr }}</p>
+                            <p class="author">- {{ resena.cliente.usuario.get_full_name|default:resena.cliente.usuario.username }} el {{ resena.creado|date:"d M, Y" }}</p>
+                             {% if resena.respuesta %}
+                                <div class="review-reply" style="margin-left: 20px; padding-left:15px; border-left: 2px solid #eee; margin-top:10px;">
+                                    <strong>Respuesta de la tienda:</strong>
+                                    <p>{{ resena.respuesta|linebreaks }}</p>
+                                    <p class="review-date">Fecha: {{ resena.respuesta_fecha|date:"d M Y" }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-reviews">Aún no hay reseñas para este producto. ¡Sé el primero en escribir una!</p>
                 {% endif %}
-            </article>
-        {% endfor %}
-    {% else %}
-        <p class="no-reviews">Este producto aún no tiene reseñas.</p>
-    {% endif %}
-    <a href="{% url 'tienda:crear_resena' producto_id=producto.id %}" class="add-review-link">Escribir una reseña</a>
-</section>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'tienda:crear_resena' producto_id=producto.id %}" class="btn btn-outline-primary add-review-link">Escribir una Reseña</a>
+                {% else %}
+                    <p class="mt-3"><a href="{% url 'tienda:login' %}?next={{ request.path }}">Inicia sesión</a> para escribir una reseña.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
+    <!-- Productos Relacionados/Sugeridos -->
+    {% if productos_relacionados %}
+    <div class="related-products-section">
+        <h3>También te podría interesar</h3>
+        <div class="product-grid">
+            {% for p_rel in productos_relacionados|slice:":4" %}
+            <div class="product-card">
+                 <a href="{{ p_rel.get_absolute_url }}" class="product-card__image-container">
+                {% if p_rel.imagenes.first %}
+                    <img src="{{ p_rel.imagenes.first.imagen.url }}" alt="{{ p_rel.imagenes.first.alt_text|default:p_rel.nombre }}">
+                {% else %}
+                    <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
+                {% endif %}
+                </a>
+                <div class="product-card__info">
+                    <a href="{{ p_rel.get_absolute_url }}" class="product-card__name">{{ p_rel.nombre }}</a>
+                    <p class="product-card__price">
+                        {% if p_rel.tiene_descuento %}
+                            <span class="original-price">${{ p_rel.precio|floatformat:2 }}</span>
+                            <span class="discounted-price">${{ p_rel.precio_actual|floatformat:2 }}</span>
+                        {% else %}
+                            <span>${{ p_rel.precio_actual|floatformat:2 }}</span>
+                        {% endif %}
+                    </p>
+                     <a href="{{ p_rel.get_absolute_url }}" class="btn btn-secondary btn-sm mt-auto d-block">Ver Detalles</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
+{{ block.super }}
+<!-- Bootstrap JS ya debería estar en base.html -->
 <script>
-    function setActiveThumbnail(thumbnailElement) {
-        var thumbnails = document.querySelectorAll('.thumbnail-images img');
-        thumbnails.forEach(function(thumb) {
-            thumb.classList.remove('active');
-        });
-        thumbnailElement.classList.add('active');
-        // Actualizar la imagen principal
-        document.getElementById('mainProductImage').src = thumbnailElement.src;
-        document.getElementById('mainProductImage').alt = thumbnailElement.alt;
+function changeMainImage(imageUrl, thumbnailElement) {
+    document.getElementById('mainProductImage').src = imageUrl;
+
+    const thumbnails = document.querySelectorAll('.product-detail__image-gallery .thumbnail-images img');
+    thumbnails.forEach(thumb => thumb.classList.remove('active-thumbnail'));
+    if (thumbnailElement) {
+        thumbnailElement.classList.add('active-thumbnail');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Activar la primera miniatura por defecto
+    const firstThumbnail = document.querySelector('.product-detail__image-gallery .thumbnail-images img');
+    if (firstThumbnail) {
+        firstThumbnail.classList.add('active-thumbnail');
+        // No es necesario llamar a changeMainImage aquí si el src de la imagen principal ya es el de la primera miniatura
     }
 
-    // Asegurarse que la primera miniatura activa sea la imagen principal al cargar
-    document.addEventListener('DOMContentLoaded', function() {
-        var firstActiveThumbnail = document.querySelector('.thumbnail-images img.active');
-        if (firstActiveThumbnail) {
-            document.getElementById('mainProductImage').src = firstActiveThumbnail.src;
-            document.getElementById('mainProductImage').alt = firstActiveThumbnail.alt;
-        } else {
-            // Si ninguna es activa por defecto (ej. no hay 'principal' y es la primera del bucle), activa la primera si existe
-            var firstThumbnail = document.querySelector('.thumbnail-images img');
-            if (firstThumbnail) {
-                 firstThumbnail.classList.add('active'); // Activa la primera visualmente
-                 document.getElementById('mainProductImage').src = firstThumbnail.src;
-                 document.getElementById('mainProductImage').alt = firstThumbnail.alt;
-            }
-        }
-    });
+    // Inicializar Tabs de Bootstrap
+    var triggerTabList = [].slice.call(document.querySelectorAll('#productTab button[data-bs-toggle="tab"]'))
+    triggerTabList.forEach(function (triggerEl) {
+      var tabTrigger = new bootstrap.Tab(triggerEl)
+      triggerEl.addEventListener('click', function (event) {
+        event.preventDefault()
+        tabTrigger.show()
+      })
+    })
+});
 </script>
 {% endblock %}
