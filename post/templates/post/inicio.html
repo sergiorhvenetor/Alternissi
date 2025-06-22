@@ -10,41 +10,6 @@
     <a href="{% url 'tienda:lista_productos' %}" class="btn-primary">Ver todos los productos</a>
 </section>
 
-
-
-<section class="productos-nuevos">
-    <h2>Últimos Productos</h2>
-    {% if productos_nuevos %}
-        <div class="product-grid">
-            {% for producto in productos_nuevos %}
-                <div class="product-card">
-                    {% if producto.imagenes.first %}
-                         <a href="{{ producto.get_absolute_url }}">
-                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
-                        </a>
-                    {% else %}
-                        <a href="{{ producto.get_absolute_url }}">
-                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
-                        </a>
-                    {% endif %}
-                    <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
-                    <p class="precio">
-                        {% if producto.tiene_descuento %}
-                            <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                            <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                        {% else %}
-                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
-                        {% endif %}
-                    </p>
-                    <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>No hay productos nuevos en este momento.</p>
-    {% endif %}
-</section>
-
 <section class="productos-con-descuento">
     <h2>Productos con Descuento</h2>
     {% if productos_con_descuento %}
@@ -79,6 +44,39 @@
         </div>
     {% else %}
         <p>No hay productos con descuento en este momento.</p>
+    {% endif %}
+</section>
+
+<section class="productos-nuevos">
+    <h2>Últimos Productos</h2>
+    {% if productos_nuevos %}
+        <div class="product-grid">
+            {% for producto in productos_nuevos %}
+                <div class="product-card">
+                    {% if producto.imagenes.first %}
+                         <a href="{{ producto.get_absolute_url }}">
+                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
+                        </a>
+                    {% else %}
+                        <a href="{{ producto.get_absolute_url }}">
+                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
+                        </a>
+                    {% endif %}
+                    <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
+                    <p class="precio">
+                        {% if producto.tiene_descuento %}
+                            <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                            <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                        {% else %}
+                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                        {% endif %}
+                    </p>
+                    <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No hay productos nuevos en este momento.</p>
     {% endif %}
 </section>
 
