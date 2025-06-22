@@ -98,7 +98,7 @@ ul, ol {
 /* --- Header y Navegación --- */
 header {
     background-color: var(--color-white);
-    padding: 1rem 0;
+    padding: 0.5rem 0; /* Reducido de 1rem a 0.5rem */
     box-shadow: var(--box-shadow-light);
     position: sticky;
     top: 0;
@@ -164,7 +164,7 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
 .search-bar {
     display: flex;
     justify-content: center; /* Centrar la barra de búsqueda */
-    margin-top: 1rem; /* Espacio sobre la barra */
+    margin-top: 0.5rem; /* Reducido de 1rem a 0.5rem */
     padding: 0 5%; /* Padding lateral para que no ocupe todo el ancho en pantallas grandes */
 }
 
