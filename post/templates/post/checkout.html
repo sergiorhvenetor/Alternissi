@@ -1,189 +1,359 @@
 {% extends "post/base.html" %}
 {% load static %}
+{% load humanize %}
 
-{% block title %}Finalizar Compra - {{ block.super }}{% endblock %}
+{% block title %}Finalizar Compra - Alternissi{% endblock %}
 
 {% block extra_head %}
+{{ block.super }}
+<!-- Incluir CDN para Material Icons (si se usa para volver al carrito) -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-    .checkout-container { max-width: 900px; margin: 20px auto; padding: 20px; }
-    .checkout-container h1 { text-align: center; margin-bottom: 30px; font-size: 2.2em; }
-    .checkout-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
-    .form-section { background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom:20px; }
-    .form-section h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;}
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-    .form-group input[type="text"],
-    .form-group input[type="email"],
-    .form-group input[type="tel"],
-    .form-group select,
-    .form-group textarea {
-        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+    .checkout-page-header h2 {
+        font-family: var(--font-secondary);
+        font-size: 2.2rem;
+        margin-bottom: 2rem; /* Aumentar margen inferior */
+        text-align: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--color-medium-gray);
     }
-    .form-group textarea { min-height: 80px; }
-    .form-group.checkbox-group label { display: inline-block; margin-left: 5px; font-weight:normal; }
-    .order-summary-checkout { background-color: #f0f0f0; padding: 20px; border-radius: 5px; height:fit-content; }
-    .order-summary-checkout h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 20px; }
-    .summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; align-items:center; }
-    .summary-item-product img { width:40px; height:40px; object-fit:cover; margin-right:8px; border-radius:3px;}
-    .summary-item-product .name {flex-grow:1; font-size:0.9em;}
-    .summary-item-product .quantity {margin-right:5px; font-size:0.9em;}
-    .summary-item-product .price {font-size:0.9em;}
-    .summary-total { font-weight: bold; font-size: 1.2em; margin-top: 15px; padding-top:10px; border-top:1px solid #ccc;}
-    .btn-place-order {
-        display: block; width: 100%; padding: 15px; background-color: #28a745; color: white;
-        border: none; border-radius: 5px; font-size: 1.2em; cursor: pointer; text-align: center; margin-top:20px;
+
+    /* Secciones del formulario y resumen */
+    .checkout-form-section,
+    .checkout-summary-section {
+        padding: 2rem; /* Aumentar padding */
+        background-color: var(--color-white);
+        border: 1px solid var(--color-light-gray); /* Borde más sutil */
+        border-radius: var(--border-radius-md);
+        box-shadow: var(--box-shadow-light);
+        margin-bottom: 2.5rem;
     }
-    .btn-place-order:hover { background-color: #218838; }
-    @media (max-width: 768px) {
-        .checkout-grid { grid-template-columns: 1fr; }
-        .order-summary-checkout { order: -1; margin-bottom:30px;}
+
+    .checkout-form-section h3, /* Cambiado de h4 a h3 para jerarquía */
+    .checkout-summary-section h3 {
+        font-family: var(--font-secondary);
+        font-size: 1.6rem; /* Ajustar tamaño */
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--color-medium-gray); /* Borde más visible */
+        color: var(--color-dark-gray);
+    }
+
+    /* Estilos para campos de formulario (heredan de style.css, se pueden refinar) */
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.4rem;
+        color: var(--color-dark-gray); /* Asegurar color de etiqueta */
+    }
+    .form-group .form-control, /* Para inputs de Django form widget */
+    .form-group .form-select { /* Para selects de Django form widget */
+        border-color: var(--color-medium-gray); /* Borde más visible */
+    }
+    .form-group .form-control:focus,
+    .form-group .form-select:focus {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb, 176, 141, 87), 0.25); /* Usar variable RGB si existe */
+    }
+     .form-check-label { /* Para checkbox "Guardar información" */
+        font-weight: normal; /* Resetear bold si no se quiere */
+    }
+
+    /* Resumen del pedido en checkout */
+    .checkout-summary-section .list-group-item {
+        padding: 0.9rem 0; /* Aumentar padding vertical */
+        border-color: var(--color-light-gray); /* Borde más sutil entre items */
+        background-color: transparent;
+    }
+    .checkout-summary-section .list-group-item:first-child { border-top: none; }
+    .checkout-summary-section .list-group-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .checkout-summary-section .item-name {
+        font-size: 0.9rem; /* Ligeramente más pequeño */
+        color: var(--color-dark-gray);
+    }
+    .checkout-summary-section .item-name .variation-info {
+        font-size: 0.75rem;
+        color: #6c757d;
+        display: block;
+    }
+    .checkout-summary-section .item-price {
+        font-size: 0.9rem; /* Consistente con nombre */
+        font-weight: 500;
+        color: var(--color-dark-gray);
+    }
+    .checkout-summary-section .summary-total-label {
+        font-weight: 700; /* Más bold */
+        font-size: 1.15em; /* Ligeramente más grande */
+        color: var(--color-dark-gray);
+    }
+    .checkout-summary-section .summary-total-value {
+        font-weight: 700; /* Más bold */
+        font-size: 1.4em; /* Más grande */
+        color: var(--color-accent);
+    }
+
+    .payment-info-text p { /* Párrafo sobre pago contra entrega */
+        font-size: 0.9rem;
+        line-height: 1.5;
+        color: #555;
+        background-color: var(--color-light-gray); /* Fondo sutil para destacar */
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        border-left: 3px solid var(--color-accent); /* Detalle lateral */
+    }
+    .payment-info-text .form-select {
+        max-width: 100%; /* Ocupar todo el ancho disponible en su contenedor */
+        margin-top: 0.5rem; /* Espacio si está debajo de un label */
+    }
+
+    .checkout-actions .btn-primary { /* Botón Realizar Pedido */
+        padding: 1rem 2.2rem; /* Botón más grande */
+        font-size: 1.15rem;
+        font-weight: 500; /* Menos bold que el default de btn */
+    }
+    .back-to-cart-link {
+        font-size: 0.95rem; /* Un poco más grande */
+        color: var(--color-accent);
+        text-decoration: none; /* Quitar subrayado por defecto */
+        display: inline-flex; /* Para alinear icono y texto */
+        align-items: center;
+    }
+    .back-to-cart-link:hover {
+        color: var(--color-accent-hover);
+        text-decoration: underline;
+    }
+    .back-to-cart-link .material-icons {
+        font-size: 1.1em; /* Ajustar tamaño del icono */
+        margin-right: 0.2em; /* Espacio entre icono y texto */
+    }
+
+    /* Responsividad */
+    @media (max-width: 991px) { /* Cuando las columnas se apilan (lg breakpoint) */
+        .checkout-summary-section {
+            order: -1; /* Mover resumen arriba en móvil/tablet */
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="checkout-container">
-    <h1>Finalizar Compra</h1>
+<div class="container mt-4">
+    <div class="checkout-page-header">
+        <h2>Finalizar Compra</h2>
+    </div>
 
-    <form action="{% url 'tienda:procesar_pedido' %}" method="post">
+    {% if messages %}
+        {# Los mensajes flash ya se muestran en base.html #}
+    {% endif %}
+
+    <form method="post" id="checkoutForm" action="{% url 'tienda:procesar_pedido' %}">
         {% csrf_token %}
-        <div class="checkout-grid">
-            <div class="checkout-forms">
-                <section class="form-section">
-                    <h2>Dirección de Envío</h2>
-                    <div class="form-group">
-                        <label for="shipping_nombre">Nombre</label>
-                        <input type="text" name="shipping_nombre" id="shipping_nombre" value="{{ request.user.cliente.nombre|default:request.user.first_name|default:'' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_apellido">Apellido</label>
-                        <input type="text" name="shipping_apellido" id="shipping_apellido" value="{{ request.user.cliente.apellido|default:request.user.last_name|default:'' }}" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="shipping_email">Email</label>
-                        <input type="email" name="shipping_email" id="shipping_email" value="{{ request.user.email|default:'' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_direccion1">Dirección Línea 1</label>
-                        <input type="text" name="shipping_direccion1" id="shipping_direccion1" value="{{ request.user.cliente.direccion|default:'' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_ciudad">Ciudad</label>
-                        <input type="text" name="shipping_ciudad" id="shipping_ciudad" value="{{ request.user.cliente.ciudad|default:'' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_codigo_postal">Código Postal</label>
-                        <input type="text" name="shipping_codigo_postal" id="shipping_codigo_postal" value="{{ request.user.cliente.codigo_postal|default:'' }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="shipping_pais">País</label>
-                        <input type="text" name="shipping_pais" id="shipping_pais" value="{{ request.user.cliente.pais|default:'' }}" required>
-                    </div>
-                     <div class="form-group">
-                        <label for="shipping_telefono">Teléfono</label>
-                        <input type="tel" name="shipping_telefono" id="shipping_telefono" value="{{ request.user.cliente.telefono|default:'' }}" required>
-                    </div>
-                </section>
-
-                <section class="form-section">
-                    <h2>Dirección de Facturación</h2>
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" name="billing_same_as_shipping" id="billing_same_as_shipping" checked
-                               onchange="toggleBillingAddressForm()">
-                        <label for="billing_same_as_shipping">Usar la misma dirección de envío para la facturación</label>
-                    </div>
-                    <div id="billing-address-form" style="display:none;">
-                        <p><em>Completa esta sección solo si tu dirección de facturación es diferente a la de envío.</em></p>
-                        <div class="form-group">
-                            <label for="billing_nombre">Nombre</label> <input type="text" name="billing_nombre" id="billing_nombre">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_apellido">Apellido</label> <input type="text" name="billing_apellido" id="billing_apellido">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_direccion1">Dirección Línea 1</label> <input type="text" name="billing_direccion1" id="billing_direccion1">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_ciudad">Ciudad</label> <input type="text" name="billing_ciudad" id="billing_ciudad">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_codigo_postal">Código Postal</label> <input type="text" name="billing_codigo_postal" id="billing_codigo_postal">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing_pais">País</label> <input type="text" name="billing_pais" id="billing_pais">
-                        </div>
-                    </div>
-                </section>
-
-                <section class="form-section">
-                    <h2>Método de Pago</h2>
-                    <div class="form-group">
-                        <label for="metodo_pago">Selecciona un método de pago:</label>
-                        <select name="metodo_pago" id="metodo_pago" required>
-                            {% for value, display_name in pedido_metodos_pago_choices %}
-                                <option value="{{ value }}">{{ display_name }}</option>
+        <div class="row">
+            <!-- Columna de Información de Envío y Pago -->
+            <div class="col-lg-7">
+                <section class="checkout-form-section">
+                    <h3>Información de Envío</h3>
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger mb-3">
+                            {% for error in form.non_field_errors %}
+                                <p class="mb-0">{{ error }}</p>
                             {% endfor %}
-                        </select>
+                        </div>
+                    {% endif %}
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}{% if form.nombre.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}<div class="invalid-feedback d-block">{{ form.nombre.errors.as_text|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="{{ form.apellido.id_for_label }}" class="form-label">{{ form.apellido.label }}{% if form.apellido.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            {{ form.apellido }}
+                            {% if form.apellido.errors %}<div class="invalid-feedback d-block">{{ form.apellido.errors.as_text|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}{% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors.as_text|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">{{ form.telefono.label }}{% if form.telefono.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                        {{ form.telefono }}
+                        {% if form.telefono.errors %}<div class="invalid-feedback d-block">{{ form.telefono.errors.as_text|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label">{{ form.direccion.label }}{% if form.direccion.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                        {{ form.direccion }}
+                        {% if form.direccion.errors %}<div class="invalid-feedback d-block">{{ form.direccion.errors.as_text|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="{{ form.ciudad.id_for_label }}" class="form-label">{{ form.ciudad.label }}{% if form.ciudad.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            {{ form.ciudad }}
+                            {% if form.ciudad.errors %}<div class="invalid-feedback d-block">{{ form.ciudad.errors.as_text|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="{{ form.region_o_provincia.id_for_label }}" class="form-label">{{ form.region_o_provincia.label }}{% if form.region_o_provincia.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            {{ form.region_o_provincia }}
+                            {% if form.region_o_provincia.errors %}<div class="invalid-feedback d-block">{{ form.region_o_provincia.errors.as_text|striptags }}</div>{% endif %}
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label for="{{ form.codigo_postal.id_for_label }}" class="form-label">{{ form.codigo_postal.label }}{% if form.codigo_postal.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            {{ form.codigo_postal }}
+                            {% if form.codigo_postal.errors %}<div class="invalid-feedback d-block">{{ form.codigo_postal.errors.as_text|striptags }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.pais.id_for_label }}" class="form-label">{{ form.pais.label }}{% if form.pais.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                        {{ form.pais }}
+                        {% if form.pais.errors %}<div class="invalid-feedback d-block">{{ form.pais.errors.as_text|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="form-group form-check">
+                        {{ form.guardar_informacion }}
+                        <label class="form-check-label" for="{{ form.guardar_informacion.id_for_label }}">
+                            {{ form.guardar_informacion.label }}
+                        </label>
                     </div>
                 </section>
+
+                {# Sección de Dirección de Facturación (si es diferente) - Asumiendo que el form la maneja #}
+                {% if form.direccion_facturacion %} {# Ejemplo, ajusta según tu form #}
+                <section class="checkout-form-section mt-4">
+                    <h3>Dirección de Facturación (si es diferente)</h3>
+                     <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="billing_same_as_shipping" id="billing_same_as_shipping" checked onchange="toggleBillingAddressForm(this.checked)">
+                        <label class="form-check-label" for="billing_same_as_shipping">
+                            Usar la misma dirección de envío para la facturación
+                        </label>
+                    </div>
+                    <div id="billing-address-fields" style="display:none;">
+                        {# Aquí irían los campos del formulario de dirección de facturación #}
+                        {# Ejemplo: {{ form.nombre_facturacion }}, etc. #}
+                         <p class="text-muted"><em>Completa esta sección si tu dirección de facturación es diferente.</em></p>
+                    </div>
+                </section>
+                {% endif %}
+
+
+                <section class="checkout-form-section mt-4 payment-info-text">
+                    <h3>Información de Pago</h3>
+                    <div class="form-group">
+                        <label for="{{ form.metodo_pago.id_for_label }}" class="form-label">{{ form.metodo_pago.label }}{% if form.metodo_pago.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                        {{ form.metodo_pago }}
+                        {% if form.metodo_pago.help_text %}<small class="form-text text-muted d-block mt-1">{{ form.metodo_pago.help_text|safe }}</small>{% endif %}
+                        {% if form.metodo_pago.errors %}<div class="invalid-feedback d-block">{{ form.metodo_pago.errors.as_text|striptags }}</div>{% endif %}
+                    </div>
+                    <p>Para pagos con transferencia o contra entrega, nos pondremos en contacto contigo después de que realices el pedido para coordinar los detalles.</p>
+                </section>
+
+                <section class="checkout-form-section mt-4">
+                    <h3>Notas Adicionales</h3>
+                    <div class="form-group">
+                        <label for="{{ form.notas_adicionales.id_for_label }}" class="form-label">{{ form.notas_adicionales.label }}</label>
+                        {{ form.notas_adicionales }}
+                        {% if form.notas_adicionales.errors %}<div class="invalid-feedback d-block">{{ form.notas_adicionales.errors.as_text|striptags }}</div>{% endif %}
+                    </div>
+                </section>
+
+                <div class="checkout-actions mt-4 d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg">Realizar Pedido y Pagar</button>
+                </div>
             </div>
 
-            <aside class="order-summary-checkout">
-                <h2>Resumen de tu Pedido</h2>
-                {% if carrito and carrito.items.all %}
-                    {% for item in carrito.items.all %}
-                        <div class="summary-item summary-item-product">
-                             {% if item.producto.imagenes.first %}
-                                <img src="{{ item.producto.imagenes.first.imagen.url }}" alt="{{ item.producto.nombre }}">
-                            {% else %}
-                                <img src="{% static 'post/images/placeholder.png' %}" alt="N/A">
-                            {% endif %}
-                            <span class="name">{{ item.producto.nombre }}</span>
-                            <span class="quantity">x{{ item.cantidad }}</span>
-                            <span class="price">{{ item.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                        </div>
-                    {% endfor %}
-                    <hr style="margin: 10px 0;">
-                    <div class="summary-item">
-                        <span>Subtotal:</span>
-                        <span>{{ carrito.subtotal|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                    </div>
-
-                    <div class="summary-item">
-                        <span>Descuento ({{ carrito.cupon.codigo }}):</span>
-
-                    </div>
+            <!-- Columna de Resumen del Pedido -->
+            <div class="col-lg-5">
+                <aside class="checkout-summary-section">
+                    <h3>Resumen de tu Pedido</h3>
+                    {% if carrito and carrito.items.all %}
+                    <ul class="list-group list-group-flush">
+                        {% for item in carrito.items.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="item-name">
+                                {{ item.producto.nombre }} (x{{ item.cantidad }})
+                                {% if item.variacion %}<span class="variation-info">{{ item.variacion.tipo }}: {{ item.variacion.valor }}</span>{% endif %}
+                            </div>
+                            <span class="item-price">${{ item.subtotal|intcomma }}</span>
+                        </li>
+                        {% endfor %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Subtotal
+                            <span>${{ carrito.subtotal_sin_descuento|intcomma }}</span>
+                        </li>
+                        {% if carrito.descuento_total > 0 %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center text-success">
+                            Descuento Promociones
+                            <span>-${{ carrito.descuento_total|intcomma }}</span>
+                        </li>
+                        {% endif %}
+                        {% if carrito.cupon %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center text-success">
+                            Cupón ({{ carrito.cupon.codigo }})
+                            <span>-${{ carrito.descuento_por_cupon|intcomma }}</span>
+                        </li>
+                        {% endif %}
+                        {# Aquí se podría añadir el costo de envío si se calcula #}
+                        <li class="list-group-item d-flex justify-content-between align-items-center fw-bold mt-3 pt-3 border-top">
+                            <span class="summary-total-label">Total a Pagar</span>
+                            <span class="summary-total-value">${{ carrito.total_final|intcomma }}</span>
+                        </li>
+                    </ul>
+                    {% else %}
+                    <p>No hay ítems en tu carrito para proceder al pago.</p>
                     {% endif %}
-                    <div class="summary-item summary-total">
-                        <span>Total a Pagar:</span>
-                        <span>{{ carrito.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                    </div>
-                     <button type="submit" class="btn-place-order">Realizar Pedido</button>
-               
-                    <p>Tu carrito está vacío. No puedes proceder al pago.</p>
-                
-            </aside>
+                </aside>
+                 <div class="text-center mt-3">
+                    <a href="{% url 'tienda:ver_carrito' %}" class="back-to-cart-link">
+                        <span class="material-icons">arrow_back_ios_new</span> Volver al Carrito
+                    </a>
+                </div>
+            </div>
         </div>
     </form>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+{{block.super}}
 <script>
-function toggleBillingAddressForm() {
-    var checkbox = document.getElementById('billing_same_as_shipping');
-    var billingForm = document.getElementById('billing-address-form');
-    var billingInputs = billingForm.querySelectorAll('input, select, textarea');
-
-    if (checkbox.checked) {
-        billingForm.style.display = 'none';
-        billingInputs.forEach(function(input) { input.required = false; });
-    } else {
-        billingForm.style.display = 'block';
-        // Decidir si hacerlos required aquí o manejar en backend.
-        // Por ahora, no los hago required para evitar bloqueo si el usuario desmarca y no llena.
+// Script para dar estilo de 'is-invalid' a los campos con errores del form de Django
+// y para manejar el toggle de la dirección de facturación.
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        // Aplicar clase 'is-invalid' a inputs con errores
+        form.querySelectorAll('input, select, textarea').forEach(field => {
+            const errorList = field.parentElement.querySelector('.invalid-feedback');
+            if (errorList && errorList.textContent.trim() !== '') {
+                field.classList.add('is-invalid');
+            }
+        });
     }
-}
-document.addEventListener('DOMContentLoaded', toggleBillingAddressForm);
+
+    // Manejar el toggle de la dirección de facturación
+    const billingCheckbox = document.getElementById('billing_same_as_shipping');
+    const billingFieldsContainer = document.getElementById('billing-address-fields');
+
+    function toggleBillingAddressForm(isChecked) {
+        if (billingFieldsContainer) {
+            billingFieldsContainer.style.display = isChecked ? 'none' : 'block';
+            // Opcional: hacer que los campos de facturación sean o no 'required'
+            billingFieldsContainer.querySelectorAll('input, select, textarea').forEach(input => {
+                // Esta lógica de 'required' debe ser consistente con la validación del backend
+                // input.required = !isChecked;
+            });
+        }
+    }
+
+    if (billingCheckbox) {
+        // Estado inicial al cargar la página
+        toggleBillingAddressForm(billingCheckbox.checked);
+        // Event listener para cambios
+        billingCheckbox.addEventListener('change', function() {
+            toggleBillingAddressForm(this.checked);
+        });
+    }
+});
 </script>
 {% endblock %}

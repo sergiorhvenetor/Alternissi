@@ -4,66 +4,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Alternissi{% endblock %}</title>
+    <title>{% block title %}Alternissi{% endblock %} - Alternissi</title>
     <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
-    <!-- La siguiente línea que importa Montserrat específicamente ya no es necesaria si style.css lo importa -->
-    <!-- <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"> -->
-    <link rel="stylesheet" href="{% static 'post/css/style.css' %}"> <!-- Ruta corregida y unificada -->
-    
+    <link rel="stylesheet" href="{% static 'post/css/style.css' %}">
     {% block extra_css %}{% endblock %}
-    
-    <!-- El siguiente <link rel="icon" href="favicon.ico"... es redundante si ya se usa static -->
-    
-    <!-- Para compatibilidad con diferentes dispositivos -->
-
-    <!-- Los estilos <style>...</style> se moverán a style.css o se eliminarán si son redundantes -->
     {% block extra_head %}{% endblock %}
-
 </head>
 <body>
     <header>
-        <nav>
-            <a href="{% url 'tienda:inicio' %}"><h1>Alternissi</h1></a>
-            <ul>
-                <li><a href="{% url 'tienda:lista_productos' %}" class="nav-link-special">Productos</a></li>
-                <li><a href="{% url 'tienda:ver_carrito' %}" class="nav-link-special">Carrito (<span id="cart-count">{{ cart.total_items|default:0 }}</span>)</a></li>
-                {% if user.is_authenticated %}
-                    <li><a href="{% url 'tienda:cuenta_dashboard' %}" class="nav-link-special">Mi Cuenta</a></li>
-                    <li>
-                        <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;" class="nav-link-special">Logout</a>
-                    </li>
-                {% else %}
-                    <li><a href="{% url 'tienda:login' %}" class="nav-link-special">Login</a></li>
-                    <li><a href="{% url 'tienda:registro' %}" class="nav-link-special">Registrarse</a></li>
-                {% endif %}
-                <li><a href="{% url 'tienda:contacto' %}" class="nav-link-special">Contacto</a></li>
-            </ul>
-        </nav>
-        <form action="{% url 'tienda:buscar' %}" method="get" class="search-bar">
-            <input type="search" name="q" placeholder="Buscar productos...">
-            <button type="submit">Buscar</button>
-        </form>
+        <div class="container">
+            <nav>
+                <div class="logo">
+                    <a href="{% url 'tienda:inicio' %}"><h1>Alternissi</h1></a>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="{% url 'tienda:lista_productos' %}" {% if request.resolver_match.url_name == 'lista_productos' %}class="active"{% endif %}>Productos</a></li>
+                    <li><a href="{% url 'tienda:ver_carrito' %}" {% if request.resolver_match.url_name == 'ver_carrito' %}class="active"{% endif %}>Carrito (<span id="cart-count">{{ global_cart_items|default:0 }}</span>)</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'tienda:cuenta_dashboard' %}" {% if 'cuenta' in request.resolver_match.namespace %}class="active"{% endif %}>Mi Cuenta</a></li>
+                        <li>
+                            <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
+                        </li>
+                    {% else %}
+                        <li><a href="{% url 'tienda:login' %}" {% if request.resolver_match.url_name == 'login' %}class="active"{% endif %}>Login</a></li>
+                        <li><a href="{% url 'tienda:registro' %}" {% if request.resolver_match.url_name == 'registro' %}class="active"{% endif %}>Registrarse</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'tienda:contacto' %}" {% if request.resolver_match.url_name == 'contacto' %}class="active"{% endif %}>Contacto</a></li>
+                </ul>
+            </nav>
+            <form action="{% url 'tienda:buscar' %}" method="get" class="search-bar">
+                <input type="search" name="q" placeholder="Buscar productos, marcas y más..." value="{{ request.GET.q }}">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </form>
+        </div>
     </header>
 
-    <main class="fade-in">
+    <main class="container fade-in">
         {% if messages %}
-            <ul class="messages">
-                {% for message in messages %}
-                    <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                {% endfor %}
-            </ul>
+            <div class="messages-container">
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
         {% endif %}
-        {% block content %}
-        {% endblock %}
+
+        {% block content_container %}
+        <div class="content-wrapper">
+            {% block content %}
+            {% endblock %}
+        </div>
+        {% endblock content_container %}
     </main>
 
     <footer>
-        <p>&copy; {% now "Y" %} Alternissi. Todos los derechos reservados.</p>
-        <ul>
-            <li><a href="{% url 'tienda:politica_privacidad' %}">Política de Privacidad</a></li>
-            <li><a href="{% url 'tienda:terminos_condiciones' %}">Términos y Condiciones</a></li>
-        </ul>
+        <div class="container">
+            <p>&copy; {% now "Y" %} Alternissi. Todos los derechos reservados.</p>
+            <ul>
+                <li><a href="{% url 'tienda:pagina_info' 'politica-privacidad' %}">Política de Privacidad</a></li>
+                <li><a href="{% url 'tienda:pagina_info' 'terminos-condiciones' %}">Términos y Condiciones</a></li>
+                <li><a href="{% url 'tienda:pagina_info' 'sobre-nosotros' %}">Sobre Nosotros</a></li>
+            </ul>
+        </div>
     </footer>
 
 
