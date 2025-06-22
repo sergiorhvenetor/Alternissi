@@ -77,6 +77,13 @@ class InicioTiendaView(TemplateView):
         context['productos_destacados'] = productos_destacados_query.prefetch_related('imagenes')[:8]
         context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True).prefetch_related('imagenes')[:8]
 
+        # Productos con descuento
+        context['productos_con_descuento'] = Producto.objects.filter(
+            disponible=True,
+            precio_descuento__isnull=False,
+            precio_descuento__lt=F('precio')
+        ).prefetch_related('imagenes').order_by('-creado')[:8] # Ordenar por creación o popularidad
+
         context['categorias'] = Categoria.objects.filter(activo=True)
         # Añadir configuración de la tienda para el símbolo de moneda
         config = ConfiguracionTienda.obtener_configuracion()

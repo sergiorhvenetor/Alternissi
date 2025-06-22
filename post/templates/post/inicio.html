@@ -45,6 +45,43 @@
     {% endif %}
 </section>
 
+<section class="productos-con-descuento">
+    <h2>Productos con Descuento</h2>
+    {% if productos_con_descuento %}
+        <div class="carousel-wrapper"> {# Nuevo contenedor para botones y carrusel #}
+            <button class="carousel-btn prev-btn" aria-label="Anterior" data-carousel="product-carousel-discount">&lt;</button>
+            <div class="product-carousel" id="product-carousel-discount">
+                {% for producto in productos_con_descuento %}
+                    <div class="product-card">
+                        {% if producto.imagenes.first %}
+                             <a href="{{ producto.get_absolute_url }}">
+                                <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
+                            </a>
+                        {% else %}
+                            <a href="{{ producto.get_absolute_url }}">
+                                <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
+                            </a>
+                        {% endif %}
+                        <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
+                        <p class="precio">
+                            {% if producto.tiene_descuento %}
+                                <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                                <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
+                            {% else %}
+                                {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                            {% endif %}
+                        </p>
+                        <a href="{{ producto.get_absolute_url }}" class="btn-secondary">Ver Detalles</a>
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-btn next-btn" aria-label="Siguiente" data-carousel="product-carousel-discount">&gt;</button>
+        </div>
+    {% else %}
+        <p>No hay productos con descuento en este momento.</p>
+    {% endif %}
+</section>
+
 <section class="categorias-principales">
     <h2>Categorías</h2>
     {% if categorias %}
@@ -101,7 +138,7 @@
         margin-top: 10px;
     }
 
-    .productos-destacados h2, .productos-nuevos h2, .categorias-principales h2 {
+    .productos-destacados h2, .productos-nuevos h2, .productos-con-descuento h2, .categorias-principales h2 {
         text-align: center;
         margin-bottom: 20px;
         font-size: 2em;
@@ -112,6 +149,34 @@
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 20px;
         padding: 0 20px;
+    }
+
+    .product-carousel {
+        display: grid;
+        grid-auto-flow: column; /* Organiza los elementos en una fila */
+        grid-auto-columns: minmax(250px, 1fr); /* Ancho de cada tarjeta en el carrusel */
+        gap: 20px;
+        overflow-x: auto; /* Permite el scroll horizontal */
+        padding: 0 20px 20px 20px; /* Añade padding inferior para el scrollbar */
+        -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+        scrollbar-width: thin; /* Para Firefox */
+        scrollbar-color: #ccc #f0f0f0; /* Color del scrollbar para Firefox */
+    }
+
+    /* Estilos para el scrollbar en navegadores WebKit (Chrome, Safari, Edge) */
+    .product-carousel::-webkit-scrollbar {
+        height: 8px;
+    }
+    .product-carousel::-webkit-scrollbar-track {
+        background: #f0f0f0;
+        border-radius: 4px;
+    }
+    .product-carousel::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+    .product-carousel::-webkit-scrollbar-thumb:hover {
+        background: #aaa;
     }
 
     .product-card {
@@ -189,5 +254,91 @@
         margin-left: auto;
         margin-right: auto;
     }
+
+    .carousel-wrapper {
+        position: relative;
+        padding: 0 40px; /* Espacio para los botones */
+    }
+
+    .carousel-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        z-index: 10;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        line-height: 1; /* Centrar el texto del botón verticalmente */
+    }
+
+    .carousel-btn.prev-btn {
+        left: 0px;
+    }
+
+    .carousel-btn.next-btn {
+        right: 0px;
+    }
+
+    .carousel-btn:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const carousels = document.querySelectorAll('.carousel-wrapper');
+
+    carousels.forEach(wrapper => {
+        const carouselId = wrapper.querySelector('.product-carousel').id;
+        const carousel = document.getElementById(carouselId);
+        const prevBtn = wrapper.querySelector('.prev-btn[data-carousel="' + carouselId + '"]');
+        const nextBtn = wrapper.querySelector('.next-btn[data-carousel="' + carouselId + '"]');
+        const cardWidth = carousel.querySelector('.product-card')?.offsetWidth + 20; // 20 es el gap
+
+        function updateButtons() {
+            if (!carousel) return;
+            const scrollLeft = carousel.scrollLeft;
+            const scrollWidth = carousel.scrollWidth;
+            const clientWidth = carousel.clientWidth;
+
+            if (prevBtn) {
+                prevBtn.disabled = scrollLeft <= 0;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = scrollLeft >= (scrollWidth - clientWidth - 1); // -1 for precision issues
+            }
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (carousel && cardWidth) {
+                    carousel.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+                }
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (carousel && cardWidth) {
+                    carousel.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                }
+            });
+        }
+
+        if (carousel) {
+            carousel.addEventListener('scroll', updateButtons);
+            // También llamar a updateButtons al cargar y al cambiar tamaño de ventana (responsive)
+            updateButtons();
+            window.addEventListener('resize', updateButtons);
+        }
+    });
+});
+</script>
 {% endblock %}
