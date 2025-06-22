@@ -4,38 +4,7 @@
 {% block title %}{{ producto.nombre }} - {{ block.super }}{% endblock %}
 
 {% block extra_head %}
-<style>
-    .product-detail-container { display: flex; gap: 30px; padding: 20px; max-width: 1200px; margin: auto; }
-    .product-gallery { flex: 1; max-width: 500px; }
-    .main-image img { width: 100%; max-height: 500px; object-fit: cover; border: 1px solid #ddd; border-radius: 5px; }
-    .thumbnail-images { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; }
-    .thumbnail-images img { width: 80px; height: 80px; object-fit: cover; border: 1px solid #ddd; border-radius: 3px; cursor: pointer; }
-    .thumbnail-images img.active, .thumbnail-images img:hover { border-color: #007bff; }
-    .product-info { flex: 1.5; }
-    .product-info h1 { font-size: 2.2em; margin-top: 0; margin-bottom: 10px; }
-    .product-meta { font-size: 0.9em; color: #555; margin-bottom: 15px; }
-    .product-meta a { color: #007bff; text-decoration: none; }
-    .product-meta a:hover { text-decoration: underline; }
-    .product-price .precio { font-size: 1.8em; margin-bottom: 20px; }
-    .product-description, .product-features { margin-bottom: 20px; line-height: 1.6; }
-    .product-features ul { padding-left: 20px; list-style: disc; }
-    .add-to-cart-form label { display: block; margin-bottom: 5px; font-weight: bold; }
-    .add-to-cart-form input[type="number"] { width: 70px; padding: 8px; margin-right: 10px; border: 1px solid #ccc; border-radius: 4px; }
-    .btn-add-to-cart { background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; }
-    .btn-add-to-cart:hover { background-color: #218838; }
-    .reviews-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
-    .reviews-section h2 { font-size: 1.8em; margin-bottom: 20px; }
-    .review { border-bottom: 1px solid #f0f0f0; padding: 15px 0; }
-    .review:last-child { border-bottom: none; }
-    .review strong { font-size: 1.1em; }
-    .review .rating { color: #ffc107; margin-bottom: 5px; }
-    .review p { margin: 5px 0 0 0; }
-    .review-date { font-size: 0.85em; color: #777; margin-top: 5px; }
-    .no-reviews { color: #777; }
-    .add-review-link { display: inline-block; margin-top: 15px; padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
-    .add-review-link:hover { background-color: #0056b3; }
-    .badge-descuento { background-color: #ffc107; color: #333; padding: 3px 6px; font-size: 0.8em; border-radius: 4px; margin-left: 5px; }
-</style>
+{# Los estilos <style> se han movido a post/static/post/css/style.css o se han integrado/eliminado #}
 {% endblock %}
 
 {% block content %}

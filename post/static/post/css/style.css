@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+
+/* Estilos generales del cuerpo */
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #ffffff; /* Fondo blanco */
+    color: #000000; /* Texto negro */
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Estilos para encabezados */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+    color: #000000; /* Texto negro para encabezados */
+}
+
+/* Estilos específicos si se necesita diferenciar más */
+h1 {
+    font-size: 2.5em; /* Tamaño de ejemplo */
+}
+
+h2 {
+    font-size: 2em; /* Tamaño de ejemplo */
+}
+
+h3 {
+    font-size: 1.75em; /* Tamaño de ejemplo */
+}
+
+/* Estilos para párrafos y texto general */
+p {
+    font-family: 'Montserrat', sans-serif;
+    color: #000000; /* Texto negro */
+}
+
+/* Estilos para enlaces */
+a {
+    color: #000000; /* Enlaces en negro, se pueden añadir efectos hover si se desea */
+    text-decoration: none; /* Quitar subrayado por defecto */
+}
+
+a:hover {
+    text-decoration: underline; /* Subrayado al pasar el mouse */
+}
+
+/* Contenedor principal para centrar contenido (opcional) */
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+    padding: 20px;
+}
+
+/* Adaptación para asegurar que el fondo blanco y texto negro sean predominantes */
+/* Es posible que se necesiten más reglas específicas si hay elementos con estilos en línea o IDs/clases muy específicas */
+
+/* Ejemplo de cómo asegurar que los inputs también sigan la paleta */
+input, textarea, select, button {
+    font-family: 'Montserrat', sans-serif;
+    color: #000000; /* Texto negro */
+    background-color: #ffffff; /* Fondo blanco */
+    border: 1px solid #000000; /* Borde negro */
+}
+
+input::placeholder, textarea::placeholder {
+    color: #555555; /* Color de placeholder un poco más claro */
+}
+
+button {
+    background-color: #000000; /* Botones con fondo negro */
+    color: #ffffff; /* Texto blanco para botones */
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #333333; /* Un negro un poco más claro al pasar el mouse */
+}
+
+/* Si se usa Bootstrap u otro framework, puede ser necesario anular algunos estilos */
+/* Por ejemplo: */
+/* .navbar { background-color: #000000 !important; color: #ffffff !important; } */
+/* .navbar a { color: #ffffff !important; } */
+
+/* Asegurar que el texto en elementos de lista también sea negro */
+ul, ol {
+    color: #000000;
+}
+
+li {
+    color: #000000;
+}
