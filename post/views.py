@@ -827,6 +827,19 @@ class TerminosCondicionesView(PaginaEstaticaView):
         context['contenido'] = context['config'].terminos_condiciones if context['config'] else ""
         return context
 
+class SobreNosotrosView(PaginaEstaticaView):
+    template_name = 'post/pagina_info.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo'] = 'Sobre Nosotros'
+        # Attempt to get content from a field like 'sobre_nosotros_info' or 'sobre_nosotros'
+        # Provide a default if the field doesn't exist or config is None
+        if context['config']:
+            context['contenido'] = getattr(context['config'], 'sobre_nosotros_info', "Información sobre nosotros no disponible.")
+        else:
+            context['contenido'] = "Información sobre nosotros no disponible."
+        return context
+
 # --- Vistas de Administración (Protegidas) ---
 @user_passes_test(lambda u: u.is_staff)
 @login_required
