@@ -10,24 +10,7 @@
     <a href="{% url 'tienda:lista_productos' %}" class="btn-primary">Ver todos los productos</a>
 </section>
 
-<section class="productos-destacados">
-    <h2>Nuestros Productos Destacados</h2>
-    {% if productos_destacados %}
-    <ul>
-        {% for producto in productos_destacados %}
-            <li>
-                {% if producto.imagenes.first %}
-                    {{ producto.imagenes.first.alt_text|default:producto.nombre }}
-                {% else %}
-                    {{ producto.nombre }}
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No hay productos destacados en este momento.</p>
-{% endif %}
-</section>
+
 
 <section class="productos-nuevos">
     <h2>Últimos Productos</h2>
