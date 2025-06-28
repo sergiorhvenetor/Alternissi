@@ -1,6 +1,6 @@
 {% extends "post/base.html" %}
 {% load static %}
-{% load humanize %}
+
 
 {% block title %}Finalizar Compra - Alternissi{% endblock %}
 
@@ -274,29 +274,29 @@
                                 {{ item.producto.nombre }} (x{{ item.cantidad }})
                                 {% if item.variacion %}<span class="variation-info">{{ item.variacion.tipo }}: {{ item.variacion.valor }}</span>{% endif %}
                             </div>
-                            <span class="item-price">${{ item.subtotal|intcomma }}</span>
+
                         </li>
                         {% endfor %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Subtotal
-                            <span>${{ carrito.subtotal_sin_descuento|intcomma }}</span>
+
                         </li>
                         {% if carrito.descuento_total > 0 %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
                             Descuento Promociones
-                            <span>-${{ carrito.descuento_total|intcomma }}</span>
+   
                         </li>
                         {% endif %}
                         {% if carrito.cupon %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
                             Cupón ({{ carrito.cupon.codigo }})
-                            <span>-${{ carrito.descuento_por_cupon|intcomma }}</span>
+                      
                         </li>
                         {% endif %}
                         {# Aquí se podría añadir el costo de envío si se calcula #}
                         <li class="list-group-item d-flex justify-content-between align-items-center fw-bold mt-3 pt-3 border-top">
                             <span class="summary-total-label">Total a Pagar</span>
-                            <span class="summary-total-value">${{ carrito.total_final|intcomma }}</span>
+
                         </li>
                     </ul>
                     {% else %}

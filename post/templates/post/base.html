@@ -1,6 +1,20 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+<style>
+@font-face {
+  font-family: 'Phyllis D';
+  src: url('ruta/a/tu/fuente/phyllisd.woff2') format('woff2'),
+       url('ruta/a/tu/fuente/phyllisd.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: 'Phyllis D', sans-serif;
+}
+</style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +24,7 @@
     {% block extra_css %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
+
 <body>
     <header>
         <div class="container">
@@ -45,7 +60,7 @@
             <div class="messages-container">
                 <ul class="messages">
                     {% for message in messages %}
-                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                        <li>{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
                     {% endfor %}
                 </ul>
             </div>
