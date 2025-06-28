@@ -96,7 +96,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'post.context_processors.cart_processor', # Added cart processor
+                'post.context_processors.cart_processor',
+                'post.context_processors.tienda_config_processor', # Added tienda_config processor
             ],
         },
     },

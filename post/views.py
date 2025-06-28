@@ -85,9 +85,7 @@ class InicioTiendaView(TemplateView):
         ).prefetch_related('imagenes').order_by('-creado')[:8] # Ordenar por creación o popularidad
 
         context['categorias'] = Categoria.objects.filter(activo=True)
-        # Añadir configuración de la tienda para el símbolo de moneda
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class ListaProductosView(ListView):
@@ -140,9 +138,7 @@ class DetalleProductoView(DetailView):
         # resenas are preloaded by prefetch_related('resenas__cliente')
         # context['imagenes'] = producto.imagenes.all() # Not strictly needed if template uses producto.imagenes.all
         context['resenas'] = producto.resenas.filter(aprobado=True) # Filter preloaded resenas
-
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         # context['resena_form'] = ResenaForm() # Se mantiene comentado como en el original
         return context
 
@@ -164,9 +160,7 @@ class BuscarProductosView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['query'] = self.request.GET.get('q', '')
-
-        config = ConfiguracionTienda.obtener_configuracion() # Importar ConfiguracionTienda si no está
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 # --- Vistas del Carrito de Compras ---
@@ -179,9 +173,7 @@ class VerCarritoView(CartMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         cart = self.get_cart() # Obtiene el carrito del mixin optimizado
         context['carrito'] = cart
-
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class AgregarAlCarritoView(CartMixin, View):
@@ -236,15 +228,17 @@ class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
             if 0 < cantidad <= item.producto.stock:
                 item.cantidad = cantidad
                 item.save()
-                descuento_aplicado = cart.subtotal - cart.total
+                # El cliente para get_total y descuento_aplicado se toma de cart.cliente si existe
+                cart_total_calculado = cart.get_total()
+                descuento_aplicado_calculado = cart.descuento_aplicado
                 response_data = {
                     'success': True,
                     'removed': False,
                     'item_subtotal': item.subtotal,
                     'cart_subtotal_display': cart.subtotal,
-                    'cart_total_display': cart.total,
+                    'cart_total_display': cart_total_calculado,
                     'cart_total_items_display': cart.total_items,
-                    'cart_discount_amount_display': descuento_aplicado,
+                    'cart_discount_amount_display': descuento_aplicado_calculado,
                     'cart_cupon_codigo': cart.cupon.codigo if cart.cupon else None,
                     'message': 'Cantidad actualizada.'
                 }
@@ -253,14 +247,15 @@ class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
                  nombre_producto = item.producto.nombre
                  item.delete()
                  cart.save() # Actualizar timestamp y recalcular totales si es necesario
-                 descuento_aplicado = cart.subtotal - cart.total
+                 cart_total_calculado = cart.get_total()
+                 descuento_aplicado_calculado = cart.descuento_aplicado
                  response_data = {
                     'success': True,
                     'removed': True,
                     'cart_subtotal_display': cart.subtotal,
-                    'cart_total_display': cart.total,
+                    'cart_total_display': cart_total_calculado,
                     'cart_total_items_display': cart.total_items,
-                    'cart_discount_amount_display': descuento_aplicado,
+                    'cart_discount_amount_display': descuento_aplicado_calculado,
                     'cart_cupon_codigo': cart.cupon.codigo if cart.cupon else None,
                     'message': f"'{nombre_producto}' eliminado del carrito."
                  }
@@ -303,15 +298,17 @@ class EliminarItemCarritoView(CartMixin, View): # Asegurar que hereda de CartMix
             cart.refresh_from_db() # Opcionalmente, se podría llamar a cart.save() si actualiza timestamps o campos cacheados.
                                    # Sin embargo, las propiedades suelen ser @property y se calculan al acceder.
 
-            descuento_aplicado = cart.subtotal - cart.total # Calcular después de la actualización del carrito.
+            # El cliente para get_total y descuento_aplicado se toma de cart.cliente si existe
+            cart_total_calculado = cart.get_total()
+            descuento_aplicado_calculado = cart.descuento_aplicado
             response_data = {
                 'success': True,
                 'removed': True, # Indicar que el item fue eliminado.
                 'message': f"'{nombre_producto}' eliminado del carrito.",
                 'cart_total_items': cart.total_items,
                 'cart_subtotal_display': cart.subtotal,
-                'cart_total_display': cart.total,
-                'cart_discount_amount_display': descuento_aplicado,
+                'cart_total_display': cart_total_calculado,
+                'cart_discount_amount_display': descuento_aplicado_calculado,
                 'cart_cupon_codigo': cart.cupon.codigo if cart.cupon else None,
             }
             return JsonResponse(response_data)
@@ -351,9 +348,7 @@ class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['carrito'] = self.get_cart()
-
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
 
         # Pasar las choices del método de pago al template
         context['pedido_metodos_pago_choices'] = Pedido.MetodoPago.choices
@@ -482,9 +477,9 @@ class PedidoCompletadoView(LoginRequiredMixin, DetailView):
 
         # Buscar cupón de recompensa generado
         # El código del cupón de recompensa tiene un prefijo basado en el código del pedido
-        # Formato: f"RECOMP-{pedido.codigo[:10]}-{str(uuid.uuid4())[:4].upper()}"
+        # Formato: f"RECOMP-{pedido.codigo[:15]}-{str(uuid.uuid4())[:6].upper()}"
         if pedido and pedido.codigo:
-            cupon_recompensa_prefijo = f"RECOMP-{pedido.codigo[:10]}"
+            cupon_recompensa_prefijo = f"RECOMP-{pedido.codigo[:15]}" # Consistente con la señal
             # Buscamos el cupón que comience con ese prefijo, sea de tipo FIJO y tenga max_usos=1
             # Ordenamos por '-creado' para obtener el más reciente si hubiera múltiples (aunque no debería)
             cupon_recompensa = Cupon.objects.filter(
@@ -495,9 +490,7 @@ class PedidoCompletadoView(LoginRequiredMixin, DetailView):
 
             if cupon_recompensa:
                 context['cupon_recompensa_generado'] = cupon_recompensa
-
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class PagoCanceladoView(TemplateView):
@@ -528,9 +521,7 @@ class CuentaDashboardView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         # self.object es el cliente obtenido por get_object()
         context['ultimos_pedidos'] = self.object.pedidos.select_related('cupon').order_by('-creado')[:5]
-
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class ListaPedidosClienteView(LoginRequiredMixin, ListView):
@@ -546,8 +537,7 @@ class ListaPedidosClienteView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class DetallePedidoClienteView(LoginRequiredMixin, DetailView):
@@ -567,8 +557,7 @@ class DetallePedidoClienteView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
@@ -591,8 +580,7 @@ class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$' # Por consistencia
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global (por consistencia)
         return context
 
     def form_valid(self, form):
@@ -721,8 +709,7 @@ class VerListaDeseosView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$'
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class CrearResenaView(LoginRequiredMixin, CreateView):
@@ -767,8 +754,7 @@ class CrearResenaView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['producto'] = self.producto # Pasar producto al contexto
-        config = ConfiguracionTienda.obtener_configuracion()
-        context['moneda_simbolo'] = config.simbolo_moneda if config else '$' # Por consistencia
+        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global (por consistencia)
         return context
 
 # Nueva vista de registro:
@@ -793,11 +779,13 @@ def registro_view(request):
     else:
         form = CustomUserCreationForm() # Usar el nuevo form
 
-    # Añadir moneda_simbolo al contexto por consistencia con otras páginas
-    config = ConfiguracionTienda.obtener_configuracion()
-    moneda_simbolo = config.simbolo_moneda if config else '$'
-
-    return render(request, 'post/auth/registro.html', {'form': form, 'moneda_simbolo': moneda_simbolo})
+    # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
+    # El context processor se encarga de añadir moneda_simbolo_global.
+    # Si la plantilla 'post/auth/registro.html' lo necesita directamente,
+    # ya estará disponible como {{ moneda_simbolo_global }}.
+    # No es necesario pasarlo explícitamente aquí a menos que la plantilla espere una variable diferente.
+    # Asumiendo que la plantilla usará {{ moneda_simbolo_global }} o {{ tienda_config.simbolo_moneda }}
+    return render(request, 'post/auth/registro.html', {'form': form})
 
 # --- Vistas de Páginas Estáticas/Informativas ---
 

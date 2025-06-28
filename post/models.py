@@ -333,16 +333,37 @@ class Cupon(TimeStampedModel):
             self.activo,
             self.fecha_inicio <= ahora <= self.fecha_fin,
             self.max_usos == 0 or self.usos_actuales < self.max_usos,
-            subtotal >= (self.minimo_compra or 0)
         ]
+        if self.minimo_compra is not None: # Solo aplicar si hay un mínimo de compra
+            condiciones.append(subtotal >= self.minimo_compra)
 
-        if self.solo_nuevos_clientes and cliente:
-            # Se necesita el modelo Pedido aquí, así que lo importamos localmente
-            # o nos aseguramos que Pedido esté definido antes si es posible.
-            # Por ahora, asumimos que Pedido ya está definido o se importará.
-            condiciones.append(
-                not Pedido.objects.filter(cliente=cliente, estado=Pedido.Estado.COMPLETADO).exists()
-            )
+
+        if self.solo_nuevos_clientes:
+            # Si el cupón es para nuevos clientes:
+            # 1. El 'cliente' debe existir y estar autenticado.
+            # 2. Ese cliente no debe tener pedidos previos completados o en proceso.
+            if cliente and cliente.usuario and cliente.usuario.is_authenticated:
+                # Consideramos "no nuevo" si tiene pedidos en estados que indican una compra ya procesada o en curso.
+                condiciones.append(
+                    not Pedido.objects.filter(
+                        cliente=cliente,
+                        estado__in=[
+                            Pedido.Estado.COMPLETADO,
+                            Pedido.Estado.PROCESANDO,
+                            Pedido.Estado.ENVIADO
+                        ]
+                    ).exists()
+                )
+            else:
+                # Si no hay cliente, o no está autenticado, el cupón para "nuevos clientes" no es válido.
+                condiciones.append(False)
+
+        # Verificar si el cupón está restringido a categorías o productos específicos
+        # Esta lógica se añadiría aquí si fuera necesaria.
+        # Por ahora, asumimos que si `categorias` o `productos` están poblados,
+        # la validación de si los items del carrito pertenecen a ellos se haría
+        # en el momento de aplicar el cupón o al calcular el descuento aplicable.
+        # `es_valido` se centra en las condiciones generales del cupón.
 
         return all(condiciones)
 
@@ -395,12 +416,32 @@ class Carrito(models.Model):
         # Asegurarse que ItemCarrito esté definido.
         return sum(item.subtotal for item in self.items.all())
 
+    # Cambiado de @property a método para poder pasar el cliente
+    def get_total(self, cliente_actual=None): # cliente_actual puede ser self.cliente
+        """
+        Calcula el total del carrito, aplicando el descuento del cupón si es válido.
+        El cliente_actual es necesario para validar cupones con reglas de cliente (ej. solo_nuevos_clientes).
+        """
+        s_total = self.subtotal # Cachear para evitar múltiples llamadas a la property
+        descuento_aplicado = 0
+
+        # Usar self.cliente si cliente_actual no se pasa explícitamente.
+        # Esto es útil si el carrito ya está asociado a un cliente.
+        if cliente_actual is None and self.cliente:
+            cliente_actual = self.cliente
+
+        if self.cupon and self.cupon.es_valido(cliente=cliente_actual, subtotal=s_total):
+            descuento_aplicado = self.cupon.aplicar_descuento(s_total)
+
+        return s_total - descuento_aplicado
+
     @property
-    def total(self):
-        descuento = 0
-        if self.cupon and self.cupon.es_valido(subtotal=self.subtotal): # cliente es None aquí.
-            descuento = self.cupon.aplicar_descuento(self.subtotal)
-        return self.subtotal - descuento
+    def descuento_aplicado(self): # Para mostrar en el template, cliente_actual se infiere de self.cliente
+        """Retorna el monto del descuento si un cupón válido está aplicado."""
+        cliente_para_validacion = self.cliente # Puede ser None si es un carrito de sesión
+        if self.cupon and self.cupon.es_valido(cliente=cliente_para_validacion, subtotal=self.subtotal):
+            return self.cupon.aplicar_descuento(self.subtotal)
+        return 0
 
     def vaciar(self):
         """Elimina todos los items del carrito."""
@@ -418,10 +459,11 @@ class Carrito(models.Model):
                 direccion_envio=direccion_envio,
                 direccion_facturacion=direccion_facturacion,
                 metodo_pago=metodo_pago,
-                subtotal=self.subtotal,
-                descuento=self.subtotal - self.total, # self.total llama a cupon.es_valido sin cliente
-                total=self.total,
-                cupon=self.cupon
+                subtotal=self.subtotal, # El subtotal no cambia
+                # El descuento y total se calculan con el cliente para asegurar validez del cupón.
+                descuento=self.subtotal - self.get_total(cliente_actual=cliente),
+                total=self.get_total(cliente_actual=cliente),
+                cupon=self.cupon if (self.cupon and self.cupon.es_valido(cliente=cliente, subtotal=self.subtotal)) else None
             )
 
             for item in self.items.all(): # ItemCarrito debe estar definido

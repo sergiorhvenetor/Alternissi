@@ -40,4 +40,41 @@ def cart_processor(request):
                 # No creamos un carrito aquí; CartMixin se encargará si es necesario en una vista.
                 pass
 
-    return {'cart': current_cart, 'global_cart_items': current_cart.total_items if current_cart else 0}
+    cart_total_val = 0
+    cart_descuento_val = 0
+    global_cart_subtotal = 0
+
+    if current_cart:
+        # El cliente para el cálculo del total se infiere de current_cart.cliente (si existe)
+        # o es None para carritos de sesión. get_total() y descuento_aplicado() manejan esto.
+        cliente_para_calculo = current_cart.cliente # Puede ser None
+
+        global_cart_subtotal = current_cart.subtotal
+        cart_total_val = current_cart.get_total(cliente_actual=cliente_para_calculo)
+        cart_descuento_val = current_cart.descuento_aplicado # Ahora usa self.cliente implícitamente
+
+
+    return {
+        'cart': current_cart,
+        'global_cart_items': current_cart.total_items if current_cart else 0,
+        'global_cart_subtotal': global_cart_subtotal, # Para mostrar antes de descuentos
+        'global_cart_total': cart_total_val, # Para mostrar el total final
+        'global_cart_descuento': cart_descuento_val # Para mostrar el monto del descuento
+    }
+
+from .models import ConfiguracionTienda
+
+def tienda_config_processor(request):
+    """
+    Añade la configuración activa de la tienda al contexto de la plantilla.
+    """
+    config = ConfiguracionTienda.obtener_configuracion()
+    # Define un símbolo de moneda por defecto si la configuración no existe o no tiene uno.
+    moneda_simbolo_global = '$'
+    if config and hasattr(config, 'simbolo_moneda') and config.simbolo_moneda:
+        moneda_simbolo_global = config.simbolo_moneda
+
+    return {
+        'tienda_config': config,
+        'moneda_simbolo_global': moneda_simbolo_global
+    }
