@@ -32,8 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await response.json();
 
             if (data.success) {
-                if (data.cart_total_items !== undefined) {
-                    updateCartCount(data.cart_total_items);
+                if (data.cart_total_items_display !== undefined) {
+                    updateCartCount(data.cart_total_items_display);
                 }
                 if (onSuccess && typeof onSuccess === 'function') {
                     onSuccess(data); // Pasar todos los datos para mayor flexibilidad
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     // Si el carrito queda vacío, mostrar un mensaje
-                    if (data.cart_total_items === 0) {
+                    if (data.cart_total_items_display === 0) {
                         const cartTableContainer = document.querySelector('.cart-table-container'); // Ajusta el selector al contenedor de la tabla
                         if (cartTableContainer) {
                             cartTableContainer.innerHTML = '<p>Tu carrito está vacío.</p>';
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             // alert(data.message); // Opcional: notificar al usuario si no fue removido pero hubo un mensaje
                         }
 
-                        if (data.cart_total_items === 0) {
+                        if (data.cart_total_items_display === 0) {
                             const cartTableContainer = document.querySelector('.cart-table-container'); // Ajusta el selector
                             if (cartTableContainer) {
                                 cartTableContainer.innerHTML = '<p>Tu carrito está vacío.</p>';
