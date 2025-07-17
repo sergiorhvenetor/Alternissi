@@ -153,6 +153,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Custom admin login code
+ADMIN_LOGIN_CODE = 'mysecretadmincode'  # ¡Cambia esto en producción!
+
 # Media files (Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

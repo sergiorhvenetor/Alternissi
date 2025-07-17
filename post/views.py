@@ -10,7 +10,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseBadRequest
 # from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
 from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
-from django.contrib.auth import login as auth_login # Para loguear al usuario después del registro
+from django.contrib.auth import login as auth_login, authenticate
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.db.models import F, Q, Sum, Value
@@ -858,3 +859,35 @@ def agregar_promocion_admin_view(request):
         form = CuponForm()
 
     return render(request, 'post/admin/agregar_promocion.html', {'form': form})
+
+def admin_login_view(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('admin:index')
+
+    if request.method == 'POST':
+        form = AdminAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None and user.is_staff:
+                auth_login(request, user)
+                return redirect('admin:index')
+            else:
+                messages.error(request, 'Este usuario no tiene permisos de administrador.')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    else:
+        form = AdminAuthenticationForm()
+
+    return render(request, 'post/auth/admin_login.html', {'form': form})
+
+
+class CustomLoginView(LoginView):
+    def form_valid(self, form):
+        user = form.get_user()
+        if user.is_staff:
+            messages.info(self.request, "La cuenta de administrador debe iniciar sesión aquí.")
+            return redirect('tienda:admin_login')
+        auth_login(self.request, user)
+        return redirect(self.get_success_url())
