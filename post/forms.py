@@ -1,8 +1,28 @@
 # post/forms.py
 from django import forms
 from .models import Cliente, Resena, Producto, Cupon, Categoria
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User # Para acceder a los campos del modelo User
+from django.conf import settings
+from django.utils.translation import gettext_lazy as _
+
+
+class AdminAuthenticationForm(AuthenticationForm):
+    admin_code = forms.CharField(
+        label=_("Admin Code"),
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
+    )
+
+    def clean_admin_code(self):
+        admin_code = self.cleaned_data.get('admin_code')
+        if admin_code != getattr(settings, 'ADMIN_LOGIN_CODE', None):
+            raise forms.ValidationError(
+                _("Invalid admin code."),
+                code='invalid_admin_code',
+            )
+        return admin_code
+
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, help_text="Obligatorio. Se utilizará para notificaciones y reseteo de contraseña.")

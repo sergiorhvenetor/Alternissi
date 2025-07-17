@@ -1,16 +1,18 @@
 from django.urls import path
 # Importamos las clases de las vistas
 from . import views
-from django.contrib.auth import views as auth_views # Added for auth views
-from django.urls import reverse_lazy # Added for password reset URLs
+from django.contrib.auth import views as auth_views
+from django.urls import reverse_lazy
 
-app_name = 'tienda' # Changed from 'post'
+from .views import CustomLoginView
+
+app_name = 'tienda'
 
 urlpatterns = [
     # Auth URLs
-    path('login/', auth_views.LoginView.as_view(template_name='post/auth/login.html'), name='login'),
+    path('login/', CustomLoginView.as_view(template_name='post/auth/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='tienda:inicio'), name='logout'),
-    path('registro/', views.registro_view, name='registro'), # Vista de registro
+    path('registro/', views.registro_view, name='registro'),
     path('password-reset/',
          auth_views.PasswordResetView.as_view(
              template_name='post/auth/password_reset_form.html',
@@ -93,6 +95,7 @@ urlpatterns = [
     path('sobre-nosotros/', views.SobreNosotrosView.as_view(), name='sobre_nosotros'),
 
     # --- URLs de Administración ---
+    path('admin/login/', views.admin_login_view, name='admin_login'),
     path('admin/productos/nuevo/', views.agregar_producto_admin_view, name='admin_agregar_producto'),
     path('admin/promociones/nuevo/', views.agregar_promocion_admin_view, name='admin_agregar_promocion'),
 ]
