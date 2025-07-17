@@ -248,8 +248,7 @@
                                     {% csrf_token %}
                                     <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1"
                                            {% if item.producto.stock %}max="{{ item.producto.stock }}"{% endif %}
-                                           aria-label="Cantidad para {{ item.producto.nombre }}"
-                                           onchange="this.form.submit()">
+                                           aria-label="Cantidad para {{ item.producto.nombre }}">
                                 </form>
                             </td>
             
@@ -274,8 +273,8 @@
                     <h4>Resumen del Pedido</h4>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Subtotal ({{ carrito.total_items }} item{{ carrito.total_items|pluralize }})
-          
+                            <span>Subtotal (<span id="cart-item-count">{{ carrito.total_items }}</span> item{{ carrito.total_items|pluralize }})</span>
+                            <span id="cart-subtotal-value">${{ carrito.subtotal }}</span>
                         </li>
                         {% if carrito.descuento_total > 0 %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
@@ -297,7 +296,7 @@
                         {% endif %}
                         <li class="list-group-item d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                             <span class="total-label">Total</span>
-
+                            <span id="cart-total-value" class="total-value">${{ carrito.total }}</span>
                         </li>
                     </ul>
                     
@@ -339,55 +338,77 @@
 {% block extra_scripts %}
 {{ block.super }}
 <script>
-// El onchange="this.form.submit()" en el input de cantidad ya maneja la actualización.
-// Si se quisiera una actualización AJAX sin recarga de página, el script iría aquí.
-// Ejemplo básico de cómo podría ser (requiere que la vista de actualizar devuelva JSON):
-/*
-document.querySelectorAll('.update-item-form input[name="cantidad"]').forEach(input => {
-    input.addEventListener('change', function() {
-        const form = this.closest('form');
-        const formData = new FormData(form);
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.update-item-form input[name="cantidad"]').forEach(input => {
+        input.addEventListener('change', function() {
+            const form = this.closest('form');
+            const formData = new FormData(form);
 
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Actualizar el subtotal del item
-                const subtotalCell = form.closest('tr').querySelector('.item-subtotal');
-                if (subtotalCell) subtotalCell.textContent = '$' + data.item_subtotal;
-
-                // Actualizar resumen del carrito (subtotal, total, número de items)
-                // Esto requeriría que la respuesta JSON incluya estos datos actualizados.
-                // document.getElementById('cart-subtotal-value').textContent = '$' + data.cart_subtotal;
-                // document.getElementById('cart-total-value').textContent = '$' + data.cart_total;
-                // document.getElementById('cart-item-count').textContent = data.cart_item_count;
-                // Actualizar contador en el header
-                // document.getElementById('cart-count').textContent = data.cart_item_count;
-
-                if (data.item_removed) { // Si la cantidad es 0 y el item se eliminó
-                    form.closest('tr').remove();
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                    'X-Requested-With': 'XMLHttpRequest' // Importante para que Django reconozca la petición AJAX
                 }
-                 if (data.cart_empty) { // Si el carrito quedó vacío
-                    window.location.reload(); // Recargar para mostrar mensaje de carrito vacío
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-            } else {
-                alert(data.error || 'Error al actualizar la cantidad.');
-                this.value = this.defaultValue; // Revertir cambio si hay error
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Ocurrió un error al actualizar el carrito.');
-            this.value = this.defaultValue; // Revertir cambio
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Actualizar el subtotal del item
+                    const subtotalCell = form.closest('tr').querySelector('.item-subtotal');
+                    if (subtotalCell) {
+                        subtotalCell.textContent = '$' + data.item_subtotal;
+                    }
+
+                    // Actualizar resumen del carrito
+                    const cartSubtotal = document.getElementById('cart-subtotal-value');
+                    if (cartSubtotal) {
+                        cartSubtotal.textContent = '$' + data.cart_subtotal_display;
+                    }
+
+                    const cartTotal = document.getElementById('cart-total-value');
+                    if (cartTotal) {
+                        cartTotal.textContent = '$' + data.cart_total_display;
+                    }
+
+                    const cartItemCount = document.getElementById('cart-item-count');
+                    if (cartItemCount) {
+                        cartItemCount.textContent = data.cart_total_items_display;
+                    }
+
+                    // Actualizar contador en el header (si existe)
+                    const cartCountHeader = document.getElementById('cart-count');
+                    if (cartCountHeader) {
+                        cartCountHeader.textContent = data.cart_total_items_display;
+                    }
+
+                    if (data.removed) {
+                        form.closest('tr').remove();
+                    }
+
+                    // Si el carrito queda vacío, recargar la página para mostrar el mensaje de "carrito vacío"
+                    if (data.cart_total_items_display === 0) {
+                        window.location.reload();
+                    }
+
+                } else {
+                    alert(data.message || 'Error al actualizar la cantidad.');
+                    this.value = this.defaultValue; // Revertir cambio si hay error
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al actualizar el carrito.');
+                this.value = this.defaultValue; // Revertir cambio
+            });
         });
     });
 });
-*/
 </script>
 {% endblock %}
