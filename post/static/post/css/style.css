@@ -143,6 +143,11 @@ header nav ul li a {
     text-decoration: none;
     padding: 0.5rem 0;
     position: relative;
+    transition: color 0.3s ease;
+}
+
+header nav ul li a:hover {
+    color: var(--color-accent);
 }
 
 header nav ul li a::after {
@@ -215,8 +220,8 @@ footer {
     background-color: var(--color-dark-gray);
     color: var(--color-light-gray);
     text-align: center;
-    padding: 2rem 1rem;
-    margin-top: 2rem; /* Para asegurar que no se solape con contenido flotante */
+    padding: 3rem 1rem;
+    margin-top: 3rem; /* Para asegurar que no se solape con contenido flotante */
 }
 
 footer p {
@@ -301,7 +306,7 @@ form textarea::placeholder {
     cursor: pointer;
     transition: var(--transition-medium); /* Usar variable */
     border: 1px solid transparent;
-    box-shadow: var(--box-shadow-light); /* Sombra sutil a botones */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .btn:active {
     transform: translateY(1px); /* Efecto de presionado */
@@ -425,7 +430,7 @@ form textarea::placeholder {
 }
 
 .product-card:hover {
-    transform: translateY(-6px) scale(1.02); /* Elevación y ligero zoom */
+    transform: translateY(-6px) scale(1.03); /* Elevación y ligero zoom */
     box-shadow: var(--box-shadow-md);
 }
 
@@ -806,6 +811,58 @@ form textarea::placeholder {
 .justify-content-between { justify-content: space-between; }
 .align-items-center { align-items: center; }
 
+/* --- Estilos del Menú Hamburguesa --- */
+.nav-toggle {
+    display: none; /* Oculto por defecto */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 1001; /* Asegurar que esté sobre otros elementos */
+}
+
+.hamburger {
+    display: block;
+    position: relative;
+    width: 25px;
+    height: 3px;
+    background: var(--color-dark-gray);
+    transition: all 0.3s ease-in-out;
+}
+
+.hamburger::before,
+.hamburger::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--color-dark-gray);
+    transition: all 0.3s ease-in-out;
+}
+
+.hamburger::before {
+    transform: translateY(-8px);
+}
+
+.hamburger::after {
+    transform: translateY(8px);
+}
+
+/* Animación del botón hamburguesa a 'X' */
+.nav-open .hamburger {
+    background: transparent; /* La línea del medio desaparece */
+}
+
+.nav-open .hamburger::before {
+    transform: rotate(45deg);
+}
+
+.nav-open .hamburger::after {
+    transform: rotate(-45deg);
+}
+
+
 /* --- Media Queries para Responsividad --- */
 
 /* Tablets y dispositivos más pequeños */
@@ -813,26 +870,41 @@ form textarea::placeholder {
     .container {
         width: 95%;
     }
+
+    .nav-toggle {
+        display: block; /* Mostrar el botón hamburguesa */
+    }
+
     header nav {
-        flex-direction: column;
-        align-items: flex-start; /* Alinear elementos del nav a la izquierda */
+        justify-content: space-between;
+        align-items: center;
     }
-    header nav ul {
+
+    .nav-links {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Oculto fuera de la pantalla */
+        width: 70%;
+        max-width: 300px;
+        height: 100vh;
+        background-color: var(--color-light-gray);
         flex-direction: column;
-        width: 100%;
-        margin-top: 1rem;
+        justify-content: center;
+        align-items: center;
+        transition: right 0.4s ease-in-out;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
     }
+
+    .nav-open .nav-links {
+        right: 0; /* Mostrar el menú */
+    }
+
     header nav ul li {
-        margin-left: 0;
-        margin-bottom: 0.5rem; /* Espacio entre ítems de menú en móvil */
-        width: 100%;
+        margin: 1.5rem 0;
     }
+
     header nav ul li a {
-        display: block; /* Para que ocupe todo el ancho */
-        padding: 0.8rem 0; /* Más padding vertical en móvil */
-    }
-    header nav ul li a::after { /* Ocultar la línea de abajo en móvil o ajustar */
-        display: none;
+        font-size: 1.2rem;
     }
     .search-bar {
         width: 90%; /* Ajustar ancho de la barra de búsqueda */
@@ -857,20 +929,48 @@ form textarea::placeholder {
         padding: 0 1rem; /* Añadir padding lateral en móvil */
     }
     .cart-table {
-        font-size: 0.9rem; /* Reducir tamaño de fuente en tabla de carrito */
+        display: block;
+        font-size: 0.9rem;
     }
-    .cart-table th, .cart-table td {
-        padding: 0.75rem 0.5rem;
+    .cart-table thead {
+        display: none; /* Ocultar encabezados de tabla en móvil */
+    }
+    .cart-table tbody, .cart-table tr, .cart-table td {
+        display: block;
+        width: 100%;
+    }
+    .cart-table tr {
+        margin-bottom: 1rem;
+        border: 1px solid var(--color-medium-gray);
+        border-radius: var(--border-radius-md);
+        padding: 1rem;
+    }
+    .cart-table td {
+        padding: 0.5rem 0;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .cart-table td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        margin-right: 1rem;
+    }
+    .cart-table .cart-item-image {
+        text-align: center;
+    }
+    .cart-table .cart-item-image::before {
+        display: none; /* No necesitamos label para la imagen */
     }
     .cart-table img {
-        max-width: 60px;
+        max-width: 100px; /* Un poco más grande para el diseño de bloque */
+        margin: 0 auto 1rem;
     }
     .cart-item-actions form {
-        flex-direction: column; /* Apilar elementos de acción en carrito */
-        align-items: flex-start;
-    }
-    .cart-item-actions input[type="number"] {
-        margin-bottom: 0.5rem;
+        flex-direction: row; /* Mantener en fila */
+        justify-content: space-between;
+        width: 100%;
     }
     .account-dashboard {
         grid-template-columns: 1fr; /* Stack sidebar and content */
@@ -884,6 +984,9 @@ form textarea::placeholder {
     }
     .form-row .form-group {
         margin-bottom: 1rem; /* Asegurar espacio entre campos apilados */
+    }
+    .checkout-form-section, .checkout-summary-section {
+        padding: 1.5rem;
     }
 }
 

@@ -221,7 +221,7 @@
                 <tbody>
                     {% for item in carrito.items.all %}
                         <tr>
-                            <td data-label="Producto Imagen:">
+                            <td data-label="Producto" class="cart-item-image">
                                 <a href="{{ item.producto.get_absolute_url }}">
                                 {% if item.producto.imagenes.first %}
                                     <img src="{{ item.producto.imagenes.first.imagen.url }}" alt="{{ item.producto.nombre }}">
@@ -230,12 +230,12 @@
                                 {% endif %}
                                 </a>
                             </td>
-                            <td data-label="Nombre:" class="cart-item-name">
+                            <td data-label="Nombre" class="cart-item-name">
                                 <a href="{{ item.producto.get_absolute_url }}">{{ item.producto.nombre }}</a>
                                 {% if item.variacion %} <br><small class="variation-info">{{ item.variacion.tipo }}: {{ item.variacion.valor }}</small>{% endif %}
                                 {% if item.producto.sku %}<br><small class="variation-info">SKU: {{ item.producto.sku }}</small>{% endif %}
                             </td>
-                            <td data-label="Precio Unit.:" class="item-price" style="text-align: right;">
+                            <td data-label="Precio" class="item-price" style="text-align: right;">
                                 {% if item.producto.tiene_descuento_activo %}
 
                     
@@ -243,7 +243,7 @@
                 
                                 {% endif %}
                             </td>
-                            <td data-label="Cantidad:" class="cart-item-actions" style="text-align: center;">
+                            <td data-label="Cantidad" class="cart-item-actions" style="text-align: center;">
                                 <form action="{% url 'tienda:actualizar_item_carrito' item_id=item.id %}" method="post" class="d-inline-flex align-items-center justify-content-center update-item-form">
                                     {% csrf_token %}
                                     <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1"
@@ -251,8 +251,10 @@
                                            aria-label="Cantidad para {{ item.producto.nombre }}">
                                 </form>
                             </td>
-            
-                            <td data-label="Acciones:" class="cart-item-actions" style="text-align: center;">
+                            <td data-label="Subtotal" class="item-subtotal" style="text-align: right;">
+                                ${{ item.subtotal }}
+                            </td>
+                            <td data-label="Acciones" class="cart-item-actions" style="text-align: center;">
                                 <form action="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" method="post" class="d-inline">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-remove-item" title="Eliminar {{ item.producto.nombre }} del carrito"

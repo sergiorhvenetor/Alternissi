@@ -1,20 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
-<style>
-@font-face {
-  font-family: 'Phyllis D';
-  src: url('ruta/a/tu/fuente/phyllisd.woff2') format('woff2'),
-       url('ruta/a/tu/fuente/phyllisd.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-body {
-  font-family: 'Phyllis D', sans-serif;
-}
-</style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,6 +18,9 @@ body {
                 <div class="logo">
                     <a href="{% url 'tienda:inicio' %}"><h1>Alternissi</h1></a>
                 </div>
+                <button class="nav-toggle" aria-label="toggle navigation">
+                    <span class="hamburger"></span>
+                </button>
                 <ul class="nav-links">
                     <li><a href="{% url 'tienda:lista_productos' %}" {% if request.resolver_match.url_name == 'lista_productos' %}class="active"{% endif %}>Productos</a></li>
                     <li><a href="{% url 'tienda:ver_carrito' %}" {% if request.resolver_match.url_name == 'ver_carrito' %}class="active"{% endif %}>Carrito (<span id="cart-count">{{ global_cart_items|default:0 }}</span>)</a></li>
@@ -88,6 +77,7 @@ body {
 
     {% block extra_scripts %}
     <script src="{% static 'post/js/cart_update.js' %}"></script>
+    <script src="{% static 'post/js/script.js' %}"></script>
     {% endblock %}
 </body>
 </html>
