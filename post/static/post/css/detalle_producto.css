@@ -1,0 +1,300 @@
+/* Estilos para breadcrumbs (migas de pan) */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem; /* Ligeramente más pequeño */
+}
+.breadcrumb-item a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+.breadcrumb-item.active {
+    color: var(--color-dark-gray);
+    font-weight: 500;
+}
+
+/* Contenedor principal del detalle del producto */
+.product-detail-layout { /* Renombrado de .product-detail-container para evitar colisión con CSS global */
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas: galería e info */
+    gap: 2.5rem;
+    margin-bottom: 3rem; /* Espacio antes de las pestañas */
+}
+
+/* Galería de Imágenes */
+.product-detail__image-gallery .main-image img {
+    width: 100%;
+    max-height: 550px;
+    object-fit: contain; /* o 'cover' si se prefiere recorte */
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-medium-gray);
+    box-shadow: var(--box-shadow-light);
+    margin-bottom: 1rem; /* Espacio antes de las miniaturas */
+}
+.product-detail__image-gallery .thumbnail-images {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Alinear miniaturas a la izquierda */
+}
+.product-detail__image-gallery .thumbnail-images img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+.product-detail__image-gallery .thumbnail-images img:hover,
+.product-detail__image-gallery .thumbnail-images img.active-thumbnail {
+    border-color: var(--color-accent);
+}
+
+/* Información del Producto */
+.product-detail__info h1 { /* Título del producto */
+    font-size: 2.4rem;
+    margin-bottom: 0.5rem; /* Reducir margen inferior */
+    font-family: var(--font-secondary);
+    color: var(--color-dark-gray);
+}
+.product-detail__meta { /* Para categoría, marca, SKU */
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 1rem;
+}
+.product-detail__meta a {
+    color: #555;
+    text-decoration: none;
+}
+.product-detail__meta a:hover {
+    color: var(--color-accent);
+}
+.product-detail__meta span:not(:last-child)::after {
+    content: "|";
+    margin: 0 0.5em;
+}
+
+.product-detail__price { /* Precio */
+    font-size: 2rem;
+    color: var(--color-accent);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+.product-detail__price .original-price {
+    text-decoration: line-through;
+    color: var(--color-medium-gray);
+    font-size: 0.7em;
+    margin-left: 0.5em;
+    font-weight: normal;
+}
+.product-detail__price .discount-badge { /* Para el % de descuento */
+    background-color: var(--color-error);
+    color: var(--color-white);
+    font-size: 0.7em;
+    padding: 0.2em 0.5em;
+    border-radius: var(--border-radius-sm);
+    margin-left: 0.5em;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.stock-info { /* Información de stock */
+    font-size: 0.95em;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    display: flex; /* Para alinear icono y texto */
+    align-items: center;
+}
+.stock-info .material-icons {
+    margin-right: 0.3em;
+    font-size: 1.3em; /* Icono un poco más grande */
+}
+.stock-info.disponible { color: var(--color-success); }
+.stock-info.agotado { color: var(--color-error); }
+
+.product-detail__description h3 { /* Título "Descripción" */
+    font-family: var(--font-secondary);
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    margin-top: 1.5rem; /* Espacio antes de la descripción */
+}
+.product-detail__description p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #444; /* Texto un poco más oscuro para mejor lectura */
+    margin-bottom: 1.5rem;
+}
+
+.product-detail__actions { /* Formulario de añadir al carrito y botón de deseos */
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Espacio entre el form y el botón de deseos */
+    margin-bottom: 1.5rem;
+}
+.product-detail__actions form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.product-detail__actions label { /* Etiqueta de cantidad */
+    font-weight: 500;
+}
+.product-detail__actions input[type="number"] {
+    width: 70px;
+    padding: 0.7rem 0.5rem; /* Ajustar padding */
+    text-align: center;
+    border: 1px solid var(--color-medium-gray);
+    border-radius: var(--border-radius-sm);
+    font-size: 1rem;
+}
+.product-detail__actions .btn-primary { /* Botón Añadir al carrito */
+    padding: 0.7rem 1.2rem;
+    display: inline-flex; /* Para alinear icono y texto */
+    align-items: center;
+}
+.product-detail__actions .btn-primary .material-icons {
+    margin-right: 0.4em;
+}
+
+.wishlist-btn { /* Botón de lista de deseos */
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    background-color: transparent;
+    color: var(--color-accent);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+.wishlist-btn:hover {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+    text-decoration: none;
+}
+.wishlist-btn .material-icons {
+    margin-right: 0.3em;
+    font-size: 1.3em; /* Icono de corazón un poco más grande */
+}
+
+/* Pestañas (Tabs) para descripción larga, especificaciones, reseñas */
+.product-tabs-section { margin-top: 3rem; }
+.nav-tabs {
+    border-bottom: 1px solid var(--color-medium-gray);
+    margin-bottom: 0; /* Quitar margen inferior para que el contenido pegue */
+}
+.nav-tabs .nav-item {
+    margin-bottom: -1px;
+}
+.nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-top-left-radius: var(--border-radius-sm);
+    border-top-right-radius: var(--border-radius-sm);
+    color: var(--color-accent);
+    padding: 0.8rem 1.5rem; /* Más padding */
+    font-weight: 500;
+    font-size: 1.05rem; /* Ligeramente más grande */
+}
+.nav-tabs .nav-link:hover,
+.nav-tabs .nav-link:focus {
+    border-color: var(--color-light-gray) var(--color-light-gray) var(--color-medium-gray);
+    background-color: var(--color-light-gray); /* Sutil hover */
+}
+.nav-tabs .nav-link.active {
+    color: var(--color-dark-gray);
+    background-color: var(--color-white);
+    border-color: var(--color-medium-gray) var(--color-medium-gray) var(--color-white);
+    font-weight: 700; /* Más bold para activo */
+}
+.tab-content {
+    padding: 2rem 1.5rem; /* Más padding interno */
+    border: 1px solid var(--color-medium-gray);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md); /* Redondear esquinas inferiores */
+    background-color: var(--color-white);
+    min-height: 200px; /* Altura mínima para el contenido de las pestañas */
+}
+.tab-content ul { /* Para listas dentro de especificaciones */
+    padding-left: 1.2rem;
+}
+.tab-content ul li {
+    margin-bottom: 0.4rem;
+}
+
+/* Sección de Reseñas */
+.reviews-section h4 {
+    font-family: var(--font-secondary);
+    font-size: 1.6rem; /* Título más grande */
+    margin-bottom: 1.5rem;
+}
+.review {
+    border-bottom: 1px solid var(--color-light-gray);
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+.review:last-child { border-bottom: none; margin-bottom: 0; }
+.review .rating { color: var(--color-accent); font-size: 1.1rem; margin-bottom: 0.3rem; }
+.review .review-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 0.3rem; }
+.review .review-comment { margin-bottom: 0.5rem; line-height: 1.6; }
+.review .author { font-size: 0.9em; color: #777; }
+.no-reviews { color: #777; font-style: italic; }
+.add-review-link.btn { margin-top: 1.5rem; } /* Usar clase .btn de style.css */
+
+/* Productos Relacionados */
+.related-products-section { margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid var(--color-medium-gray); }
+.related-products-section h3 {
+    text-align: center;
+    font-family: var(--font-secondary);
+    font-size: 2rem; /* Título más grande */
+    margin-bottom: 2.5rem;
+}
+/* .product-grid y .product-card se reutilizan de style.css */
+
+/* Responsividad */
+@media (max-width: 992px) { /* Tablets */
+    .product-detail-layout {
+        grid-template-columns: 1fr; /* Una columna en tablets y móviles */
+    }
+    .product-detail__info {
+        padding-left: 0;
+    }
+}
+@media (max-width: 768px) { /* Móviles */
+    .product-detail__image-gallery .main-image img {
+         max-height: 400px;
+    }
+    .product-detail__image-gallery .thumbnail-images img {
+        width: 65px;
+        height: 65px;
+    }
+    .product-detail__info h1 { font-size: 2rem; }
+    .product-detail__price { font-size: 1.8rem; }
+    .product-detail__actions {
+        flex-direction: column; /* Apilar form y botón de deseos */
+        align-items: flex-start; /* Alinear a la izquierda */
+    }
+    .product-detail__actions form {
+        width: 100%; /* El form ocupa todo el ancho */
+        margin-bottom: 1rem; /* Espacio antes del botón de deseos */
+    }
+     .product-detail__actions .btn-primary {
+        width: 100%; /* Botón de carrito ocupa todo el ancho */
+    }
+    .wishlist-btn {
+        width: 100%; /* Botón de deseos ocupa todo el ancho */
+        justify-content: center; /* Centrar contenido del botón */
+    }
+    .nav-tabs .nav-link {
+        padding: 0.7rem 1rem; /* Menos padding en tabs en móvil */
+        font-size: 0.95rem;
+    }
+    .tab-content {
+        padding: 1.5rem 1rem;
+    }
+}

@@ -1,0 +1,13 @@
+{% load static %}
+<a href="{{ categoria.get_absolute_url }}" class="category-card-link">
+    <div class="category-card">
+        {% if categoria.imagen %}
+            <img src="{{ categoria.imagen.url }}" alt="{{ categoria.nombre }}" class="category-card__image">
+        {% else %}
+            <div class="category-card__image-placeholder">
+                <span class="material-icons">inventory_2</span> {# Ejemplo de icono si no hay imagen #}
+            </div>
+        {% endif %}
+        <div class="category-card__name">{{ categoria.nombre }}</div>
+    </div>
+</a>

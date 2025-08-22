@@ -1,0 +1,26 @@
+{% load static %}
+<div class="product-card">
+    <a href="{{ producto.get_absolute_url }}" class="product-card__image-container">
+        {% if producto.imagenes.first %}
+            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
+        {% else %}
+            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
+        {% endif %}
+    </a>
+    <div class="product-card__info">
+        <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
+        <p class="product-card__price">
+             {% if producto.tiene_descuento %}
+                <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
+                <span class="discounted-price">${{ producto.precio_actual|floatformat:2 }}</span>
+            {% else %}
+                <span>${{ producto.precio_actual|floatformat:2 }}</span>
+            {% endif %}
+        </p>
+        <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto">
+            {% csrf_token %}
+            <input type="hidden" name="cantidad" value="1">
+            <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>
+        </form>
+    </div>
+</div>

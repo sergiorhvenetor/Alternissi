@@ -23,31 +23,7 @@
             <button class="carousel-btn prev-btn" aria-label="Anterior" data-carousel="product-carousel-discount">&lt;</button>
             <div class="product-carousel" id="product-carousel-discount">
                 {% for producto in productos_con_descuento %}
-                    <div class="product-card">
-                        <a href="{{ producto.get_absolute_url }}" class="product-card__image-container">
-                            {% if producto.imagenes.first %}
-                                <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
-                            {% else %}
-                                <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
-                            {% endif %}
-                        </a>
-                        <div class="product-card__info">
-                            <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
-                            <p class="product-card__price">
-                                {% if producto.tiene_descuento %}
-                                    <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
-                                    <span class="discounted-price">${{ producto.precio_actual|floatformat:2 }}</span>
-                                {% else %}
-                                    <span>${{ producto.precio_actual|floatformat:2 }}</span>
-                                {% endif %}
-                            </p>
-                            <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto">
-                                {% csrf_token %}
-                                <input type="hidden" name="cantidad" value="1">
-                                <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>
-                            </form>
-                        </div>
-                    </div>
+                    {% include "post/includes/product_card.html" with producto=producto %}
                 {% endfor %}
             </div>
             <button class="carousel-btn next-btn" aria-label="Siguiente" data-carousel="product-carousel-discount">&gt;</button>
@@ -63,31 +39,7 @@
         </div>
         <div class="product-grid">
             {% for producto in productos_nuevos %}
-                <div class="product-card">
-                    <a href="{{ producto.get_absolute_url }}" class="product-card__image-container">
-                        {% if producto.imagenes.first %}
-                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
-                        {% else %}
-                            <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
-                        {% endif %}
-                    </a>
-                    <div class="product-card__info">
-                        <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
-                        <p class="product-card__price">
-                             {% if producto.tiene_descuento %}
-                                <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
-                                <span class="discounted-price">${{ producto.precio_actual|floatformat:2 }}</span>
-                            {% else %}
-                                <span>${{ producto.precio_actual|floatformat:2 }}</span>
-                            {% endif %}
-                        </p>
-                        <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto">
-                            {% csrf_token %}
-                            <input type="hidden" name="cantidad" value="1">
-                            <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>
-                        </form>
-                    </div>
-                </div>
+                {% include "post/includes/product_card.html" with producto=producto %}
             {% endfor %}
         </div>
     </section>
@@ -101,18 +53,7 @@
         </div>
         <div class="category-grid">
             {% for categoria in categorias %}
-                <a href="{{ categoria.get_absolute_url }}" class="category-card-link">
-                    <div class="category-card">
-                        {% if categoria.imagen %}
-                            <img src="{{ categoria.imagen.url }}" alt="{{ categoria.nombre }}" class="category-card__image">
-                        {% else %}
-                            <div class="category-card__image-placeholder">
-                                <span class="material-icons">inventory_2</span> {# Ejemplo de icono si no hay imagen #}
-                            </div>
-                        {% endif %}
-                        <div class="category-card__name">{{ categoria.nombre }}</div>
-                    </div>
-                </a>
+                {% include "post/includes/category_card.html" with categoria=categoria %}
             {% endfor %}
         </div>
     </section>
@@ -132,233 +73,10 @@
 {{ block.super }}
 <!-- Si se necesita un CDN para iconos, como Material Icons para el placeholder de categoría -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-<style>
-    /* Estilos específicos para el carrusel y tarjetas de categoría que podrían no estar en style.css general */
-    .hero-section { /* Ya definido en style.css, pero se puede ajustar aquí si es necesario */
-        background-color: var(--color-light-gray);
-        padding: 4rem 1rem; /* Aumentar padding vertical */
-        text-align: center;
-        margin-bottom: 2rem; /* Espacio después del hero */
-    }
-    .hero-section h1 {
-        font-size: 3rem; /* Ajustar según diseño */
-        color: var(--color-dark-gray);
-        margin-bottom: 1rem;
-    }
-    .hero-section p.lead {
-        font-size: 1.3rem; /* Hacer el lead más grande */
-        color: var(--color-dark-gray);
-        margin-bottom: 2rem;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .hero-section .btn-lg {
-        padding: 0.8rem 2rem; /* Hacer el botón más grande */
-        font-size: 1.1rem;
-    }
-
-    .carousel-wrapper {
-        position: relative;
-        padding: 0 40px; /* Espacio para los botones */
-    }
-    .product-carousel {
-        display: flex;
-        overflow-x: auto;
-        scroll-behavior: smooth;
-        gap: 20px; /* Espacio entre tarjetas */
-        padding-bottom: 1rem; /* Para que la scrollbar no pegue con el contenido de abajo */
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-    }
-    .product-carousel::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
-    }
-    .product-carousel .product-card {
-        min-width: 280px; /* Ancho mínimo de las tarjetas en el carrusel */
-        flex: 0 0 auto; /* Para que no se encojan ni crezcan */
-    }
-    .carousel-btn {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background-color: rgba(255, 255, 255, 0.8);
-        border: 1px solid var(--color-medium-gray);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        font-size: 1.5rem;
-        cursor: pointer;
-        z-index: 10;
-        transition: background-color 0.3s ease;
-    }
-    .carousel-btn:hover {
-        background-color: var(--color-white);
-    }
-    .carousel-btn.prev-btn { left: 0; }
-    .carousel-btn.next-btn { right: 0; }
-    .carousel-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .original-price {
-        text-decoration: line-through;
-        color: var(--color-medium-gray);
-        font-size: 0.9em;
-        margin-right: 0.5em;
-    }
-    .discounted-price {
-        font-weight: bold;
-        color: var(--color-error); /* O un color de oferta específico */
-    }
-    .product-card__price span:not(.original-price):not(.discounted-price) { /* Estilo para precio normal */
-        font-weight: bold;
-        color: var(--color-accent);
-    }
-
-    .category-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-    }
-    .category-card-link {
-        text-decoration: none;
-    }
-    .category-card {
-        background-color: var(--color-white);
-        border: 1px solid var(--color-medium-gray);
-        border-radius: var(--border-radius-md);
-        text-align: center;
-        padding: 1.5rem 1rem;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: 100%; /* Para que todas las tarjetas tengan la misma altura si están en una fila */
-    }
-    .category-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--box-shadow-md);
-    }
-    .category-card__image {
-        width: 80px; /* Ajustar tamaño según diseño */
-        height: 80px;
-        object-fit: contain; /* o cover, según el tipo de imágenes */
-        margin-bottom: 1rem;
-        border-radius: var(--border-radius-sm); /* Si las imágenes son cuadradas y se quiere redondear */
-    }
-    .category-card__image-placeholder {
-        width: 80px;
-        height: 80px;
-        background-color: var(--color-light-gray);
-        border-radius: var(--border-radius-sm);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
-    .category-card__image-placeholder .material-icons {
-        font-size: 40px;
-        color: var(--color-medium-gray);
-    }
-    .category-card__name {
-        font-family: var(--font-secondary);
-        font-size: 1.2rem;
-        color: var(--color-dark-gray);
-        font-weight: 700;
-    }
-    .bg-light-gray { /* Clase utilitaria si no existe ya */
-        background-color: var(--color-light-gray);
-    }
-
-</style>
+<link rel="stylesheet" href="{% static 'post/css/inicio.css' %}">
 {% endblock %}
 
 {% block extra_scripts %}
 {{ block.super }} {# Para incluir scripts de base.html si los tuviera #}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const carousels = document.querySelectorAll('.carousel-wrapper');
-
-    carousels.forEach(wrapper => {
-        const carouselId = wrapper.querySelector('.product-carousel')?.id;
-        if (!carouselId) return;
-
-        const carousel = document.getElementById(carouselId);
-        const prevBtn = wrapper.querySelector('.prev-btn[data-carousel="' + carouselId + '"]');
-        const nextBtn = wrapper.querySelector('.next-btn[data-carousel="' + carouselId + '"]');
-
-        // Dinámicamente obtener el ancho de la tarjeta, incluyendo el gap
-        let cardWidth = 0;
-        const firstCard = carousel.querySelector('.product-card');
-        if (firstCard) {
-            const cardStyle = window.getComputedStyle(firstCard);
-            const cardMarginRight = parseFloat(cardStyle.marginRight) || 0; // O el gap si se usa así
-            const carouselStyle = window.getComputedStyle(carousel);
-            const carouselGap = parseFloat(carouselStyle.gap) || 20; // Fallback al gap definido en CSS
-            cardWidth = firstCard.offsetWidth + Math.max(cardMarginRight, carouselGap) ;
-        }
-
-
-        function updateButtons() {
-            if (!carousel || !prevBtn || !nextBtn) return;
-            const scrollLeft = carousel.scrollLeft;
-            const scrollWidth = carousel.scrollWidth;
-            const clientWidth = carousel.clientWidth;
-
-            prevBtn.disabled = scrollLeft <= 0;
-            // Pequeña tolerancia para el final del scroll
-            nextBtn.disabled = scrollLeft >= (scrollWidth - clientWidth - 5);
-        }
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (carousel && cardWidth > 0) {
-                    carousel.scrollBy({ left: -cardWidth, behavior: 'smooth' });
-                }
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                if (carousel && cardWidth > 0) {
-                    carousel.scrollBy({ left: cardWidth, behavior: 'smooth' });
-                }
-            });
-        }
-
-        if (carousel) {
-            carousel.addEventListener('scroll', updateButtons);
-            // Observador para cuando las imágenes carguen y cambie el tamaño del carrusel
-            const resizeObserver = new ResizeObserver(() => {
-                // Recalcular cardWidth si es necesario (especialmente si las imágenes tardan en cargar)
-                if (firstCard) {
-                    const cardStyle = window.getComputedStyle(firstCard);
-                    const cardMarginRight = parseFloat(cardStyle.marginRight) || 0;
-                    const carouselStyle = window.getComputedStyle(carousel);
-                    const carouselGap = parseFloat(carouselStyle.gap) || 20;
-                    cardWidth = firstCard.offsetWidth + Math.max(cardMarginRight, carouselGap) ;
-                }
-                updateButtons();
-            });
-            resizeObserver.observe(carousel);
-
-            // También llamar a updateButtons al cargar y al cambiar tamaño de ventana (responsive)
-            // Dar un pequeño tiempo para que las imágenes puedan cargar y se calcule bien el cardWidth
-            setTimeout(updateButtons, 300);
-            window.addEventListener('resize', () => {
-                 if (firstCard) { // Recalcular en resize
-                    const cardStyle = window.getComputedStyle(firstCard);
-                    const cardMarginRight = parseFloat(cardStyle.marginRight) || 0;
-                    const carouselStyle = window.getComputedStyle(carousel);
-                    const carouselGap = parseFloat(carouselStyle.gap) || 20;
-                    cardWidth = firstCard.offsetWidth + Math.max(cardMarginRight, carouselGap) ;
-                }
-                updateButtons();
-            });
-        }
-    });
-});
-</script>
+<script src="{% static 'post/js/inicio.js' %}"></script>
 {% endblock %}

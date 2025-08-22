@@ -1,0 +1,166 @@
+.product-listing-page {
+    display: flex;
+    flex-wrap: wrap; /* Para que la sidebar se mueva abajo en móvil */
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.filters {
+    flex: 0 0 260px; /* Ancho fijo para la barra lateral de filtros */
+    background-color: var(--color-light-gray);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-md);
+    align-self: flex-start;
+    height: fit-content; /* Para que no ocupe toda la altura si el contenido es menor */
+}
+
+.filters h3 {
+    font-family: var(--font-secondary);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+}
+.filters h3:not(:first-of-type) {
+    margin-top: 1.5rem;
+}
+
+.filter-list {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 0;
+}
+
+.filter-list li {
+    margin-bottom: 0.5rem;
+}
+
+.filter-list li a {
+    text-decoration: none;
+    color: var(--color-dark-gray);
+    font-weight: 400; /* Más ligero para no activos */
+    padding: 0.25rem 0;
+    display: block;
+    transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.filter-list li a:hover,
+.filter-list li a.active {
+    color: var(--color-accent);
+    font-weight: 700; /* Más bold para activo/hover */
+}
+
+.product-list-main {
+    flex: 1; /* Ocupa el espacio restante */
+    min-width: 0; /* Evita que el contenido se desborde en flex */
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap; /* Para que el sort form baje si no hay espacio */
+    gap: 1rem; /* Espacio entre título y sort form */
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+}
+.list-header h2 {
+    margin: 0;
+    font-size: 1.8rem; /* Ligeramente más pequeño */
+    flex-grow: 1; /* Para que el título ocupe espacio */
+}
+.list-header .product-count {
+    font-size: 0.9rem;
+    color: #555;
+    white-space: nowrap; /* Evitar que se parta "producto(s)" */
+}
+.sort-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.sort-form label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.sort-form .form-control {
+    min-width: 180px; /* Ancho mínimo para el select */
+    padding: 0.5rem 0.75rem; /* Ajustar padding del select */
+    font-size: 0.9rem;
+}
+
+/* Product card specific styles for this page if needed, otherwise they come from style.css */
+.product-card__description {
+    font-size: 0.85rem; /* Descripción un poco más pequeña en la lista */
+    margin-bottom: 0.75rem;
+    /* Limitar altura para X líneas aprox, requiere line-height consistente */
+    line-height: 1.4;
+    height: calc(1.4em * 2); /* Para 2 líneas de texto */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Para un ellipsis multilínea más robusto, se necesitaría JS o webkit-line-clamp (no estándar) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.btn-wishlist-icon {
+    text-decoration:none;
+    font-size:1.5em;
+    color:var(--color-medium-gray);
+    display:inline-block; /* Cambiado a inline-block para que esté en la misma línea si hay espacio */
+    margin-top:0.5rem;
+    margin-left: 0.5rem; /* Espacio si está al lado de otro botón */
+    vertical-align: middle; /* Alinear con botones */
+    transition: color 0.3s ease;
+}
+.btn-wishlist-icon:hover {
+    color: var(--color-accent);
+}
+
+.product-card__info form { /* Asegurar que el form no cause problemas de layout */
+    width: 100%;
+}
+
+
+/* Estilos para la paginación (ya deben estar en style.css global) */
+.pagination-nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 2.5rem;
+}
+/* Se asume que .pagination, .page-item, .page-link ya están definidos en style.css */
+
+@media (max-width: 992px) {
+    .filters {
+        flex: 1 1 100%;
+        margin-bottom: 2rem;
+        order: 1;
+    }
+    .product-list-main {
+        order: 2;
+    }
+    .list-header h2 {
+        font-size: 1.6rem;
+    }
+}
+@media (max-width: 576px) {
+    .list-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .list-header h2 {
+        margin-bottom: 0.5rem;
+    }
+    .sort-form {
+        width: 100%;
+    }
+    .sort-form .form-control {
+        width: 100%;
+    }
+    .product-card__description {
+        -webkit-line-clamp: 2; /* Mantener 2 líneas en móvil */
+    }
+}
