@@ -1050,3 +1050,97 @@ form textarea::placeholder {
     vertical-align: super; /* Para que quede un poco más arriba */
     margin-left: 4px;
 }
+
+/* --- Estilos para la página de contacto --- */
+.contact-page h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 2.2rem;
+}
+.contact-page .contact-section {
+    margin-bottom: 30px;
+}
+.contact-page .contact-section h2 {
+    color: #3498db;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+.contact-page .contact-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.contact-page .contact-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #eee;
+}
+.contact-page .contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.contact-page .contact-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #3498db;
+}
+.contact-page .contact-card h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+.contact-page .contact-card p {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+.contact-page .contact-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    width: 80%;
+    color: white;
+}
+.contact-page .whatsapp {
+    background-color: #25D366;
+}
+.contact-page .whatsapp:hover {
+    background-color: #128C7E;
+}
+.contact-page .phone {
+    background-color: #3498db;
+}
+.contact-page .phone:hover {
+    background-color: #2980b9;
+}
+.contact-page .email {
+    background-color: #e74c3c;
+}
+.contact-page .email:hover {
+    background-color: #c0392b;
+}
+.contact-page .social {
+    background-color: #9b59b6;
+}
+.contact-page .social:hover {
+    background-color: #8e44ad;
+}
+.contact-page .footer {
+    text-align: center;
+    margin-top: 30px;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+@media (max-width: 600px) {
+    .contact-page .contact-methods {
+        grid-template-columns: 1fr;
+    }
+}
