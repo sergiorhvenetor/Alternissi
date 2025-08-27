@@ -95,7 +95,7 @@ urlpatterns = [
     path('sobre-nosotros/', views.SobreNosotrosView.as_view(), name='sobre_nosotros'),
 
     # --- URLs de Administración ---
-    path('admin/login/', views.admin_login_view, name='admin_login'),
-    path('admin/productos/nuevo/', views.agregar_producto_admin_view, name='admin_agregar_producto'),
-    path('admin/promociones/nuevo/', views.agregar_promocion_admin_view, name='admin_agregar_promocion'),
+    path('gestion/login/', views.admin_login_view, name='admin_login'),
+    path('gestion/productos/nuevo/', views.agregar_producto_admin_view, name='admin_agregar_producto'),
+    path('gestion/promociones/nuevo/', views.agregar_promocion_admin_view, name='admin_agregar_promocion'),
 ]
