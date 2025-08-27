@@ -8,32 +8,22 @@ from django.views.generic import (
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseBadRequest
-# from django.contrib.auth.forms import UserCreationForm # Cambiado por CustomUserCreationForm
-from .forms import CustomUserCreationForm, ProductoForm, CuponForm # Añadido
+from .forms import CustomUserCreationForm, ProductoForm, CuponForm
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.db.models import F, Q, Sum, Value
 from django.db.models.functions import Coalesce
-from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
-from .forms import ClienteForm, ResenaForm # Importar los nuevos formularios
-# views.py
-
-
-
-
-
-
+from .forms import ClienteForm, ResenaForm
+from django.contrib.auth.forms import AuthenticationForm as AdminAuthenticationForm
 
 # Importa todos los modelos necesarios
 from .models import (
-    Producto, Categoria, Marca, Carrito, ItemCarrito, 
+    Producto, Categoria, Marca, Carrito, ItemCarrito,
     Pedido, Cliente, ListaDeseos, Resena, Cupon, ConfiguracionTienda
 )
-# Asumimos que tendrás un archivo forms.py con estos formularios
-# from .forms import ResenaForm, ClienteForm, DireccionForm
 
 # --- Mixins Personalizados ---
 
@@ -132,15 +122,8 @@ class DetalleProductoView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # El objeto producto ya está en el contexto por DetailView
-
-        producto = self.get_object() # Obtener el objeto una vez
-        # imagenes are preloaded by prefetch_related('imagenes')
-        # resenas are preloaded by prefetch_related('resenas__cliente')
-        # context['imagenes'] = producto.imagenes.all() # Not strictly needed if template uses producto.imagenes.all
-        context['resenas'] = producto.resenas.filter(aprobado=True) # Filter preloaded resenas
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
-        # context['resena_form'] = ResenaForm() # Se mantiene comentado como en el original
+        producto = self.get_object()
+        context['resenas'] = producto.resenas.filter(aprobado=True)
         return context
 
 class BuscarProductosView(ListView):
@@ -172,9 +155,8 @@ class VerCarritoView(CartMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cart = self.get_cart() # Obtiene el carrito del mixin optimizado
+        cart = self.get_cart()
         context['carrito'] = cart
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class AgregarAlCarritoView(CartMixin, View):
@@ -349,12 +331,7 @@ class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['carrito'] = self.get_cart()
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
-
-        # Pasar las choices del método de pago al template
         context['pedido_metodos_pago_choices'] = Pedido.MetodoPago.choices
-
-        # context['direccion_form'] = DireccionForm(...) # Comentado como en el original
         return context
 
 class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
@@ -441,8 +418,6 @@ class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
 
             if pedido.estado == Pedido.Estado.PENDIENTE:
                  pedido.estado = Pedido.Estado.PROCESANDO
-                 # import uuid # Asegurar que uuid está importado si se usa
-                 # pedido.transaccion_id = "simulado_" + str(uuid.uuid4())
                  pedido.save()
 
             messages.success(request, f"¡Gracias! Tu pedido #{pedido.codigo} ha sido creado y está siendo procesado.")
@@ -474,24 +449,18 @@ class PedidoCompletadoView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        pedido = self.get_object()  # Pedido ya está en el contexto como 'pedido'
+        pedido = self.get_object()
 
-        # Buscar cupón de recompensa generado
-        # El código del cupón de recompensa tiene un prefijo basado en el código del pedido
-        # Formato: f"RECOMP-{pedido.codigo[:15]}-{str(uuid.uuid4())[:6].upper()}"
         if pedido and pedido.codigo:
-            cupon_recompensa_prefijo = f"RECOMP-{pedido.codigo[:15]}" # Consistente con la señal
-            # Buscamos el cupón que comience con ese prefijo, sea de tipo FIJO y tenga max_usos=1
-            # Ordenamos por '-creado' para obtener el más reciente si hubiera múltiples (aunque no debería)
+            cupon_recompensa_prefijo = f"RECOMP-{pedido.codigo[:15]}"
             cupon_recompensa = Cupon.objects.filter(
                 codigo__startswith=cupon_recompensa_prefijo,
-                tipo_descuento=Cupon.TipoDescuento.FIJO, # Aseguramos que sea el tipo correcto
-                max_usos=1 # Los cupones de recompensa son de un solo uso
+                tipo_descuento=Cupon.TipoDescuento.FIJO,
+                max_usos=1
             ).order_by('-creado').first()
 
             if cupon_recompensa:
                 context['cupon_recompensa_generado'] = cupon_recompensa
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class PagoCanceladoView(TemplateView):
@@ -520,9 +489,7 @@ class CuentaDashboardView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # self.object es el cliente obtenido por get_object()
         context['ultimos_pedidos'] = self.object.pedidos.select_related('cupon').order_by('-creado')[:5]
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class ListaPedidosClienteView(LoginRequiredMixin, ListView):
@@ -538,7 +505,6 @@ class ListaPedidosClienteView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class DetallePedidoClienteView(LoginRequiredMixin, DetailView):
@@ -558,7 +524,6 @@ class DetallePedidoClienteView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
@@ -581,7 +546,6 @@ class EditarPerfilClienteView(LoginRequiredMixin, UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global (por consistencia)
         return context
 
     def form_valid(self, form):
@@ -710,7 +674,6 @@ class VerListaDeseosView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
         return context
 
 class CrearResenaView(LoginRequiredMixin, CreateView):
@@ -754,8 +717,7 @@ class CrearResenaView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['producto'] = self.producto # Pasar producto al contexto
-        # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global (por consistencia)
+        context['producto'] = self.producto
         return context
 
 # Nueva vista de registro:
@@ -778,14 +740,8 @@ def registro_view(request):
             messages.success(request, f"¡Bienvenido, {user.username}! Tu cuenta ha sido creada exitosamente.")
             return redirect('tienda:cuenta_dashboard') # O 'tienda:inicio'
     else:
-        form = CustomUserCreationForm() # Usar el nuevo form
+        form = CustomUserCreationForm()
 
-    # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
-    # El context processor se encarga de añadir moneda_simbolo_global.
-    # Si la plantilla 'post/auth/registro.html' lo necesita directamente,
-    # ya estará disponible como {{ moneda_simbolo_global }}.
-    # No es necesario pasarlo explícitamente aquí a menos que la plantilla espere una variable diferente.
-    # Asumiendo que la plantilla usará {{ moneda_simbolo_global }} o {{ tienda_config.simbolo_moneda }}
     return render(request, 'post/auth/registro.html', {'form': form})
 
 # --- Vistas de Páginas Estáticas/Informativas ---

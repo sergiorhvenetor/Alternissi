@@ -20,46 +20,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-0#6l*zzjq9jm&$s=y)e5%7n&qui*@3_k#331#ia5@msfolmu61'
-# In production, SECRET_KEY should be loaded from an environment variable
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True' # Leer DEBUG desde variable de entorno, default a True para desarrollo
-
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
-if DEBUG and not SECRET_KEY:
-    SECRET_KEY = 'django-insecure-0#6l*zzjq9jm&$s=y)e5%7n&qui*@3_k#331#ia5@msfolmu61' # Valor de ejemplo para desarrollo
-elif not SECRET_KEY:
-    # En producción, la SECRET_KEY DEBE estar configurada vía variable de entorno.
-    # Levantar un error si no está disponible y DEBUG es False.
-    raise ValueError("DJANGO_SECRET_KEY no está configurada en el entorno y DEBUG es False.")
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-0#6l*zzjq9jm&$s=y)e5%7n&qui*@3_k#331#ia5@msfolmu61')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG should be False in production. The value might depend on the environment.
-# DEBUG = False # Comentado o eliminado, DEBUG se define arriba
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-# In production, this should be a list of allowed domains.
-if DEBUG:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*'] # '*' es conveniente para algunos entornos de desarrollo como contenedores
+ALLOWED_HOSTS_str = os.environ.get('DJANGO_ALLOWED_HOSTS')
+if ALLOWED_HOSTS_str:
+    ALLOWED_HOSTS = ALLOWED_HOSTS_str.split(',')
+elif DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 else:
-    # IMPORTANTE: En producción, esta lista DEBE contener los nombres de host/dominio
-    # a los que tu aplicación Django servirá. Usar ['*'] en producción con DEBUG=False
-    # es un RIESGO DE SEGURIDAD.
-    # Ejemplo: ALLOWED_HOSTS = ['www.misitio.com', 'api.misitio.com']
-    # Por ahora, si no se especifica vía variable de entorno, se dejará ['*']
-    # pero se emitirá una advertencia si DEBUG es False.
-    allowed_hosts_env = os.environ.get('DJANGO_ALLOWED_HOSTS')
-    if allowed_hosts_env:
-        ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',')]
-    else:
-        ALLOWED_HOSTS = ['*'] # Mantener '*' como default si no hay variable de entorno
-                              # pero el siguiente bloque advertirá si DEBUG es False.
-
-if not DEBUG and ALLOWED_HOSTS == ['*']:
-    import warnings
-    warnings.warn(
-        "ADVERTENCIA DE SEGURIDAD: DEBUG es False y ALLOWED_HOSTS es ['*']. "
-        "Esto es INSEGURO para producción. Debes configurar DJANGO_ALLOWED_HOSTS "
-        "con tus dominios permitidos."
-    )
+    ALLOWED_HOSTS = []
 
 
 # Application definition
