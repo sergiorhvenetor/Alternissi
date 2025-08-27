@@ -12,6 +12,7 @@
     --color-background: #f4f4f4;
 
     --color-accent: #B08D57; /* Oro - para botones, CTAs */
+    --color-accent-rgb: 176, 141, 87;
     --color-accent-hover: #9A7C4F; /* Oro más oscuro para hover */
 
     --color-success: #28A745;
@@ -207,6 +208,7 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
 
 .search-bar__button:hover {
     background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
 }
 
 .search-icon {
@@ -299,7 +301,7 @@ form textarea:focus,
 form select:focus {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 2px rgba(var(--color-accent), 0.2);
+    box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.2);
 }
 
 form input::placeholder,
@@ -1076,30 +1078,6 @@ form textarea::placeholder {
 }
 
 /* Estilos específicos para el carrusel y tarjetas de categoría que podrían no estar en style.css general */
-.hero-section { /* Ya definido en style.css, pero se puede ajustar aquí si es necesario */
-    background-color: var(--color-light-gray);
-    padding: 4rem 1rem; /* Aumentar padding vertical */
-    text-align: center;
-    margin-bottom: 2rem; /* Espacio después del hero */
-}
-.hero-section h1 {
-    font-size: 3rem; /* Ajustar según diseño */
-    color: var(--color-dark-gray);
-    margin-bottom: 1rem;
-}
-.hero-section p.lead {
-    font-size: 1.3rem; /* Hacer el lead más grande */
-    color: var(--color-dark-gray);
-    margin-bottom: 2rem;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-}
-.hero-section .btn-lg {
-    padding: 0.8rem 2rem; /* Hacer el botón más grande */
-    font-size: 1.1rem;
-}
-
 .carousel-wrapper {
     position: relative;
     padding: 0 40px; /* Espacio para los botones */
@@ -1348,11 +1326,6 @@ form textarea::placeholder {
     margin-top: 2.5rem;
 }
 /* Se asume que .pagination, .page-item, .page-link ya están definidos en style.css */
-
-.category-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--box-shadow-md);
-}
 
 @media (max-width: 992px) {
     .filters {
