@@ -153,3 +153,45 @@ def generar_cupon_recompensa(sender, instance, created, **kwargs):
 # Si estos campos no existen, la lógica de recompensa usará valores fijos o no se activará.
 # Por ahora, la señal usa un valor fijo de 5.00 si no hay configuración.
 # Es necesario añadir esos campos al modelo ConfiguracionTienda si se quiere esa flexibilidad.
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+@receiver(post_save, sender=User)
+def create_or_update_cliente_profile(sender, instance, created, **kwargs):
+    """
+    Crea o actualiza el perfil del cliente cada vez que un usuario se guarda.
+    """
+    if created:
+        # Si se crea un nuevo usuario, también creamos un perfil de Cliente asociado.
+        # Esto es especialmente útil para usuarios creados desde el admin.
+        Cliente.objects.get_or_create(
+            usuario=instance,
+            defaults={
+                'email': instance.email,
+                'nombre': instance.first_name,
+                'apellido': instance.last_name,
+            }
+        )
+    else:
+        # Si un usuario existente se actualiza, actualizamos el perfil del Cliente.
+        try:
+            cliente = instance.cliente
+            # Comprobar si los datos han cambiado para evitar escrituras innecesarias.
+            if (cliente.email != instance.email or
+                cliente.nombre != instance.first_name or
+                cliente.apellido != instance.last_name):
+
+                cliente.email = instance.email
+                cliente.nombre = instance.first_name
+                cliente.apellido = instance.last_name
+                cliente.save()
+        except Cliente.DoesNotExist:
+            # Si por alguna razón el perfil no existe, lo creamos.
+            Cliente.objects.create(
+                usuario=instance,
+                email=instance.email,
+                nombre=instance.first_name,
+                apellido=instance.last_name,
+            )

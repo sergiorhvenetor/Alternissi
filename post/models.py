@@ -583,11 +583,11 @@ class Pedido(TimeStampedModel):
         super().save(*args, **kwargs)
 
     def generar_codigo_pedido(self):
-        """Genera un código único para el pedido."""
-        fecha = timezone.now().strftime('%Y%m%d')
-        ultimo_pedido = Pedido.objects.order_by('-id').first()
-        numero = (ultimo_pedido.id + 1) if ultimo_pedido else 1
-        return f"PED-{fecha}-{numero:04d}"
+        """Genera un código único y robusto para el pedido."""
+        fecha = timezone.now().strftime('%y%m%d') # Usar año de 2 dígitos para brevedad
+        # Obtener una parte corta y única de un UUID
+        unique_part = uuid.uuid4().hex[:6].upper()
+        return f"PED-{fecha}-{unique_part}"
 
     @property
     def items(self):
