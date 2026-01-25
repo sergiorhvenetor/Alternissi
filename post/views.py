@@ -17,7 +17,7 @@ from django.db.models import F, Q, Sum, Value
 from django.db.models.functions import Coalesce
 from django.db import transaction
 from .forms import ClienteForm, ResenaForm
-from django.contrib.auth.forms import AuthenticationForm as AdminAuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
 
 # Importa todos los modelos necesarios
 from .models import (
@@ -821,7 +821,7 @@ def admin_login_view(request):
         return redirect('admin:index')
 
     if request.method == 'POST':
-        form = AdminAuthenticationForm(request, data=request.POST)
+        form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -834,7 +834,7 @@ def admin_login_view(request):
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
     else:
-        form = AdminAuthenticationForm()
+        form = AuthenticationForm()
 
     return render(request, 'post/auth/admin_login.html', {'form': form})
 

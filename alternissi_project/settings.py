@@ -29,7 +29,7 @@ ALLOWED_HOSTS_str = os.environ.get('DJANGO_ALLOWED_HOSTS')
 if ALLOWED_HOSTS_str:
     ALLOWED_HOSTS = ALLOWED_HOSTS_str.split(',')
 elif DEBUG:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*', '.com']
 else:
     ALLOWED_HOSTS = []
 
