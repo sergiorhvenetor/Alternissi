@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Playfair+Display:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Style+Script&display=swap');
 
 :root {
     --font-primary: 'Montserrat', sans-serif;
@@ -115,6 +116,7 @@ header nav {
     margin: auto;
 }
 
+<<<<<<< HEAD
 header nav h1 {
     font-size: 2rem; /* Tamaño ajustado para el logo */
     margin: 0;
@@ -125,6 +127,29 @@ header nav h1 a, header nav h1 a:hover {
     text-decoration: none;
 }
 
+=======
+.logo a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo img {
+    width: 40px;
+    height: auto;
+    margin-bottom: 5px;
+}
+
+.logo-text {
+    font-family: 'Style Script', cursive;
+    font-size: 1.8rem;
+    color: var(--color-dark-gray);
+    margin: 0;
+    line-height: 1;
+}
+
+>>>>>>> 6d670ba51b2aa58b1c5931e941cc4b94251f10ac
 
 header nav ul {
     list-style: none;
