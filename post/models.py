@@ -94,6 +94,9 @@ class EtiquetaProducto(TimeStampedModel):
             self.slug = slugify(self.nombre, allow_unicode=True)
         super().save(*args, **kwargs)
 
+def generar_sku():
+    return uuid.uuid4().hex
+
 class Producto(TimeStampedModel):
     class Talla(models.TextChoices):
         XS = 'XS', 'Extra Small'
@@ -112,7 +115,7 @@ class Producto(TimeStampedModel):
 
     nombre = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, allow_unicode=True)
-    sku = models.CharField(max_length=50, unique=True, editable=False, default=lambda: uuid.uuid4().hex)
+    sku = models.CharField(max_length=50, unique=True, editable=False, default=generar_sku)
     descripcion = models.TextField()
     caracteristicas = models.JSONField(default=dict, blank=True)  # Django 5.0+ feature
     precio = models.DecimalField(max_digits=12, decimal_places=2)
@@ -703,15 +706,19 @@ class ListaDeseos(models.Model):
         """Remueve un producto de la lista de deseos."""
         self.productos.remove(producto)
 
-    def mover_a_carrito(self, producto, carrito): # Carrito e ItemCarrito deben estar definidos
+    def mover_a_carrito(self, producto, carrito):
         """Mueve un producto de la lista de deseos al carrito."""
         item, created = carrito.items.get_or_create(
             producto=producto,
             defaults={'precio': producto.precio_actual}
         )
         if not created:
-            item.cantidad += 1
-            item.save()
+            if item.cantidad < producto.stock:
+                item.cantidad += 1
+                item.save()
+            else:
+                # Optionally, you can add a message here, but it's better to handle it in the view
+                pass
         self.remover_producto(producto)
 
 class ConfiguracionTienda(models.Model):
@@ -735,6 +742,7 @@ class ConfiguracionTienda(models.Model):
     redes_sociales = models.JSONField(default=dict, blank=True)
     politica_privacidad = models.TextField(blank=True)
     terminos_condiciones = models.TextField(blank=True)
+    sobre_nosotros = models.TextField(blank=True)
     activo = models.BooleanField(default=True)
     modo_mantenimiento = models.BooleanField(
         default=False,
