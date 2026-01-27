@@ -1,89 +1,70 @@
-# post/forms.py
 from django import forms
-from .models import Cliente, Resena, Producto, Cupon, Categoria
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.models import User # Para acceder a los campos del modelo User
 from django.conf import settings
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import get_user_model
+from .models import Producto, Categoria, Marca, Cupon, Cliente, Resena
 
+User = get_user_model()
 
 class AdminAuthenticationForm(AuthenticationForm):
+    """
+    Formulario de autenticación personalizado para administradores que requiere un código secreto.
+    """
     admin_code = forms.CharField(
-        label=_("Admin Code"),
-        strip=False,
-        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
+        label="Código de Administrador",
+        required=True,
+        widget=forms.PasswordInput,
     )
 
-    def clean_admin_code(self):
-        admin_code = self.cleaned_data.get('admin_code')
-        if admin_code != getattr(settings, 'ADMIN_LOGIN_CODE', None):
-            raise forms.ValidationError(
-                _("Invalid admin code."),
-                code='invalid_admin_code',
-            )
-        return admin_code
+    def clean(self):
+        cleaned_data = super().clean()
+        admin_code = cleaned_data.get("admin_code")
+        correct_code = getattr(settings, 'ADMIN_LOGIN_CODE', None)
 
+        if not correct_code:
+            raise forms.ValidationError("El sistema no está configurado para el inicio de sesión de administrador.")
+
+        if admin_code != correct_code:
+            self.add_error('admin_code', "El código de administrador no es válido.")
+
+        return cleaned_data
 
 class CustomUserCreationForm(UserCreationForm):
-    email = forms.EmailField(required=True, help_text="Obligatorio. Se utilizará para notificaciones y reseteo de contraseña.")
-    first_name = forms.CharField(max_length=100, required=False, help_text="Opcional.")
-    last_name = forms.CharField(max_length=100, required=False, help_text="Opcional.")
-
+    """
+    Formulario de creación de usuario personalizado que incluye campos adicionales.
+    """
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name')
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        # Asegurar que el email se guarde en el modelo User también,
-        # ya que UserCreationForm por defecto podría no manejarlo si no está en sus fields directos.
-        # Sin embargo, al añadirlo a Meta.fields, el super().save() debería manejarlo.
-        # Esta asignación explícita es una doble seguridad o para si se quiere lógica extra.
-        user.email = self.cleaned_data["email"]
-        user.first_name = self.cleaned_data["first_name"]
-        user.last_name = self.cleaned_data["last_name"]
-        if commit:
-            user.save()
-        return user
-
-class ClienteForm(forms.ModelForm):
-    class Meta:
-        model = Cliente
-        fields = [
-            'nombre', 'apellido', 'email', 'telefono',
-            'direccion', 'ciudad', 'codigo_postal', 'pais',
-            'fecha_nacimiento', 'acepta_marketing' # Añadido acepta_marketing
-        ]
-        widgets = {
-            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
-            'direccion': forms.Textarea(attrs={'rows': 3}),
-        }
-        # Podrías añadir labels o help_texts personalizados aquí si los del modelo no son suficientes.
-
-class ResenaForm(forms.ModelForm):
-    class Meta:
-        model = Resena
-        fields = ['titulo', 'comentario', 'calificacion']
-        widgets = {
-            'comentario': forms.Textarea(attrs={'rows': 4}),
-            'calificacion': forms.RadioSelect(choices=[(i, str(i)) for i in range(1, 6)]),
-        }
-
-
 class ProductoForm(forms.ModelForm):
+    """
+    Formulario para la creación y edición de productos desde el panel de administración.
+    """
     class Meta:
         model = Producto
         fields = [
-            'nombre', 'descripcion', 'caracteristicas', 'precio',
-            'precio_descuento', 'categoria', 'marca', 'talla',
-            'genero', 'color', 'material', 'stock', 'disponible',
-            'destacado', 'nuevo', 'etiquetas', 
+            'nombre', 'slug', 'descripcion', 'caracteristicas', 'precio',
+            'precio_descuento', 'categoria', 'marca', 'talla', 'genero',
+            'color', 'material', 'stock', 'disponible', 'destacado', 'nuevo',
+            'etiquetas'
         ]
         widgets = {
             'descripcion': forms.Textarea(attrs={'rows': 4}),
+            'etiquetas': forms.CheckboxSelectMultiple,
         }
 
 class CuponForm(forms.ModelForm):
+    """
+    Formulario para la creación y edición de cupones de descuento.
+    """
+    # Manejo explícito para campos de fecha y ManyToMany
+    fecha_inicio = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+    )
+    fecha_fin = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+    )
     categorias = forms.ModelMultipleChoiceField(
         queryset=Categoria.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -103,7 +84,32 @@ class CuponForm(forms.ModelForm):
             'minimo_compra', 'categorias', 'productos', 'solo_nuevos_clientes'
         ]
         widgets = {
-            'fecha_inicio': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-            'fecha_fin': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'descripcion': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class ClienteForm(forms.ModelForm):
+    """
+    Formulario para que los clientes editen su perfil.
+    """
+    class Meta:
+        model = Cliente
+        fields = [
+            'nombre', 'apellido', 'email', 'telefono', 'direccion', 'ciudad',
+            'codigo_postal', 'pais', 'fecha_nacimiento', 'acepta_marketing'
+        ]
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'}),
+            'direccion': forms.Textarea(attrs={'rows': 4}),
+        }
+
+class ResenaForm(forms.ModelForm):
+    """
+    Formulario para que los clientes dejen una reseña en un producto.
+    """
+    class Meta:
+        model = Resena
+        fields = ('titulo', 'comentario', 'calificacion')
+        widgets = {
+            'comentario': forms.Textarea(attrs={'rows': 5}),
+            'calificacion': forms.RadioSelect(choices=[(i, f'{i} estrellas') for i in range(1, 6)]),
         }
