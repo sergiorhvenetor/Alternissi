@@ -8,7 +8,7 @@ from django.views.generic import (
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseBadRequest
-from .forms import CustomUserCreationForm, ProductoForm, CuponForm, CheckoutForm
+from .forms import CustomUserCreationForm, ProductoForm, CuponForm, CheckoutForm, AdminAuthenticationForm
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -142,7 +142,7 @@ class BuscarProductosView(ListView):
         query = self.request.GET.get('q')
         if query:
             return Producto.objects.filter(
-                Q(nombre__icontains=query) | Q(descripcion__icontains=query) | Q(sku__iexact=query)
+                Q(nombre__icontains=query) | Q(descripcion__icontains=query) | Q(sku__icontains=query)
             ).filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes') # Optimización
         return Producto.objects.none()
 
@@ -195,7 +195,7 @@ class AgregarAlCarritoView(CartMixin, View):
             return JsonResponse({
                 'success': True,
                 'message': f"'{producto.nombre}' añadido al carrito.",
-                'cart_total_items': cart.total_items
+                'cart_total_items_display': cart.total_items
             })
         else:
             return redirect('tienda:ver_carrito')
@@ -293,7 +293,7 @@ class EliminarItemCarritoView(CartMixin, View): # Asegurar que hereda de CartMix
                 'success': True,
                 'removed': True, # Indicar que el item fue eliminado.
                 'message': f"'{nombre_producto}' eliminado del carrito.",
-                'cart_total_items': cart.total_items,
+                'cart_total_items_display': cart.total_items,
                 'cart_subtotal_display': cart.subtotal,
                 'cart_total_display': cart_total_calculado,
                 'cart_discount_amount_display': descuento_aplicado_calculado,
@@ -742,14 +742,7 @@ def registro_view(request):
         if form.is_valid():
             user = form.save() # El método save del CustomUserCreationForm ya guarda email, first_name, last_name
 
-            # Crear el objeto Cliente asociado
-            # Ahora podemos usar los datos directamente del 'user' object que ya tiene la info.
-            Cliente.objects.create(
-                usuario=user,
-                email=user.email,
-                nombre=user.first_name or user.username, # username como fallback si first_name está vacío
-                apellido=user.last_name or ''
-            )
+            # El objeto Cliente asociado se crea automáticamente mediante una señal post_save en el modelo User.
 
             auth_login(request, user) # Loguear al usuario automáticamente
             messages.success(request, f"¡Bienvenido, {user.username}! Tu cuenta ha sido creada exitosamente.")
@@ -836,7 +829,7 @@ def admin_login_view(request):
         return redirect('admin:index')
 
     if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
+        form = AdminAuthenticationForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
@@ -849,7 +842,7 @@ def admin_login_view(request):
         else:
             messages.error(request, 'Usuario o contraseña incorrectos.')
     else:
-        form = AuthenticationForm()
+        form = AdminAuthenticationForm()
 
     return render(request, 'post/auth/admin_login.html', {'form': form})
 

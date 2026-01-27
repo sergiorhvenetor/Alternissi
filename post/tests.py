@@ -47,6 +47,29 @@ class SignalTests(TestCase):
         self.assertEqual(user.cliente.apellido, 'Name')
         self.assertEqual(user.cliente.email, 'updated@example.com')
 
+    def test_user_updated_on_cliente_update(self):
+        """
+        Test that the User model is updated when the associated Cliente profile is updated.
+        """
+        user = User.objects.create_user(
+            username='syncuser',
+            password='password123',
+            email='syncuser@example.com',
+            first_name='Original',
+            last_name='User'
+        )
+
+        cliente = user.cliente
+        cliente.nombre = 'Updated'
+        cliente.apellido = 'User'
+        cliente.email = 'updated_sync@example.com'
+        cliente.save()
+
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Updated')
+        self.assertEqual(user.last_name, 'User')
+        self.assertEqual(user.email, 'updated_sync@example.com')
+
 
 class PedidoModelTests(TestCase):
     def test_generar_codigo_pedido_format(self):
