@@ -8,7 +8,7 @@ from django.views.generic import (
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseBadRequest
-from .forms import CustomUserCreationForm, ProductoForm, CuponForm
+from .forms import CustomUserCreationForm, ProductoForm, CuponForm, CheckoutForm
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -124,6 +124,11 @@ class DetalleProductoView(DetailView):
         context = super().get_context_data(**kwargs)
         producto = self.get_object()
         context['resenas'] = producto.resenas.filter(aprobado=True)
+        # Productos relacionados (misma categoría, excluyendo el actual)
+        context['productos_relacionados'] = Producto.objects.filter(
+            categoria=producto.categoria,
+            disponible=True
+        ).exclude(id=producto.id).prefetch_related('imagenes')[:4]
         return context
 
 class BuscarProductosView(ListView):
@@ -315,6 +320,16 @@ class AplicarCuponView(CartMixin, View):
             messages.error(request, "El código del cupón no existe.")
         return redirect('tienda:ver_carrito')
 
+class EliminarCuponCarritoView(CartMixin, View):
+    """Elimina el cupón aplicado al carrito."""
+    def post(self, request, *args, **kwargs):
+        cart = self.get_cart()
+        if cart.cupon:
+            cart.cupon = None
+            cart.save()
+            messages.info(request, "Cupón eliminado del carrito.")
+        return redirect('tienda:ver_carrito')
+
 # --- Vistas del Proceso de Pago (Checkout) ---
 
 class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
@@ -330,7 +345,31 @@ class CheckoutView(LoginRequiredMixin, CartMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['carrito'] = self.get_cart()
+        cart = self.get_cart()
+        context['carrito'] = cart
+
+        # Pre-poblar el formulario con datos del cliente si existen
+        initial_data = {}
+        try:
+            cliente = Cliente.objects.get(usuario=self.request.user)
+            initial_data = {
+                'nombre': cliente.nombre,
+                'apellido': cliente.apellido,
+                'email': cliente.email,
+                'telefono': cliente.telefono,
+                'direccion': cliente.direccion,
+                'ciudad': cliente.ciudad,
+                'codigo_postal': cliente.codigo_postal,
+                'pais': cliente.pais,
+            }
+        except Cliente.DoesNotExist:
+            initial_data = {
+                'email': self.request.user.email,
+                'nombre': self.request.user.first_name,
+                'apellido': self.request.user.last_name,
+            }
+
+        context['form'] = CheckoutForm(initial=initial_data)
         context['pedido_metodos_pago_choices'] = Pedido.MetodoPago.choices
         return context
 
@@ -343,52 +382,55 @@ class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
             messages.error(request, "Tu carrito está vacío. No puedes procesar un pedido.")
             return redirect('tienda:ver_carrito')
 
-        # Usar get_or_create para el cliente, similar a como se hizo en CuentaDashboardView
-        # para asegurar que el cliente exista.
+        form = CheckoutForm(request.POST)
+        if not form.is_valid():
+            # Volver al checkout mostrando errores
+            messages.error(request, "Por favor corrige los errores en el formulario.")
+            return render(request, 'post/checkout.html', {
+                'form': form,
+                'carrito': cart,
+                'pedido_metodos_pago_choices': Pedido.MetodoPago.choices
+            })
+
+        data = form.cleaned_data
+
+        # Usar get_or_create para el cliente
         cliente, created = Cliente.objects.get_or_create(
             usuario=request.user,
             defaults={
-                'email': request.POST.get('shipping_email', request.user.email), # Usar email de form si disponible
-                'nombre': request.POST.get('shipping_nombre', request.user.first_name or ''),
-                'apellido': request.POST.get('shipping_apellido', request.user.last_name or ''),
-                'telefono': request.POST.get('shipping_telefono', ''),
-                'direccion': request.POST.get('shipping_direccion1', ''),
-                'ciudad': request.POST.get('shipping_ciudad', ''),
-                'codigo_postal': request.POST.get('shipping_codigo_postal', ''),
-                'pais': request.POST.get('shipping_pais', ''),
+                'email': data['email'],
+                'nombre': data['nombre'],
+                'apellido': data['apellido'],
+                'telefono': data['telefono'],
+                'direccion': data['direccion'],
+                'ciudad': data['ciudad'],
+                'codigo_postal': data['codigo_postal'],
+                'pais': data['pais'],
             }
         )
-        # Si el cliente ya existía y los datos del formulario son más recientes, actualizarlos.
-        if not created:
-            update_fields = []
-            # Comparar con los valores actuales del objeto cliente
-            if cliente.nombre != request.POST.get('shipping_nombre', cliente.nombre):
-                cliente.nombre = request.POST.get('shipping_nombre', cliente.nombre)
-                update_fields.append('nombre')
-            if cliente.apellido != request.POST.get('shipping_apellido', cliente.apellido):
-                cliente.apellido = request.POST.get('shipping_apellido', cliente.apellido)
-                update_fields.append('apellido')
-            if cliente.email != request.POST.get('shipping_email', cliente.email):
-                cliente.email = request.POST.get('shipping_email', cliente.email)
-                update_fields.append('email')
-            if cliente.telefono != request.POST.get('shipping_telefono', cliente.telefono):
-                cliente.telefono = request.POST.get('shipping_telefono', cliente.telefono)
-                update_fields.append('telefono')
-            # Aquí podrías añadir la lógica para actualizar direccion, ciudad, etc. del modelo Cliente si es necesario
-            if update_fields:
-                cliente.save(update_fields=update_fields)
+
+        # Actualizar datos del cliente si se solicitó guardar
+        if data.get('guardar_informacion'):
+            cliente.nombre = data['nombre']
+            cliente.apellido = data['apellido']
+            cliente.email = data['email']
+            cliente.telefono = data['telefono']
+            cliente.direccion = data['direccion']
+            cliente.ciudad = data['ciudad']
+            cliente.codigo_postal = data['codigo_postal']
+            cliente.pais = data['pais']
+            cliente.save()
 
         # Recolectar datos de dirección de envío
         direccion_envio_data = {
-            'nombre': request.POST.get('shipping_nombre', ''),
-            'apellido': request.POST.get('shipping_apellido', ''),
-            'email': request.POST.get('shipping_email', request.user.email),
-            'direccion1': request.POST.get('shipping_direccion1', ''),
-            'direccion2': request.POST.get('shipping_direccion2', ''),
-            'ciudad': request.POST.get('shipping_ciudad', ''),
-            'codigo_postal': request.POST.get('shipping_codigo_postal', ''),
-            'pais': request.POST.get('shipping_pais', ''),
-            'telefono': request.POST.get('shipping_telefono', ''),
+            'nombre': data['nombre'],
+            'apellido': data['apellido'],
+            'email': data['email'],
+            'direccion': data['direccion'],
+            'ciudad': data['ciudad'],
+            'codigo_postal': data['codigo_postal'],
+            'pais': data['pais'],
+            'telefono': data['telefono'],
         }
 
         # Recolectar datos de dirección de facturación
@@ -396,17 +438,11 @@ class ProcesarPedidoView(LoginRequiredMixin, CartMixin, View):
         if billing_same_as_shipping:
             direccion_facturacion_data = direccion_envio_data.copy()
         else:
-            direccion_facturacion_data = {
-                'nombre': request.POST.get('billing_nombre', direccion_envio_data['nombre']),
-                'apellido': request.POST.get('billing_apellido', direccion_envio_data['apellido']),
-                'direccion1': request.POST.get('billing_direccion1', ''),
-                'direccion2': request.POST.get('billing_direccion2', ''),
-                'ciudad': request.POST.get('billing_ciudad', ''),
-                'codigo_postal': request.POST.get('billing_codigo_postal', ''),
-                'pais': request.POST.get('billing_pais', ''),
-            }
+            # Aquí se podrían añadir campos específicos de facturación al form si fuera necesario
+            # Por ahora usamos los mismos
+            direccion_facturacion_data = direccion_envio_data.copy()
 
-        metodo_pago = request.POST.get('metodo_pago', Pedido.MetodoPago.TARJETA)
+        metodo_pago = data['metodo_pago']
         
         try:
             pedido = cart.convertir_a_pedido(

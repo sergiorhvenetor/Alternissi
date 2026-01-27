@@ -2,7 +2,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import get_user_model
-from .models import Producto, Categoria, Marca, Cupon, Cliente, Resena
+from .models import Producto, Categoria, Marca, Cupon, Cliente, Resena, Pedido
 
 User = get_user_model()
 
@@ -113,3 +113,38 @@ class ResenaForm(forms.ModelForm):
             'comentario': forms.Textarea(attrs={'rows': 5}),
             'calificacion': forms.RadioSelect(choices=[(i, f'{i} estrellas') for i in range(1, 6)]),
         }
+
+class CheckoutForm(forms.Form):
+    """
+    Formulario para recolectar información de envío y facturación durante el checkout.
+    """
+    # Información de Envío
+    nombre = forms.CharField(label="Nombre", max_length=100)
+    apellido = forms.CharField(label="Apellido", max_length=100)
+    email = forms.EmailField(label="Correo Electrónico")
+    telefono = forms.CharField(label="Teléfono", max_length=20)
+    direccion = forms.CharField(label="Dirección", widget=forms.Textarea(attrs={'rows': 2}))
+    ciudad = forms.CharField(label="Ciudad", max_length=100)
+    codigo_postal = forms.CharField(label="Código Postal", max_length=20)
+    pais = forms.CharField(label="País", max_length=100)
+
+    # Metodo de Pago
+    metodo_pago = forms.ChoiceField(
+        label="Método de Pago",
+        choices=Pedido.MetodoPago.choices,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+
+    # Notas
+    notas_adicionales = forms.CharField(
+        label="Notas del Pedido (opcional)",
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 2})
+    )
+
+    # Opciones
+    guardar_informacion = forms.BooleanField(
+        label="Guardar esta información para la próxima vez",
+        required=False,
+        initial=True
+    )

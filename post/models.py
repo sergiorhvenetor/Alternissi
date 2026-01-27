@@ -419,6 +419,11 @@ class Carrito(models.Model):
         # Asegurarse que ItemCarrito esté definido.
         return sum(item.subtotal for item in self.items.all())
 
+    @property
+    def total(self):
+        """Propiedad conveniente para obtener el total del carrito."""
+        return self.get_total()
+
     # Cambiado de @property a método para poder pasar el cliente
     def get_total(self, cliente_actual=None): # cliente_actual puede ser self.cliente
         """
@@ -681,6 +686,11 @@ class Resena(TimeStampedModel):
         self.respuesta_fecha = timezone.now()
         self.save()
 
+    @property
+    def calificacion_restante(self):
+        """Retorna el número de estrellas vacías para completar 5."""
+        return 5 - self.calificacion
+
 class ListaDeseos(models.Model):
     cliente = models.OneToOneField(
         Cliente, # Cliente está antes, seguro.
@@ -749,6 +759,36 @@ class ConfiguracionTienda(models.Model):
         help_text="Cuando está activo, solo los superusuarios pueden acceder al sitio."
     )
     mensaje_mantenimiento = models.TextField(blank=True)
+
+    # Campos para recompensas (usados en signals.py)
+    porcentaje_recompensa_pedido = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Porcentaje del subtotal del pedido para el cupón de recompensa."
+    )
+    min_valor_recompensa_pedido = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=1.00,
+        help_text="Valor mínimo del cupón de recompensa."
+    )
+    max_valor_recompensa_pedido = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=20.00,
+        help_text="Valor máximo del cupón de recompensa."
+    )
+    valor_fijo_recompensa_pedido = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        help_text="Si es mayor que 0, se usará este valor fijo en lugar del porcentaje."
+    )
+    dias_validez_cupon_recompensa = models.PositiveIntegerField(
+        default=30,
+        help_text="Días de validez del cupón de recompensa desde su generación."
+    )
 
     class Meta:
         verbose_name = 'configuración de tienda'
