@@ -423,7 +423,7 @@
         </ul>
         <div class="tab-content" id="productTabContent">
             <div class="tab-pane fade show active" id="descripcionContent" role="tabpanel" aria-labelledby="descripcion-tab">
-                {{ producto.descripcion_larga|default:producto.descripcion|linebreaksbr|default:"No hay descripción detallada disponible para este producto." }}
+                {{ producto.descripcion|linebreaksbr|default:"No hay descripción detallada disponible para este producto." }}
             </div>
             {% if producto.caracteristicas %}
             <div class="tab-pane fade" id="especificacionesContent" role="tabpanel" aria-labelledby="especificaciones-tab">

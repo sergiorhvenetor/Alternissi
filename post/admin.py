@@ -304,6 +304,13 @@ class ConfiguracionTiendaAdmin(admin.ModelAdmin):
         ('Información Básica', {'fields': ('nombre_tienda', 'logo', 'logo_alt_text', 'activo')}),
         ('Moneda y Precios', {'fields': ('moneda', 'simbolo_moneda', 'impuesto')}),
         ('Envío', {'fields': ('costo_envio', 'minimo_compra_envio_gratis')}),
+        ('Recompensas', {'fields': (
+            'porcentaje_recompensa_pedido',
+            'min_valor_recompensa_pedido',
+            'max_valor_recompensa_pedido',
+            'valor_fijo_recompensa_pedido',
+            'dias_validez_cupon_recompensa'
+        )}),
         ('Contacto', {'fields': ('telefono_contacto', 'email_contacto', 'direccion', 'horario_atencion')}),
         ('Redes Sociales', {'fields': ('redes_sociales',)}),
         ('Legal', {'fields': ('politica_privacidad', 'terminos_condiciones')}),

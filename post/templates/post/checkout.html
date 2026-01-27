@@ -189,17 +189,12 @@
                         {% if form.direccion.errors %}<div class="invalid-feedback d-block">{{ form.direccion.errors.as_text|striptags }}</div>{% endif %}
                     </div>
                     <div class="form-row">
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-8">
                             <label for="{{ form.ciudad.id_for_label }}" class="form-label">{{ form.ciudad.label }}{% if form.ciudad.field.required %}<span class="text-danger">*</span>{% endif %}</label>
                             {{ form.ciudad }}
                             {% if form.ciudad.errors %}<div class="invalid-feedback d-block">{{ form.ciudad.errors.as_text|striptags }}</div>{% endif %}
                         </div>
                         <div class="form-group col-md-4">
-                            <label for="{{ form.region_o_provincia.id_for_label }}" class="form-label">{{ form.region_o_provincia.label }}{% if form.region_o_provincia.field.required %}<span class="text-danger">*</span>{% endif %}</label>
-                            {{ form.region_o_provincia }}
-                            {% if form.region_o_provincia.errors %}<div class="invalid-feedback d-block">{{ form.region_o_provincia.errors.as_text|striptags }}</div>{% endif %}
-                        </div>
-                        <div class="form-group col-md-2">
                             <label for="{{ form.codigo_postal.id_for_label }}" class="form-label">{{ form.codigo_postal.label }}{% if form.codigo_postal.field.required %}<span class="text-danger">*</span>{% endif %}</label>
                             {{ form.codigo_postal }}
                             {% if form.codigo_postal.errors %}<div class="invalid-feedback d-block">{{ form.codigo_postal.errors.as_text|striptags }}</div>{% endif %}
@@ -279,24 +274,24 @@
                         {% endfor %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             Subtotal
-
+                            <span>${{ carrito.subtotal }}</span>
                         </li>
-                        {% if carrito.descuento_total > 0 %}
+                        {% if carrito.descuento_aplicado > 0 %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
                             Descuento Promociones
-   
+                            <span>-${{ carrito.descuento_aplicado }}</span>
                         </li>
                         {% endif %}
                         {% if carrito.cupon %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
                             Cupón ({{ carrito.cupon.codigo }})
-                      
+                            <span>-${{ carrito.descuento_aplicado }}</span>
                         </li>
                         {% endif %}
                         {# Aquí se podría añadir el costo de envío si se calcula #}
                         <li class="list-group-item d-flex justify-content-between align-items-center fw-bold mt-3 pt-3 border-top">
                             <span class="summary-total-label">Total a Pagar</span>
-
+                            <span class="summary-total-value">${{ carrito.total }}</span>
                         </li>
                     </ul>
                     {% else %}
