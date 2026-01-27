@@ -154,6 +154,23 @@ def generar_cupon_recompensa(sender, instance, created, **kwargs):
 # Por ahora, la señal usa un valor fijo de 5.00 si no hay configuración.
 # Es necesario añadir esos campos al modelo ConfiguracionTienda si se quiere esa flexibilidad.
 
+@receiver(post_save, sender=Cliente)
+def update_user_from_cliente(sender, instance, created, **kwargs):
+    """
+    Actualiza los datos del usuario asociado cuando el perfil del cliente se actualiza.
+    """
+    if instance.usuario:
+        user = instance.usuario
+        # Comprobar si los datos han cambiado para evitar bucles infinitos de señales.
+        if (user.email != instance.email or
+            user.first_name != instance.nombre or
+            user.last_name != instance.apellido):
+
+            user.email = instance.email
+            user.first_name = instance.nombre
+            user.last_name = instance.apellido
+            user.save()
+
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
