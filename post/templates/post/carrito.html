@@ -236,11 +236,11 @@
                                 {% if item.producto.sku %}<br><small class="variation-info">SKU: {{ item.producto.sku }}</small>{% endif %}
                             </td>
                             <td data-label="Precio" class="item-price" style="text-align: right;">
-                                {% if item.producto.tiene_descuento_activo %}
-
-                    
+                                {% if item.producto.tiene_descuento %}
+                                    <span class="original-price">${{ item.producto.precio }}</span>
+                                    <span class="current-price discounted">${{ item.producto.precio_actual }}</span>
                                 {% else %}
-                
+                                    <span class="current-price">${{ item.producto.precio }}</span>
                                 {% endif %}
                             </td>
                             <td data-label="Cantidad" class="cart-item-actions" style="text-align: center;">
@@ -278,22 +278,22 @@
                             <span>Subtotal (<span id="cart-item-count">{{ carrito.total_items }}</span> item{{ carrito.total_items|pluralize }})</span>
                             <span id="cart-subtotal-value">${{ carrito.subtotal }}</span>
                         </li>
-                        {% if carrito.descuento_total > 0 %}
+                        {% if carrito.descuento_aplicado > 0 %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
                             Descuento por Promociones
-                           
+                            <span>-${{ carrito.descuento_aplicado }}</span>
                         </li>
                         {% endif %}
                          {% if carrito.cupon %}
                             <li class="list-group-item d-flex justify-content-between align-items-center coupon-applied-info">
                                 <div>
-                                    Cupón: <strong>{{ carrito.cupon.codigo }}</strong> ({{ carrito.cupon.porcentaje_descuento }}% off)
+                                    Cupón: <strong>{{ carrito.cupon.codigo }}</strong>
                                     <form action="{% url 'tienda:eliminar_cupon_carrito' %}" method="post" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" class="remove-coupon-btn" title="Eliminar cupón">(Eliminar)</button>
                                     </form>
                                 </div>
-                                
+                                <span>- ${{ carrito.descuento_aplicado }}</span>
                             </li>
                         {% endif %}
                         <li class="list-group-item d-flex justify-content-between align-items-center mt-2 pt-2 border-top">

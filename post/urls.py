@@ -66,6 +66,7 @@ urlpatterns = [
     path('carrito/actualizar/<int:item_id>/', views.ActualizarItemCarritoView.as_view(), name='actualizar_item_carrito'),
     path('carrito/eliminar/<int:item_id>/', views.EliminarItemCarritoView.as_view(), name='eliminar_item_carrito'),
     path('carrito/aplicar-cupon/', views.AplicarCuponView.as_view(), name='aplicar_cupon'),
+    path('carrito/eliminar-cupon/', views.EliminarCuponCarritoView.as_view(), name='eliminar_cupon_carrito'),
 
     # --- URLs del Proceso de Pago (Checkout) ---
     path('checkout/', views.CheckoutView.as_view(), name='checkout'),
