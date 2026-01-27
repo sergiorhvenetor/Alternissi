@@ -609,28 +609,7 @@ class MoverDeseoACarritoView(LoginRequiredMixin, CartMixin, View):
             carrito = self.get_cart()
 
             if producto in lista_deseos.productos.all():
-                # Asumiendo que lista_deseos.mover_a_carrito(producto, carrito) existe y funciona
-                # Esta es la lógica que estaría dentro de ese método, adaptada aquí:
-
-                # 1. Añadir al carrito (o actualizar cantidad si ya existe)
-                item_carrito, created = ItemCarrito.objects.get_or_create(
-                    carrito=carrito,
-                    producto=producto,
-                    defaults={'precio': producto.precio_actual, 'cantidad': 1}
-                )
-                if not created:
-                    if item_carrito.cantidad < producto.stock: # Respetar stock
-                        item_carrito.cantidad += 1
-                        item_carrito.save()
-                        messages.info(request, f"Cantidad de '{producto.nombre}' actualizada en el carrito.")
-                    else:
-                        messages.warning(request, f"No se puede añadir más de '{producto.nombre}' al carrito (stock limitado).")
-                else:
-                     messages.success(request, f"'{producto.nombre}' añadido al carrito.")
-
-                # 2. Remover de la lista de deseos
-                lista_deseos.productos.remove(producto)
-
+                lista_deseos.mover_a_carrito(producto, carrito)
                 messages.success(request, f"'{producto.nombre}' ha sido movido de tu lista de deseos al carrito.")
             else:
                 messages.warning(request, f"'{producto.nombre}' no se encontró en tu lista de deseos. Quizás ya fue movido o eliminado.")
@@ -780,7 +759,7 @@ class SobreNosotrosView(PaginaEstaticaView):
         # Attempt to get content from a field like 'sobre_nosotros_info' or 'sobre_nosotros'
         # Provide a default if the field doesn't exist or config is None
         if context['config']:
-            context['contenido'] = getattr(context['config'], 'sobre_nosotros_info', "Información sobre nosotros no disponible.")
+            context['contenido'] = getattr(context['config'], 'sobre_nosotros', "Información sobre nosotros no disponible.")
         else:
             context['contenido'] = "Información sobre nosotros no disponible."
         return context
