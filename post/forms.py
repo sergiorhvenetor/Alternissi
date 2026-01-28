@@ -29,6 +29,20 @@ class AdminAuthenticationForm(AuthenticationForm):
 
         return cleaned_data
 
+class UnifiedAuthenticationForm(AuthenticationForm):
+    """
+    Formulario de autenticación unificado que permite inicio de sesión de cliente
+    y de administrador (usando un código opcional).
+    """
+    admin_code = forms.CharField(
+        label="Código de Administrador (opcional)",
+        required=False,
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Solo para administradores',
+            'class': 'form-control'
+        }),
+    )
+
 class CustomUserCreationForm(UserCreationForm):
     """
     Formulario de creación de usuario personalizado que incluye campos adicionales.
