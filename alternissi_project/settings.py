@@ -141,7 +141,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # --- Autenticación ---
 LOGIN_REDIRECT_URL = '/cuenta/' # o reverse_lazy('tienda:cuenta_dashboard')
 LOGOUT_REDIRECT_URL = '/'      # o reverse_lazy('tienda:inicio')
-# LOGIN_URL = '/login/' # Django por defecto usa /accounts/login/, pero lo hemos definido en post.urls
+LOGIN_URL = '/login/'
 
 # --- Email (para reseteo de contraseña en desarrollo) ---
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
