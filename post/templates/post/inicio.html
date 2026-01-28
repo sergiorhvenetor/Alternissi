@@ -41,7 +41,7 @@
                                     <span>${{ producto.precio_actual|floatformat:2 }}</span>
                                 {% endif %}
                             </p>
-                            <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto">
+                            <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto add-to-cart-form">
                                 {% csrf_token %}
                                 <input type="hidden" name="cantidad" value="1">
                                 <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>
@@ -81,7 +81,7 @@
                                 <span>${{ producto.precio_actual|floatformat:2 }}</span>
                             {% endif %}
                         </p>
-                        <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto">
+                        <form action="{% url 'tienda:agregar_al_carrito' producto.id %}" method="post" class="mt-auto add-to-cart-form">
                             {% csrf_token %}
                             <input type="hidden" name="cantidad" value="1">
                             <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>

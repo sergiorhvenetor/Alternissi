@@ -387,7 +387,7 @@
 
             {% if producto.stock > 0 and producto.disponible %}
             <div class="product-detail__actions">
-                <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post">
+                <form action="{% url 'tienda:agregar_al_carrito' producto_id=producto.id %}" method="post" class="add-to-cart-form">
                     {% csrf_token %}
                     <label for="cantidad">Cantidad:</label>
                     <input type="number" name="cantidad" id="cantidad" value="1" min="1" max="{{ producto.stock }}" aria-label="Cantidad">

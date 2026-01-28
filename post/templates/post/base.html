@@ -16,6 +16,14 @@
 <body>
     <header>
         <div class="container">
+            <div class="logo">
+                <a href="{% url 'tienda:inicio' %}">
+                    {% if tienda_config.logo %}
+                        <img src="{{ tienda_config.logo.url }}" alt="{{ tienda_config.logo_alt_text|default:tienda_config.nombre_tienda }}" class="logo-img">
+                    {% endif %}
+                    <span class="logo-text">{{ tienda_config.nombre_tienda|default:"Alternissi" }}</span>
+                </a>
+            </div>
             <nav>
                 <button class="nav-toggle" aria-label="toggle navigation">
                     <span class="hamburger"></span>
@@ -25,7 +33,7 @@
                     <li><a href="{% url 'tienda:ver_carrito' %}" {% if request.resolver_match.url_name == 'ver_carrito' %}class="active"{% endif %}>Carrito (<span id="cart-count">{{ global_cart_items|default:0 }}</span>)</a></li>
                     <li><a href="{% url 'tienda:contacto' %}" {% if request.resolver_match.url_name == 'contacto' %}class="active"{% endif %}>Contacto</a></li>
                     {% if user.is_authenticated %}
-                        <li><a href="{% url 'tienda:cuenta_dashboard' %}" {% if 'cuenta' in request.resolver_match.url_name or 'pedido' in request.resolver_match.url_name or 'perfil' in request.resolver_match.url_name %}class="active"{% endif %}>Mi Cuenta</a></li>
+                        <li><a href="{% url 'tienda:cuenta_dashboard' %}" {% if 'cuenta' in request.resolver_match.url_name or 'pedido' in request.resolver_match.url_name or 'perfil' in request.resolver_match.url_name %}class="active"{% endif %}>Hola, {{ user.first_name|default:user.username }}</a></li>
                         <li>
                             <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
                             <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>

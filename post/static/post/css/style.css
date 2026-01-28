@@ -1288,7 +1288,7 @@ form textarea::placeholder {
 
 /* Estilos para la página de inicio - ejemplo */
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/hero-bg.jpg') no-repeat center center/cover;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/fotografia-ropa-1.webp') no-repeat center center/cover;
     padding: 6rem 1rem;
     text-align: center;
     margin-bottom: 2rem;
