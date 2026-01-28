@@ -3,6 +3,14 @@
 
 {% block title %}Editar Perfil - {{ block.super }}{% endblock %}
 
+{% block header_banner %}
+<section class="page-banner">
+    <div class="container">
+        <h1>Editar Perfil</h1>
+    </div>
+</section>
+{% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
@@ -20,7 +28,6 @@
             </ul>
         </aside>
         <main class="account-content">
-            <h2>Editar Mi Perfil</h2>
             <form method="post" class="profile-form">
                 {% csrf_token %}
                 {% if form.non_field_errors %}

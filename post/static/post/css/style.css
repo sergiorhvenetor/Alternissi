@@ -687,10 +687,26 @@ form textarea::placeholder {
     margin-bottom: 0.5rem;
 }
 
+/* --- Banner de Página (para efecto de superposición) --- */
+.page-banner {
+    background: linear-gradient(135deg, var(--color-dark-gray) 0%, #454d55 100%);
+    padding: 60px 0 100px;
+    color: var(--color-white);
+    text-align: center;
+    position: relative;
+}
+
+.page-banner h1 {
+    color: var(--color-white);
+    margin: 0;
+    font-size: 2.8rem;
+    font-family: var(--font-secondary);
+}
+
 /* --- Panel de Cuenta y Dashboard --- */
 .account-container {
     max-width: 900px;
-    margin: -60px auto 40px;
+    margin: -80px auto 40px;
     padding: 30px;
     background-color: var(--white);
     border-radius: 8px;
@@ -820,6 +836,16 @@ form textarea::placeholder {
     margin-bottom: 30px;
     border-left: 4px solid var(--gold);
     animation: fadeIn 0.8s ease-out;
+}
+
+.welcome-box--success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border-left-color: var(--color-success);
+}
+
+.welcome-box--success h2 {
+    color: var(--color-success);
+    border-bottom-color: var(--color-success);
 }
 
 .recent-orders-table, .orders-table {

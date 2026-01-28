@@ -3,6 +3,14 @@
 
 {% block title %}Mi Lista de Deseos - {{ block.super }}{% endblock %}
 
+{% block header_banner %}
+<section class="page-banner">
+    <div class="container">
+        <h1>Mi Lista de Deseos</h1>
+    </div>
+</section>
+{% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
@@ -17,7 +25,6 @@
             </ul>
         </aside>
         <main class="account-content">
-            <h2>Mi Lista de Deseos</h2>
             {% if lista_deseos and lista_deseos.productos.all %}
                 <div class="wishlist-items-container">
                     {% for producto in lista_deseos.productos.all %}
