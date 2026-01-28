@@ -3,6 +3,14 @@
 
 {% block title %}Detalle del Pedido {{ pedido.codigo }} - {{ block.super }}{% endblock %}
 
+{% block header_banner %}
+<section class="page-banner">
+    <div class="container">
+        <h1>Detalle del Pedido</h1>
+    </div>
+</section>
+{% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
@@ -20,7 +28,6 @@
             </ul>
         </aside>
         <main class="account-content">
-            <h2>Detalles del Pedido #{{ pedido.codigo }}</h2>
             {% if pedido %}
             <div class="order-details-card">
                 <div class="order-info">

@@ -3,6 +3,14 @@
 
 {% block title %}Mis Pedidos - {{ block.super }}{% endblock %}
 
+{% block header_banner %}
+<section class="page-banner">
+    <div class="container">
+        <h1>Mis Pedidos</h1>
+    </div>
+</section>
+{% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
@@ -20,7 +28,6 @@
             </ul>
         </aside>
         <main class="account-content">
-            <h2>Mis Pedidos</h2>
             {% if pedidos %}
                 <table class="orders-table">
                     <thead><tr><th>Nº Pedido</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
