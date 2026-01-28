@@ -40,7 +40,11 @@ class CartMixin:
         if self.request.user.is_authenticated:
             cliente, _ = Cliente.objects.get_or_create(
                 usuario=self.request.user, 
-                defaults={'email': self.request.user.email, 'nombre': self.request.user.first_name or self.request.user.username}
+                defaults={
+                    'email': self.request.user.email,
+                    'nombre': self.request.user.first_name or self.request.user.username,
+                    'apellido': self.request.user.last_name or ''
+                }
             )
             # Utiliza el queryset optimizado para get_or_create
             cart, created = cart_queryset.get_or_create(cliente=cliente)
@@ -216,6 +220,7 @@ class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
             if 0 < cantidad <= item.producto.stock:
                 item.cantidad = cantidad
                 item.save()
+                cart.refresh_from_db() # Refrescar cache de prefetch_related
                 # El cliente para get_total y descuento_aplicado se toma de cart.cliente si existe
                 cart_total_calculado = cart.get_total()
                 descuento_aplicado_calculado = cart.descuento_aplicado
@@ -234,7 +239,7 @@ class ActualizarItemCarritoView(CartMixin, View): # Added CartMixin
             elif cantidad == 0: # Permitir eliminar poniendo cantidad a 0
                  nombre_producto = item.producto.nombre
                  item.delete()
-                 cart.save() # Actualizar timestamp y recalcular totales si es necesario
+                 cart.refresh_from_db() # Refrescar cache de prefetch_related
                  cart_total_calculado = cart.get_total()
                  descuento_aplicado_calculado = cart.descuento_aplicado
                  response_data = {
@@ -673,7 +678,11 @@ class VerListaDeseosView(LoginRequiredMixin, DetailView):
         # Si no, get_or_create es seguro.
         cliente, _ = Cliente.objects.get_or_create(
             usuario=self.request.user,
-            defaults={'email': self.request.user.email} # Añadir defaults mínimos si se crea aquí
+            defaults={
+                'email': self.request.user.email,
+                'nombre': self.request.user.first_name or self.request.user.username,
+                'apellido': self.request.user.last_name or ''
+            }
         )
         lista, created = ListaDeseos.objects.get_or_create(cliente=cliente)
         return lista

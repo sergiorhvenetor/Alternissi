@@ -206,7 +206,7 @@
     {% endif %}
 
     {% if carrito and carrito.items.all %}
-        <div class="table-responsive mb-4"> {# Añadido mb-4 para espacio antes del resumen #}
+        <div class="cart-table-container table-responsive mb-4"> {# Añadido mb-4 para espacio antes del resumen #}
             <table class="cart-table table align-middle">
                 <thead>
                     <tr>
@@ -244,10 +244,11 @@
                                 {% endif %}
                             </td>
                             <td data-label="Cantidad" class="cart-item-actions" style="text-align: center;">
-                                <form action="{% url 'tienda:actualizar_item_carrito' item_id=item.id %}" method="post" class="d-inline-flex align-items-center justify-content-center update-item-form">
+                                <form action="{% url 'tienda:actualizar_item_carrito' item_id=item.id %}" method="post" class="d-inline-flex align-items-center justify-content-center update-cart-item-form">
                                     {% csrf_token %}
                                     <input type="number" name="cantidad" value="{{ item.cantidad }}" min="1"
                                            {% if item.producto.stock %}max="{{ item.producto.stock }}"{% endif %}
+                                           class="cart-item-quantity-input"
                                            aria-label="Cantidad para {{ item.producto.nombre }}">
                                 </form>
                             </td>
@@ -255,7 +256,7 @@
                                 ${{ item.subtotal }}
                             </td>
                             <td data-label="Acciones" class="cart-item-actions" style="text-align: center;">
-                                <form action="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" method="post" class="d-inline">
+                                <form action="{% url 'tienda:eliminar_item_carrito' item_id=item.id %}" method="post" class="d-inline remove-from-cart-form">
                                     {% csrf_token %}
                                     <button type="submit" class="btn-remove-item" title="Eliminar {{ item.producto.nombre }} del carrito"
                                             onclick="return confirm('¿Estás seguro de que quieres eliminar este producto del carrito?');">
@@ -276,12 +277,12 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>Subtotal (<span id="cart-item-count">{{ carrito.total_items }}</span> item{{ carrito.total_items|pluralize }})</span>
-                            <span id="cart-subtotal-value">${{ carrito.subtotal }}</span>
+                            <span id="cart-subtotal">${{ carrito.subtotal }}</span>
                         </li>
                         {% if carrito.descuento_aplicado > 0 %}
                         <li class="list-group-item d-flex justify-content-between align-items-center text-success">
                             Descuento por Promociones
-                            <span>-${{ carrito.descuento_aplicado }}</span>
+                            <span id="cart-discount">-${{ carrito.descuento_aplicado }}</span>
                         </li>
                         {% endif %}
                          {% if carrito.cupon %}
@@ -298,7 +299,7 @@
                         {% endif %}
                         <li class="list-group-item d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                             <span class="total-label">Total</span>
-                            <span id="cart-total-value" class="total-value">${{ carrito.total }}</span>
+                            <span id="cart-total" class="total-value">${{ carrito.total }}</span>
                         </li>
                     </ul>
                     
@@ -339,78 +340,4 @@
 
 {% block extra_scripts %}
 {{ block.super }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.update-item-form input[name="cantidad"]').forEach(input => {
-        input.addEventListener('change', function() {
-            const form = this.closest('form');
-            const formData = new FormData(form);
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                    'X-Requested-With': 'XMLHttpRequest' // Importante para que Django reconozca la petición AJAX
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Actualizar el subtotal del item
-                    const subtotalCell = form.closest('tr').querySelector('.item-subtotal');
-                    if (subtotalCell) {
-                        subtotalCell.textContent = '$' + data.item_subtotal;
-                    }
-
-                    // Actualizar resumen del carrito
-                    const cartSubtotal = document.getElementById('cart-subtotal-value');
-                    if (cartSubtotal) {
-                        cartSubtotal.textContent = '$' + data.cart_subtotal_display;
-                    }
-
-                    const cartTotal = document.getElementById('cart-total-value');
-                    if (cartTotal) {
-                        cartTotal.textContent = '$' + data.cart_total_display;
-                    }
-
-                    const cartItemCount = document.getElementById('cart-item-count');
-                    if (cartItemCount) {
-                        cartItemCount.textContent = data.cart_total_items_display;
-                    }
-
-                    // Actualizar contador en el header (si existe)
-                    const cartCountHeader = document.getElementById('cart-count');
-                    if (cartCountHeader) {
-                        cartCountHeader.textContent = data.cart_total_items_display;
-                    }
-
-                    if (data.removed) {
-                        form.closest('tr').remove();
-                    }
-
-                    // Si el carrito queda vacío, recargar la página para mostrar el mensaje de "carrito vacío"
-                    if (data.cart_total_items_display === 0) {
-                        window.location.reload();
-                    }
-
-                } else {
-                    alert(data.message || 'Error al actualizar la cantidad.');
-                    this.value = this.defaultValue; // Revertir cambio si hay error
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ocurrió un error al actualizar el carrito.');
-                this.value = this.defaultValue; // Revertir cambio
-            });
-        });
-    });
-});
-</script>
 {% endblock %}
