@@ -94,8 +94,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (document.getElementById('cart-total') && data.cart_total_display !== undefined) {
                         document.getElementById('cart-total').textContent = '$' + data.cart_total_display;
                     }
-                     if (document.getElementById('cart-discount') && data.cart_discount_amount_display !== undefined) { // Si existe un elemento para el descuento
+                     if (document.getElementById('cart-discount') && data.cart_discount_amount_display !== undefined) {
                         document.getElementById('cart-discount').textContent = '-$' + data.cart_discount_amount_display;
+                        const discountRow = document.getElementById('cart-discount-row');
+                        if (discountRow) {
+                            if (parseFloat(data.cart_discount_amount_display) > 0) {
+                                discountRow.style.setProperty('display', 'flex', 'important');
+                            } else {
+                                discountRow.style.setProperty('display', 'none', 'important');
+                            }
+                        }
                     }
                     // Podrías usar una librería de notificaciones más elegante aquí
                     if (data.message) {
@@ -143,6 +151,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         if (document.getElementById('cart-discount') && data.cart_discount_amount_display !== undefined) {
                             document.getElementById('cart-discount').textContent = '-$' + data.cart_discount_amount_display;
+                            const discountRow = document.getElementById('cart-discount-row');
+                            if (discountRow) {
+                                if (parseFloat(data.cart_discount_amount_display) > 0) {
+                                    discountRow.style.setProperty('display', 'flex', 'important');
+                                } else {
+                                    discountRow.style.setProperty('display', 'none', 'important');
+                                }
+                            }
                         }
                         // Si el item fue removido (cantidad 0)
                         if (data.removed && itemRow) {

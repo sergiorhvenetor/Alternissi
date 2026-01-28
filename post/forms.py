@@ -33,6 +33,10 @@ class CustomUserCreationForm(UserCreationForm):
     """
     Formulario de creación de usuario personalizado que incluye campos adicionales.
     """
+    first_name = forms.CharField(label="Nombre", required=True)
+    last_name = forms.CharField(label="Apellido", required=True)
+    email = forms.EmailField(label="Correo Electrónico", required=True)
+
     class Meta(UserCreationForm.Meta):
         model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name')

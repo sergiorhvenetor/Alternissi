@@ -15,7 +15,8 @@
                 <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
                 <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
                 <li>
-            
+                    <form id="sidebar-logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                    <a href="#" onclick="document.getElementById('sidebar-logout-form').submit(); return false;">Cerrar Sesión</a>
                 </li>
             </ul>
         </aside>
