@@ -3,43 +3,6 @@
 
 {% block title %}Detalle del Pedido {{ pedido.codigo }} - {{ block.super }}{% endblock %}
 
-{% block extra_head %}
-<style>
-    .account-container { max-width: 1000px; margin: 20px auto; padding: 20px; }
-    .account-grid { display: flex; gap: 30px; }
-    .account-nav { flex: 0 0 220px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; height: fit-content; }
-    .account-nav ul { list-style: none; padding: 0; margin: 0; }
-    .account-nav li a { display: block; padding: 10px 15px; text-decoration: none; color: #333; border-radius: 4px; margin-bottom: 5px; }
-    .account-nav li a:hover, .account-nav li a.active { background-color: #007bff; color: white; }
-    .account-content { flex: 1; }
-    .account-content h2 { font-size: 1.8em; margin-top: 0; margin-bottom: 20px; }
-    .order-details-card { background-color: #f8f9fa; padding: 25px; border-radius: 8px; text-align: left; margin-bottom: 30px; }
-    .order-details-card h3 { font-size: 1.4em; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 8px;}
-    .order-info p { margin: 8px 0; font-size: 1.0em; }
-    .order-info p strong { min-width: 160px; display: inline-block; }
-    .order-items-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
-    .order-items-table th, .order-items-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 0.9em; }
-    .order-items-table th { background-color: #e9ecef; }
-    .order-items-table img { width: 45px; height: 45px; object-fit: cover; border-radius: 3px; margin-right: 8px; }
-    .order-items-table .item-total { font-weight: bold; }
-    .totals-summary { margin-top: 20px; }
-    .totals-summary .summary-row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 1.0em; }
-    .totals-summary .summary-row.grand-total { font-weight: bold; font-size: 1.2em; border-top: 2px solid #ddd; margin-top:8px; padding-top:8px;}
-    .shipping-billing-info { margin-top: 20px; display:flex; gap: 20px; }
-    .address-column { flex:1; }
-    .address-column h4 { font-size: 1.1em; margin-bottom: 8px;}
-    .address-column address { font-style: normal; line-height: 1.5; font-size:0.95em; }
-    .action-buttons { margin-top: 30px; }
-    .action-buttons .btn { padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 1.0em; margin-right: 10px; }
-    .btn-secondary { background-color: #6c757d; color: white; }
-    @media (max-width: 768px) {
-        .account-grid { flex-direction: column; }
-        .account-nav { margin-bottom: 20px; flex: 0 0 auto; }
-        .shipping-billing-info { flex-direction:column; }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="account-container">
     <div class="account-grid">

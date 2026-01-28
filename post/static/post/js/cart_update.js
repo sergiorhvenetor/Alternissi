@@ -89,13 +89,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     // Actualizar totales en la página del carrito si es necesario
                     if (document.getElementById('cart-subtotal') && data.cart_subtotal_display !== undefined) {
-                        document.getElementById('cart-subtotal').textContent = data.cart_subtotal_display;
+                        document.getElementById('cart-subtotal').textContent = '$' + data.cart_subtotal_display;
                     }
                     if (document.getElementById('cart-total') && data.cart_total_display !== undefined) {
-                        document.getElementById('cart-total').textContent = data.cart_total_display;
+                        document.getElementById('cart-total').textContent = '$' + data.cart_total_display;
                     }
                      if (document.getElementById('cart-discount') && data.cart_discount_amount_display !== undefined) { // Si existe un elemento para el descuento
-                        document.getElementById('cart-discount').textContent = data.cart_discount_amount_display;
+                        document.getElementById('cart-discount').textContent = '-$' + data.cart_discount_amount_display;
                     }
                     // Podrías usar una librería de notificaciones más elegante aquí
                     if (data.message) {
@@ -131,18 +131,18 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (itemRow) {
                             const itemSubtotalElement = itemRow.querySelector('.item-subtotal');
                             if (itemSubtotalElement && data.item_subtotal !== undefined) {
-                                itemSubtotalElement.textContent = data.item_subtotal;
+                                itemSubtotalElement.textContent = '$' + data.item_subtotal;
                             }
                         }
                         // Actualizar totales en la página del carrito
                         if (document.getElementById('cart-subtotal') && data.cart_subtotal_display !== undefined) {
-                            document.getElementById('cart-subtotal').textContent = data.cart_subtotal_display;
+                            document.getElementById('cart-subtotal').textContent = '$' + data.cart_subtotal_display;
                         }
                         if (document.getElementById('cart-total') && data.cart_total_display !== undefined) {
-                            document.getElementById('cart-total').textContent = data.cart_total_display;
+                            document.getElementById('cart-total').textContent = '$' + data.cart_total_display;
                         }
                         if (document.getElementById('cart-discount') && data.cart_discount_amount_display !== undefined) {
-                            document.getElementById('cart-discount').textContent = data.cart_discount_amount_display;
+                            document.getElementById('cart-discount').textContent = '-$' + data.cart_discount_amount_display;
                         }
                         // Si el item fue removido (cantidad 0)
                         if (data.removed && itemRow) {
@@ -161,6 +161,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             }
+        });
+    });
+
+    // Evitar que los formularios de actualización se envíen normalmente al presionar Enter
+    document.querySelectorAll('form.update-cart-item-form').forEach(form => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            // El evento 'change' del input ya debería haber disparado la actualización,
+            // pero podemos llamarlo aquí explícitamente si queremos asegurar.
         });
     });
 

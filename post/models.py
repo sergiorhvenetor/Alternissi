@@ -488,6 +488,7 @@ class Carrito(models.Model):
 
             self.vaciar()
             # El código de recompensa estaba comentado, se mantiene así.
+            return pedido
 
 class ItemCarrito(models.Model):
     carrito = models.ForeignKey(
