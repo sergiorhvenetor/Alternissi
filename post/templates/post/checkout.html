@@ -161,7 +161,7 @@
                         </div>
                     {% endif %}
 
-                    <div class="form-row">
+                    <div class="row">
                         <div class="form-group col-md-6">
                             <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}{% if form.nombre.field.required %}<span class="text-danger">*</span>{% endif %}</label>
                             {{ form.nombre }}
@@ -188,7 +188,7 @@
                         {{ form.direccion }}
                         {% if form.direccion.errors %}<div class="invalid-feedback d-block">{{ form.direccion.errors.as_text|striptags }}</div>{% endif %}
                     </div>
-                    <div class="form-row">
+                    <div class="row">
                         <div class="form-group col-md-8">
                             <label for="{{ form.ciudad.id_for_label }}" class="form-label">{{ form.ciudad.label }}{% if form.ciudad.field.required %}<span class="text-danger">*</span>{% endif %}</label>
                             {{ form.ciudad }}
