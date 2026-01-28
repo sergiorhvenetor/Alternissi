@@ -14,38 +14,47 @@
 </head>
 
 <body>
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar__left">
+                <span>Envío gratis en compras superiores a $100</span>
+            </div>
+            <div class="top-bar__right">
+                <a href="{% url 'tienda:contacto' %}">Contacto</a>
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'tienda:login' %}">Iniciar Sesión</a>
+                    <a href="{% url 'tienda:registro' %}">Registrarse</a>
+                {% else %}
+                    <a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a>
+                    <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Cerrar Sesión</a>
+                    <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <header>
         <div class="container">
             <div class="logo">
                 <a href="{% url 'tienda:inicio' %}">
-                    {% if tienda_config.logo %}
-                        <img src="{{ tienda_config.logo.url }}" alt="{{ tienda_config.logo_alt_text|default:tienda_config.nombre_tienda }}" class="logo-img">
-                    {% endif %}
+                    <img src="{% static 'post/images/favicon.jpg' %}" alt="{{ tienda_config.nombre_tienda|default:'Alternissi' }}" class="logo-img">
                     <span class="logo-text">{{ tienda_config.nombre_tienda|default:"Alternissi" }}</span>
                 </a>
             </div>
+
             <nav>
                 <button class="nav-toggle" aria-label="toggle navigation">
                     <span class="hamburger"></span>
                 </button>
                 <ul class="nav-links">
-                    <li><a href="{% url 'tienda:lista_productos' %}" {% if request.resolver_match.url_name == 'lista_productos' %}class="active"{% endif %}>Productos</a></li>
+                    <li><a href="{% url 'tienda:inicio' %}" {% if request.resolver_match.url_name == 'inicio' %}class="active"{% endif %}>Inicio</a></li>
+                    <li><a href="{% url 'tienda:lista_productos' %}" {% if request.resolver_match.url_name == 'lista_productos' %}class="active"{% endif %}>Colección</a></li>
                     <li><a href="{% url 'tienda:ver_carrito' %}" {% if request.resolver_match.url_name == 'ver_carrito' %}class="active"{% endif %}>Carrito (<span id="cart-count">{{ global_cart_items|default:0 }}</span>)</a></li>
-                    <li><a href="{% url 'tienda:contacto' %}" {% if request.resolver_match.url_name == 'contacto' %}class="active"{% endif %}>Contacto</a></li>
-                    {% if user.is_authenticated %}
-                        <li><a href="{% url 'tienda:cuenta_dashboard' %}" {% if 'cuenta' in request.resolver_match.url_name or 'pedido' in request.resolver_match.url_name or 'perfil' in request.resolver_match.url_name %}class="active"{% endif %}>Hola, {{ user.first_name|default:user.username }}</a></li>
-                        <li>
-                            <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Logout</a>
-                        </li>
-                    {% else %}
-                        <li><a href="{% url 'tienda:login' %}" {% if request.resolver_match.url_name == 'login' %}class="active"{% endif %}>Login</a></li>
-                        <li><a href="{% url 'tienda:registro' %}" {% if request.resolver_match.url_name == 'registro' %}class="active"{% endif %}>Registrarse</a></li>
-                    {% endif %}
                 </ul>
             </nav>
+
             <form action="{% url 'tienda:buscar' %}" method="get" class="search-bar">
-                <input type="search" name="q" placeholder="Buscar productos, marcas y más..." value="{{ request.GET.q }}" class="search-bar__input">
+                <input type="search" name="q" placeholder="Buscar productos..." value="{{ request.GET.q }}" class="search-bar__input">
                 <button type="submit" class="search-bar__button" aria-label="Buscar">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </button>
