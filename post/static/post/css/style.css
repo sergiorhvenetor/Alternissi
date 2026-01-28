@@ -1,9 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Playfair+Display:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Style+Script&display=swap');
-
 :root {
-    --font-primary: 'Montserrat', sans-serif;
-    --font-secondary: 'Playfair Display', serif;
+    --font-primary: system-ui, -apple-system, sans-serif;
+    --font-secondary: Georgia, serif;
 
     --color-white: #FFFFFF;
     --color-light-gray: #F8F9FA; /* Para fondos sutiles, líneas */
@@ -157,17 +154,17 @@ header .container {
 }
 
 .logo img {
-    width: 35px;
-    height: 35px;
+    max-height: 50px;
+    width: auto;
     object-fit: contain;
 }
 
 .logo-text {
-    font-family: 'Style Script', cursive;
     font-size: 1.6rem;
     color: var(--color-dark-gray);
     margin: 0;
     line-height: 1;
+    font-weight: 700;
 }
 
 header nav {
@@ -1370,8 +1367,8 @@ form textarea::placeholder {
         font-size: 1.3rem;
     }
     .logo img {
-        width: 25px;
-        height: 25px;
+        max-height: 35px;
+        width: auto;
     }
     header nav h1 {
         font-size: 1.6rem; /* Reducir más el logo en pantallas muy pequeñas */
@@ -1744,5 +1741,6 @@ form textarea::placeholder {
 }
 
 .logo-img {
-    max-height: 35px;
+    max-height: 50px;
+    width: auto;
 }
