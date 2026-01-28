@@ -108,8 +108,8 @@ ul, ol {
 .top-bar {
     background-color: var(--color-dark-gray);
     color: var(--color-white);
-    padding: 0.4rem 0;
-    font-size: 0.85rem;
+    padding: 0.2rem 0;
+    font-size: 0.75rem;
     font-weight: 500;
 }
 
@@ -135,7 +135,7 @@ ul, ol {
 /* --- Header y Navegación --- */
 header {
     background-color: var(--color-white);
-    padding: 0.75rem 0;
+    padding: 0.4rem 0;
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     position: sticky;
     top: 0;
@@ -157,14 +157,14 @@ header .container {
 }
 
 .logo img {
-    width: 45px;
-    height: 45px;
+    width: 35px;
+    height: 35px;
     object-fit: contain;
 }
 
 .logo-text {
     font-family: 'Style Script', cursive;
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     color: var(--color-dark-gray);
     margin: 0;
     line-height: 1;
@@ -224,10 +224,10 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
 }
 
 .search-bar__input {
-    padding: 0.6rem 1.25rem;
+    padding: 0.4rem 1rem;
     border: 1px solid var(--color-medium-gray);
     border-radius: 30px 0 0 30px;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     width: 100%;
     transition: all 0.3s ease;
     border-right: none;
@@ -246,7 +246,7 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
     background-color: var(--color-accent);
     border: 1px solid var(--color-accent);
     color: var(--color-white);
-    padding: 0.6rem 1.25rem;
+    padding: 0.4rem 1rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1254,6 +1254,46 @@ form textarea::placeholder {
     h2 { font-size: 1.8rem; }
     h3 { font-size: 1.5rem; }
 
+    .top-bar {
+        font-size: 0.7rem;
+    }
+
+    .top-bar .container {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+
+    .top-bar a {
+        margin: 0 0.5rem;
+    }
+
+    header .container {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .logo {
+        flex: 1;
+    }
+
+    .search-bar {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .search-bar__input {
+        padding: 0.3rem 0.8rem;
+    }
+
+    .search-bar__button {
+        padding: 0.3rem 0.8rem;
+    }
+
     .product-detail {
         grid-template-columns: 1fr; /* Ya está por defecto, pero para asegurar */
     }
@@ -1326,14 +1366,21 @@ form textarea::placeholder {
     body {
         font-size: 15px;
     }
+    .logo-text {
+        font-size: 1.3rem;
+    }
+    .logo img {
+        width: 25px;
+        height: 25px;
+    }
     header nav h1 {
-        font-size: 1.8rem; /* Reducir más el logo en pantallas muy pequeñas */
+        font-size: 1.6rem; /* Reducir más el logo en pantallas muy pequeñas */
         text-align: center; /* Centrar el logo si el menú está abajo */
         width: 100%;
         margin-bottom: 0.5rem;
     }
     .search-bar input[type="search"], .search-bar button[type="submit"] {
-        font-size: 0.9rem; /* Reducir fuente en barra de búsqueda */
+        font-size: 0.8rem; /* Reducir fuente en barra de búsqueda */
     }
     .btn {
         padding: 0.6rem 1.2rem;
@@ -1697,5 +1744,5 @@ form textarea::placeholder {
 }
 
 .logo-img {
-    max-height: 40px;
+    max-height: 35px;
 }
