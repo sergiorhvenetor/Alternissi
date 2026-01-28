@@ -2,13 +2,17 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import render, get_object_or_404, redirect
+from django.conf import settings
 from django.urls import reverse_lazy, reverse
 from django.views.generic import (
     View, TemplateView, ListView, DetailView, CreateView, UpdateView,
 )
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse, HttpResponseBadRequest
-from .forms import CustomUserCreationForm, ProductoForm, CuponForm, CheckoutForm, AdminAuthenticationForm
+from .forms import (
+    CustomUserCreationForm, ProductoForm, CuponForm, CheckoutForm,
+    AdminAuthenticationForm, UnifiedAuthenticationForm
+)
 from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -857,10 +861,27 @@ def admin_login_view(request):
 
 
 class CustomLoginView(LoginView):
+    form_class = UnifiedAuthenticationForm
+
     def form_valid(self, form):
         user = form.get_user()
-        if user.is_staff:
-            messages.info(self.request, "La cuenta de administrador debe iniciar sesión aquí.")
-            return redirect('tienda:admin_login')
+        admin_code = form.cleaned_data.get('admin_code')
+        correct_code = getattr(settings, 'ADMIN_LOGIN_CODE', None)
+
+        if admin_code:
+            if admin_code == correct_code:
+                if user.is_staff:
+                    auth_login(self.request, user)
+                    messages.success(self.request, f"Bienvenido administrador, {user.username}.")
+                    return redirect('admin:index')
+                else:
+                    form.add_error('admin_code', 'Este usuario no tiene permisos de administrador.')
+                    return self.form_invalid(form)
+            else:
+                form.add_error('admin_code', 'El código de administrador no es válido.')
+                return self.form_invalid(form)
+
+        # Inicio de sesión normal para clientes (y admins sin código si se desea permitir)
         auth_login(self.request, user)
+        messages.success(self.request, f"¡Bienvenido de nuevo, {user.username}!")
         return redirect(self.get_success_url())

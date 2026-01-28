@@ -91,6 +91,13 @@
             {% if form.password.errors %}<div class="errorlist">{{ form.password.errors }}</div>{% endif %}
         </div>
 
+        <div class="form-group mb-3">
+            <label for="{{ form.admin_code.id_for_label }}" class="form-label">Código de Administrador (Opcional):</label>
+            {{ form.admin_code }}
+            {% if form.admin_code.errors %}<div class="errorlist">{{ form.admin_code.errors }}</div>{% endif %}
+            <small class="form-text text-muted">Solo si desea acceder al panel de administración.</small>
+        </div>
+
         <input type="hidden" name="next" value="{{ request.GET.next|default:'tienda:cuenta_dashboard' }}">
 
         <button type="submit" class="btn btn-primary">Ingresar</button>
