@@ -279,12 +279,10 @@
                             <span>Subtotal (<span id="cart-item-count">{{ carrito.total_items }}</span> item{{ carrito.total_items|pluralize }})</span>
                             <span id="cart-subtotal">${{ carrito.subtotal }}</span>
                         </li>
-                        {% if carrito.descuento_aplicado > 0 %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center text-success">
+                        <li class="list-group-item d-flex justify-content-between align-items-center text-success" id="cart-discount-row" {% if not carrito.descuento_aplicado > 0 %}style="display: none !important;"{% endif %}>
                             Descuento por Promociones
-                            <span id="cart-discount">-${{ carrito.descuento_aplicado }}</span>
+                            <span id="cart-discount">-${{ carrito.descuento_aplicado|default:0 }}</span>
                         </li>
-                        {% endif %}
                          {% if carrito.cupon %}
                             <li class="list-group-item d-flex justify-content-between align-items-center coupon-applied-info">
                                 <div>
