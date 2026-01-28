@@ -55,9 +55,9 @@ urlpatterns = [
     # --- URLs principales de la tienda ---
     path('', views.InicioTiendaView.as_view(), name='inicio'),
     path('productos/', views.ListaProductosView.as_view(), name='lista_productos'),
-    path('categoria/<slug:categoria_slug>/', views.ListaProductosView.as_view(), name='productos_por_categoria'),
-    path('marca/<slug:marca_slug>/', views.ListaProductosView.as_view(), name='productos_por_marca'),
-    path('producto/<int:pk>/<slug:slug>/', views.DetalleProductoView.as_view(), name='detalle_producto'),
+    path('categoria/<str:categoria_slug>/', views.ListaProductosView.as_view(), name='productos_por_categoria'),
+    path('marca/<str:marca_slug>/', views.ListaProductosView.as_view(), name='productos_por_marca'),
+    path('producto/<int:pk>/<str:slug>/', views.DetalleProductoView.as_view(), name='detalle_producto'),
     path('buscar/', views.BuscarProductosView.as_view(), name='buscar'),
 
     # --- URLs del Carrito de Compras (Carrito) ---
