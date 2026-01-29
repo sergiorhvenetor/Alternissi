@@ -218,6 +218,17 @@
         min-height: 200px;
     }
 
+    /* Estrellas para el formulario de reseña */
+    .rating-stars { display: flex; flex-direction: row-reverse; justify-content: flex-end; }
+    .rating-stars input[type="radio"] { display: none; }
+    .rating-stars label { font-size: 2em; color: #ccc; cursor: pointer; padding: 0 0.1em; transition: color 0.2s; }
+    .rating-stars input[type="radio"]:checked ~ label,
+    .rating-stars label:hover,
+    .rating-stars label:hover ~ label { color: #ffc107; }
+    .rating-stars:not(:hover) input[type="radio"]:not(:checked) ~ label { color: #ccc; }
+    .rating-stars input[type="radio"]:checked + label,
+    .rating-stars input[type="radio"]:checked + label ~ label { color: #ffc107 !important; }
+
     /* Sección de Reseñas */
     .reviews-section h4 {
         font-family: var(--font-secondary);
@@ -401,11 +412,50 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4>Opiniones de los Clientes</h4>
             {% if user.is_authenticated %}
-                <a href="{% url 'tienda:crear_resena' producto_id=producto.id %}" class="btn btn-outline-primary btn-sm">Escribir una Reseña</a>
+                <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResenaForm" aria-expanded="false" aria-controls="collapseResenaForm">
+                    Escribir una Reseña
+                </button>
             {% else %}
                 <a href="{% url 'tienda:login' %}?next={{ request.path }}" class="btn btn-outline-secondary btn-sm">Inicia sesión para opinar</a>
             {% endif %}
         </div>
+
+        {% if user.is_authenticated %}
+        <div class="collapse mb-5" id="collapseResenaForm">
+            <div class="card card-body bg-light border-0 shadow-sm rounded-4 p-4">
+                <h5 class="mb-4">Tu opinión nos importa</h5>
+                <form action="{% url 'tienda:crear_resena' producto_id=producto.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ resena_form.titulo.id_for_label }}" class="form-label fw-bold small">Título de la reseña</label>
+                            {{ resena_form.titulo }}
+                            {% if resena_form.titulo.errors %}<div class="text-danger small">{{ resena_form.titulo.errors }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small d-block">Calificación</label>
+                            <div class="rating-stars">
+                                <input type="radio" name="{{ resena_form.calificacion.name }}" id="id_cal_5" value="5"><label for="id_cal_5">★</label>
+                                <input type="radio" name="{{ resena_form.calificacion.name }}" id="id_cal_4" value="4"><label for="id_cal_4">★</label>
+                                <input type="radio" name="{{ resena_form.calificacion.name }}" id="id_cal_3" value="3"><label for="id_cal_3">★</label>
+                                <input type="radio" name="{{ resena_form.calificacion.name }}" id="id_cal_2" value="2"><label for="id_cal_2">★</label>
+                                <input type="radio" name="{{ resena_form.calificacion.name }}" id="id_cal_1" value="1" required><label for="id_cal_1">★</label>
+                            </div>
+                            {% if resena_form.calificacion.errors %}<div class="text-danger small">{{ resena_form.calificacion.errors }}</div>{% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="{{ resena_form.comentario.id_for_label }}" class="form-label fw-bold small">Tu comentario</label>
+                        {{ resena_form.comentario }}
+                        {% if resena_form.comentario.errors %}<div class="text-danger small">{{ resena_form.comentario.errors }}</div>{% endif %}
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary px-4 py-2 rounded-pill">Publicar Reseña</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
 
         {% if resenas %}
             <div class="row">

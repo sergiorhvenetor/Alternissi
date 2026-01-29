@@ -140,7 +140,8 @@ class ResenaForm(forms.ModelForm):
         model = Resena
         fields = ('titulo', 'comentario', 'calificacion')
         widgets = {
-            'comentario': forms.Textarea(attrs={'rows': 5}),
+            'titulo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Excelente producto'}),
+            'comentario': forms.Textarea(attrs={'rows': 5, 'class': 'form-control', 'placeholder': 'Cuéntanos tu experiencia...'}),
             'calificacion': forms.RadioSelect(choices=[(i, f'{i} estrellas') for i in range(1, 6)]),
         }
 

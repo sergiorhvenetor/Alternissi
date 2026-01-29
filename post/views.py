@@ -154,6 +154,7 @@ class DetalleProductoView(DetailView):
             )
         )
         context['resenas'] = resenas
+        context['resena_form'] = ResenaForm()
 
         # Productos relacionados con anotaciones de rating
         context['productos_relacionados'] = Producto.objects.filter(
@@ -758,9 +759,6 @@ class CrearResenaView(LoginRequiredMixin, CreateView):
             }
         )
         
-        if not Pedido.objects.filter(cliente=self.cliente, detalles__producto=self.producto, estado=Pedido.Estado.COMPLETADO).exists():
-            messages.warning(request, f"Para dejar una reseña sobre '{self.producto.nombre}', primero debes haberlo comprado y recibido (el pedido debe estar marcado como completado).")
-            return redirect('tienda:detalle_producto', pk=self.producto.id, slug=self.producto.slug)
         if Resena.objects.filter(producto=self.producto, cliente=self.cliente).exists():
             messages.error(request, "Ya has dejado una reseña para este producto.")
             return redirect('tienda:detalle_producto', pk=self.producto.id, slug=self.producto.slug)
@@ -770,8 +768,8 @@ class CrearResenaView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.producto = self.producto
         form.instance.cliente = self.cliente # Cliente obtenido/creado en dispatch
-        # form.instance.aprobado = False # Por defecto es False en el modelo
-        messages.success(self.request, "Gracias por tu reseña. Será publicada tras su aprobación.")
+        # form.instance.aprobado = True # Ahora es True por defecto en el modelo
+        messages.success(self.request, "Gracias por tu reseña. Ha sido publicada exitosamente.")
         return super().form_valid(form)
 
     def get_success_url(self):

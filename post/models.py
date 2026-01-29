@@ -694,7 +694,7 @@ class Resena(TimeStampedModel):
     calificacion = models.PositiveIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
-    aprobado = models.BooleanField(default=False)
+    aprobado = models.BooleanField(default=True)
     respuesta = models.TextField(blank=True)
     respuesta_fecha = models.DateTimeField(null=True, blank=True)
 

@@ -57,6 +57,7 @@ urlpatterns = [
     path('productos/', views.ListaProductosView.as_view(), name='lista_productos'),
     path('categoria/<str:categoria_slug>/', views.ListaProductosView.as_view(), name='productos_por_categoria'),
     path('marca/<str:marca_slug>/', views.ListaProductosView.as_view(), name='productos_por_marca'),
+    path('producto/<int:producto_id>/crear-resena/', views.CrearResenaView.as_view(), name='crear_resena'),
     path('producto/<int:pk>/<str:slug>/', views.DetalleProductoView.as_view(), name='detalle_producto'),
     path('buscar/', views.BuscarProductosView.as_view(), name='buscar'),
 
@@ -85,9 +86,6 @@ urlpatterns = [
     path('deseos/agregar/<int:producto_id>/', views.AgregarAListaDeseosView.as_view(), name='agregar_a_lista_deseos'),
     path('deseos/eliminar/<int:producto_id>/', views.EliminarDeListaDeseosView.as_view(), name='eliminar_de_lista_deseos'),
     path('deseos/mover-a-carrito/<int:producto_id>/', views.MoverDeseoACarritoView.as_view(), name='mover_deseo_a_carrito'),
-    
-    # --- URLs para Reseñas de Productos ---
-    path('producto/<int:producto_id>/crear-resena/', views.CrearResenaView.as_view(), name='crear_resena'),
     
     # --- URLs para páginas estáticas/informativas ---
     path('contacto/', views.PaginaContactoView.as_view(), name='contacto'),

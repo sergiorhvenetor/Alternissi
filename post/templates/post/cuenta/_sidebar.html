@@ -1,0 +1,37 @@
+<aside class="account-nav">
+    <ul>
+        <li>
+            <a href="{% url 'tienda:cuenta_dashboard' %}" class="{% if active_tab == 'dashboard' %}active{% endif %}">
+                Panel Principal
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'tienda:lista_pedidos_cliente' %}" class="{% if active_tab == 'pedidos' %}active{% endif %}">
+                Mis Pedidos
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'tienda:editar_perfil_cliente' %}" class="{% if active_tab == 'perfil' %}active{% endif %}">
+                Editar Perfil
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'tienda:password_change' %}" class="{% if active_tab == 'password' %}active{% endif %}">
+                Cambiar Contraseña
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'tienda:ver_lista_deseos' %}" class="{% if active_tab == 'wishlist' %}active{% endif %}">
+                Mi Lista de Deseos
+            </a>
+        </li>
+        <li>
+            <form id="sidebar-logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">
+                {% csrf_token %}
+            </form>
+            <a href="#" onclick="document.getElementById('sidebar-logout-form').submit(); return false;">
+                Cerrar Sesión
+            </a>
+        </li>
+    </ul>
+</aside>

@@ -12,299 +12,25 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-
-/* --- Banner de Página (para efecto de superposición) --- */
-.page-banner {
-    background: linear-gradient(135deg, var(--color-dark-gray) 0%, #454d55 100%);
-    padding: 60px 0 100px;
-    color: var(--color-white);
-    text-align: center;
-    position: relative;
-}
-
-.page-banner h1 {
-    color: var(--color-white);
-    margin: 0;
-    font-size: 2.8rem;
-    font-family: var(--font-secondary);
-}
-/* --- Panel de Cuenta y Dashboard --- */
-.account-container {
-    max-width: 1000px;
-    margin: -80px auto 40px;
-    padding: 30px;
-    background-color: var(--color-white);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1001;
-}
-
-.account-grid {
-    display: flex;
-    gap: 40px;
-}
-
-.account-nav {
-    flex: 0 0 250px;
-    background-color: var(--color-dark-gray);
-    padding: 25px;
-    border-radius: 8px;
-    height: fit-content;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.account-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.account-nav li a {
-    display: block;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.account-nav li a:hover,
-.account-nav li a.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
-    transform: translateX(5px);
-}
-
-.account-nav li a.active {
-    font-weight: 700;
-    border-left: 3px solid var(--color-white);
-}
-
-.account-content {
-    flex: 1;
-}
-
-.account-content h2,
-.account-content h3 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    color: var(--color-dark-gray);
-}
-
-.account-content h2 {
-    font-size: 1.8em;
-    border-bottom: 2px solid var(--color-medium-gray);
-    padding-bottom: 10px;
-    display: inline-block;
-}
-
-.account-content h3 {
-    font-size: 1.5em;
-    position: relative;
-    padding-left: 15px;
-}
-
-.account-content h3:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 70%;
-    width: 4px;
-    background-color: var(--color-dark-gray);
-}
-
-.welcome-box {
-    background-color: var(--color-light-gray);
-    padding: 25px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    border-left: 4px solid var(--color-dark-gray);
-}
-
-.welcome-box--success {
-    background-color: rgba(40, 167, 69, 0.1);
-    border-left-color: var(--color-success);
-}
-
-.recent-orders-table, .orders-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 25px;
-    font-size: 0.95em;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.recent-orders-table th, .orders-table th {
-    background-color: var(--black);
-    color: var(--gold);
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.recent-orders-table td, .orders-table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 12px;
-    color: var(--gray);
-}
-
-.recent-orders-table tr:hover td, .orders-table tr:hover td {
-    background-color: rgba(44, 44, 44, 0.05);
-}
-
-.recent-orders-table a, .orders-table a {
-    color: var(--gold);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-
-.quick-links a {
-    margin-right: 20px;
-    text-decoration: none;
-    color: var(--gold);
-    font-weight: 500;
-    padding: 8px 0;
-    display: inline-block;
-    position: relative;
-}
-
-.quick-links a:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--gold);
-    transition: width 0.3s ease;
-}
-
-.quick-links a:hover:after {
-    width: 100%;
-}
-
-.info-quick-links {
-    margin-top: 15px;
-}
-
-.section-divider {
-    margin: 30px 0;
-    border: 0;
-    border-top: 1px solid #eee;
-}
-
-.info-section p {
-    margin-bottom: 12px;
-    font-size: 1.05em;
-}
-
-.info-section strong {
-    color: var(--black);
-    font-weight: 600;
-    min-width: 120px;
-    display: inline-block;
-}
-
-.account-nav li:last-child a {
-    color: var(--color-error);
-}
-
-.account-nav li:last-child a:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: var(--color-error);
-}
-
-@media (max-width: 768px) {
-    .account-grid {
-        flex-direction: column;
-    }
-
-
-/* Estilos adicionales para la lista de deseos */
-.wishlist-items-container .wishlist-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; background-color: #fff; }
-.wishlist-items-container .wishlist-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
-.wishlist-items-container .wishlist-item-info { flex-grow: 1; }
-.wishlist-items-container .wishlist-item-info h3 { margin: 0 0 5px 0; font-size: 1.2em; }
-.wishlist-items-container .wishlist-item-info h3 a { text-decoration: none; color: #333; }
-.wishlist-items-container .wishlist-item-info h3 a:hover { color: #007bff; }
-.wishlist-items-container .wishlist-item-info .precio { font-size: 1.1em; color: #28a745; margin-bottom:10px;}
-.wishlist-items-container .wishlist-item-info .precio-original { text-decoration: line-through; color: var(--color-error); margin-right: 8px; font-size: 0.9em; }
-.wishlist-items-container .wishlist-item-info .precio-descuento { font-weight: bold; color: var(--black); }
-.wishlist-items-container .wishlist-item-info .categoria-texto { font-size: 0.9em; color: #555; }
-.wishlist-item-actions form { display: inline-block; }
-.wishlist-item-actions .btn { padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 0.9em; margin-right: 10px; border: none; cursor:pointer; display:inline-block; margin-top:5px;}
-.wishlist-item-actions .btn-view { background-color: #6c757d; color: white; }
-.wishlist-item-actions .btn-add-cart { background-color: #007bff; color: white; }
-.wishlist-item-actions .btn-remove-wishlist { background-color: var(--color-error); color: white; }
-.empty-wishlist, .no-orders { padding: 20px; background-color:#f8f9fa; text-align:center; border-radius:5px;}
-
-/* --- Lista de Deseos --- */
-.wishlist-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-medium-gray);
-}
-.wishlist-item:last-child {
-    border-bottom: none;
-}
-
-.wishlist-item img {
-    max-width: 100px;
-    border-radius: var(--border-radius-sm);
-}
-.wishlist-item-info h4 {
-    margin: 0 0 0.5rem 0;
-}
-.wishlist-item-info p {
-    margin-bottom: 0.5rem;
-}
-
-/* --- Paginación --- */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    list-style: none;
-    padding: 0;
-    margin-top: 2rem;
-}
-
-.pagination .page-item {
-
-</style>
+    {% include "post/cuenta/_account_styles.html" %}
 {% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
-        <aside class="account-nav">
-            <ul>
-                <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
-                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}">Mis Pedidos</a></li>
-                <li><a href="{% url 'tienda:editar_perfil_cliente' %}" class="active">Editar Perfil</a></li>
-                <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
-                <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
-                <li>
-                    <form id="sidebar-logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                    <a href="#" onclick="document.getElementById('sidebar-logout-form').submit(); return false;">Cerrar Sesión</a>
-                </li>
-            </ul>
-        </aside>
+        {% include "post/cuenta/_sidebar.html" with active_tab="perfil" %}
+
         <main class="account-content">
+            <h2>Mi Información</h2>
             <form method="post" class="profile-form">
                 {% csrf_token %}
+
                 {% if form.non_field_errors %}
-                    <ul class="errorlist nonfield">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    <ul class="errorlist nonfield">
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
                 {% endif %}
 
                 <div class="form-group">
@@ -313,60 +39,68 @@
                     {% if form.nombre.help_text %}<small class="helptext">{{ form.nombre.help_text }}</small>{% endif %}
                     {% if form.nombre.errors %}<ul class="errorlist">{% for error in form.nombre.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.apellido.id_for_label }}">Apellido:</label>
                     {{ form.apellido }}
                     {% if form.apellido.help_text %}<small class="helptext">{{ form.apellido.help_text }}</small>{% endif %}
                     {% if form.apellido.errors %}<ul class="errorlist">{% for error in form.apellido.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.email.id_for_label }}">Email:</label>
                     {{ form.email }}
-                     <small class="helptext">Tu email de inicio de sesión es: {{ request.user.email }}. Este email es para contacto y perfil.</small>
+                    <small class="helptext">Tu email de inicio de sesión es: {{ request.user.email }}. Este email es para contacto y perfil.</small>
                     {% if form.email.errors %}<ul class="errorlist">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.telefono.id_for_label }}">Teléfono:</label>
                     {{ form.telefono }}
                     {% if form.telefono.help_text %}<small class="helptext">{{ form.telefono.help_text }}</small>{% endif %}
                     {% if form.telefono.errors %}<ul class="errorlist">{% for error in form.telefono.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.direccion.id_for_label }}">Dirección:</label>
                     {{ form.direccion }}
                     {% if form.direccion.help_text %}<small class="helptext">{{ form.direccion.help_text }}</small>{% endif %}
                     {% if form.direccion.errors %}<ul class="errorlist">{% for error in form.direccion.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.ciudad.id_for_label }}">Ciudad:</label>
                     {{ form.ciudad }}
                     {% if form.ciudad.help_text %}<small class="helptext">{{ form.ciudad.help_text }}</small>{% endif %}
                     {% if form.ciudad.errors %}<ul class="errorlist">{% for error in form.ciudad.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.codigo_postal.id_for_label }}">Código Postal:</label>
                     {{ form.codigo_postal }}
                     {% if form.codigo_postal.help_text %}<small class="helptext">{{ form.codigo_postal.help_text }}</small>{% endif %}
                     {% if form.codigo_postal.errors %}<ul class="errorlist">{% for error in form.codigo_postal.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
+
                 <div class="form-group">
                     <label for="{{ form.pais.id_for_label }}">País:</label>
                     {{ form.pais }}
                     {% if form.pais.help_text %}<small class="helptext">{{ form.pais.help_text }}</small>{% endif %}
                     {% if form.pais.errors %}<ul class="errorlist">{% for error in form.pais.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
-                 <div class="form-group">
+
+                <div class="form-group">
                     <label for="{{ form.fecha_nacimiento.id_for_label }}">Fecha de Nacimiento (opcional):</label>
                     {{ form.fecha_nacimiento }}
                     {% if form.fecha_nacimiento.help_text %}<small class="helptext">{{ form.fecha_nacimiento.help_text }}</small>{% endif %}
                     {% if form.fecha_nacimiento.errors %}<ul class="errorlist">{% for error in form.fecha_nacimiento.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
                 </div>
-                <div class="form-group checkbox-group">
+
+                <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 25px;">
                     {{ form.acepta_marketing }}
-                    <label for="{{ form.acepta_marketing.id_for_label }}" class="checkbox-label">{{ form.acepta_marketing.label }}</label>
-                    {% if form.acepta_marketing.help_text %}<small class="helptext checkbox-helptext">{{ form.acepta_marketing.help_text }}</small>{% endif %}
-                    {% if form.acepta_marketing.errors %}<ul class="errorlist">{% for error in form.acepta_marketing.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+                    <label for="{{ form.acepta_marketing.id_for_label }}" style="margin-bottom: 0;">{{ form.acepta_marketing.label }}</label>
                 </div>
+
                 <button type="submit" class="btn btn-primary">Guardar Cambios</button>
             </form>
         </main>
