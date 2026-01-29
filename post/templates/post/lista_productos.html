@@ -14,6 +14,165 @@
     - {{ block.super }}
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.product-listing-page {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.filters {
+    flex: 0 0 260px;
+    background-color: var(--color-light-gray);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-md);
+    align-self: flex-start;
+    height: fit-content;
+}
+
+.filters h3 {
+    font-family: var(--font-secondary);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+}
+.filters h3:not(:first-of-type) {
+    margin-top: 1.5rem;
+}
+
+.filter-list {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 0;
+}
+
+.filter-list li {
+    margin-bottom: 0.5rem;
+}
+
+.filter-list li a {
+    text-decoration: none;
+    color: var(--color-dark-gray);
+    padding: 0.25rem 0;
+    display: block;
+    transition: all 0.3s ease;
+}
+
+.filter-list li a:hover,
+.filter-list li a.active {
+    color: var(--color-accent);
+    font-weight: 700;
+}
+
+.product-list-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+}
+
+.list-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.sort-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.product-card {
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: var(--transition-medium);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.product-card__image-container {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+    background-color: var(--color-light-gray);
+}
+
+.product-card__image-container img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-card__info {
+    padding: 1rem;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-card__name {
+    font-family: var(--font-secondary);
+    font-size: 1.2rem;
+    color: var(--color-dark-gray);
+    margin-bottom: 0.5rem;
+    text-decoration: none;
+}
+
+.product-card__price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: var(--color-medium-gray);
+    font-size: 0.9em;
+    margin-right: 0.5em;
+}
+
+.pagination-nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 2.5rem;
+}
+
+@media (max-width: 992px) {
+    .filters {
+        flex: 1 1 100%;
+        margin-bottom: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container product-listing-page">
 
@@ -23,7 +182,6 @@
             <li><a href="{% url 'tienda:lista_productos' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}{% if request.GET.orden %}{% if request.GET.q %}&{% else %}?{% endif %}orden={{ request.GET.orden }}{% endif %}" {% if not categoria_actual and not marca_actual %}class="active"{% endif %}>Todas las Categorías</a></li>
             {% for categoria in categorias %}
                 <li>
-                    {# Construir URL para categoría manteniendo q y orden #}
                     {% url 'tienda:productos_por_categoria' categoria_slug=categoria.slug as categoria_url %}
                     <a href="{{ categoria_url }}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}{% if request.GET.orden %}{% if request.GET.q or "?" in categoria_url %}&{% else %}?{% endif %}orden={{ request.GET.orden }}{% endif %}" {% if categoria_actual == categoria %}class="active"{% endif %}>
                         {{ categoria.nombre }}
@@ -37,7 +195,6 @@
              <li><a href="{% url 'tienda:lista_productos' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}{% if request.GET.orden %}{% if request.GET.q %}&{% else %}?{% endif %}orden={{ request.GET.orden }}{% endif %}" {% if not marca_actual and not categoria_actual %}class="active"{% endif %}>Todas las Marcas</a></li>
             {% for marca_obj in marcas %}
                 <li>
-                    {# Construir URL para marca manteniendo q y orden #}
                     {% url 'tienda:productos_por_marca' marca_slug=marca_obj.slug as marca_url %}
                     <a href="{{ marca_url }}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}{% if request.GET.orden %}{% if request.GET.q or "?" in marca_url %}&{% else %}?{% endif %}orden={{ request.GET.orden }}{% endif %}" {% if marca_actual == marca_obj %}class="active"{% endif %}>
                         {{ marca_obj.nombre }}
@@ -62,17 +219,9 @@
             </h2>
              <small class="product-count">{{ page_obj.paginator.count }} producto(s)</small>
             <form method="get" id="sortForm" class="sort-form">
-                {# Hidden inputs para conservar filtros actuales al ordenar #}
-                {% if categoria_actual %}
-                    <input type="hidden" name="categoria_slug" value="{{ categoria_actual.slug }}">
-                {% endif %}
-                {% if marca_actual %}
-                     <input type="hidden" name="marca_slug" value="{{ marca_actual.slug }}">
-                {% endif %}
                 {% if request.GET.q %}
                     <input type="hidden" name="q" value="{{ request.GET.q }}">
                 {% endif %}
-
                 <label for="orden">Ordenar por:</label>
                 <select name="orden" id="orden" class="form-control" onchange="this.form.submit()">
                     <option value="">Relevancia</option>
@@ -91,14 +240,13 @@
                     <div class="product-card">
                         <a href="{{ producto.get_absolute_url }}" class="product-card__image-container">
                         {% if producto.imagenes.first %}
-                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.imagenes.first.alt_text|default:producto.nombre }}">
+                            <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.nombre }}">
                         {% else %}
                             <img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">
                         {% endif %}
                         </a>
                         <div class="product-card__info">
                             <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
-                            <p class="product-card__description text-muted">{{ producto.descripcion_corta|truncatewords:10 }}</p>
                             <p class="product-card__price">
                                 {% if producto.tiene_descuento %}
                                     <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
@@ -112,7 +260,6 @@
                                 <input type="hidden" name="cantidad" value="1">
                                 <button type="submit" class="btn btn-primary w-100">Añadir al Carrito</button>
                             </form>
-                            {# <a href="{% url 'tienda:agregar_a_lista_deseos' producto_id=producto.id %}" title="Añadir a Lista de Deseos" class="btn-wishlist-icon">&#9825;</a> #}
                         </div>
                     </div>
                 {% endfor %}
@@ -136,12 +283,8 @@
                         {% for i in page_obj.paginator.page_range %}
                             {% if page_obj.number == i %}
                                 <li class="page-item active" aria-current="page"><span class="page-link">{{ i }}</span></li>
-                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %} {# Mostrar páginas alrededor de la actual #}
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
                                 <li class="page-item"><a class="page-link" href="?page={{ i }}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}">{{ i }}</a></li>
-                            {% elif i == page_obj.number|add:'-3' and page_obj.number > 4 %} {# Mostrar '...' si hay muchas páginas antes #}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
-                            {% elif i == page_obj.number|add:'3' and page_obj.number < page_obj.paginator.num_pages|add:'-3' %} {# Mostrar '...' si hay muchas páginas después #}
-                                <li class="page-item disabled"><span class="page-link">...</span></li>
                             {% endif %}
                         {% endfor %}
 
@@ -152,98 +295,16 @@
                             <li class="page-item">
                                 <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|cut:'&page='|cut:'page=' }}" aria-label="Último">&raquo;&raquo;</a>
                             </li>
-                        {% else %}
-                            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
-                            <li class="page-item disabled"><span class="page-link">&raquo;&raquo;</span></li>
                         {% endif %}
                     </ul>
                 </nav>
             {% endif %}
         {% else %}
             <div class="text-center py-5">
-                <p class="lead">No se encontraron productos que coincidan con tus criterios.</p>
-                <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary mt-3">Ver todos los productos</a>
+                <p class="lead">No se encontraron productos.</p>
+                <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary mt-3">Ver todos</a>
             </div>
         {% endif %}
     </section>
 </div>
-{% endblock %}
-
-{% block extra_head %}
-{{ block.super }}
-{% endblock %}
-
-{% block extra_scripts %}
-{{ block.super }}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const sortForm = document.getElementById('sortForm');
-    if (sortForm) {
-        const selectElement = sortForm.querySelector('select[name="orden"]');
-        
-        // Conservar el slug de la categoría/marca en la URL base del formulario
-        // si la vista actual es una de categoría o marca específica.
-        // Esto asegura que al cambiar el orden, se mantenga el filtro de categoría/marca.
-        const pathParts = window.location.pathname.split('/');
-        let formAction = "{% url 'tienda:lista_productos' %}"; // URL base
-
-        if (pathParts.includes('categoria') && pathParts.length > pathParts.indexOf('categoria') + 1) {
-            const categoriaSlug = pathParts[pathParts.indexOf('categoria') + 1];
-            if (categoriaSlug) {
-                formAction = "{% url 'tienda:productos_por_categoria' 'SLUG_PLACEHOLDER' %}".replace('SLUG_PLACEHOLDER', categoriaSlug);
-                // Añadir input hidden para categoria_slug si no está ya (para el GET)
-                if (!sortForm.querySelector('input[name="categoria_slug"]')) {
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'categoria_slug'; // O el nombre que espera la vista
-                    hiddenInput.value = categoriaSlug;
-                    sortForm.appendChild(hiddenInput);
-                }
-            }
-        } else if (pathParts.includes('marca') && pathParts.length > pathParts.indexOf('marca') + 1) {
-            const marcaSlug = pathParts[pathParts.indexOf('marca') + 1];
-            if (marcaSlug) {
-                formAction = "{% url 'tienda:productos_por_marca' 'SLUG_PLACEHOLDER' %}".replace('SLUG_PLACEHOLDER', marcaSlug);
-                 if (!sortForm.querySelector('input[name="marca_slug"]')) {
-                    const hiddenInput = document.createElement('input');
-                    hiddenInput.type = 'hidden';
-                    hiddenInput.name = 'marca_slug'; // O el nombre que espera la vista
-                    hiddenInput.value = marcaSlug;
-                    sortForm.appendChild(hiddenInput);
-                }
-            }
-        }
-        sortForm.action = formAction;
-
-        // Script para manejar el cambio de orden (onchange ya lo hace, esto es por si se quita)
-        // if (selectElement) {
-        //     selectElement.addEventListener('change', function() {
-        //         sortForm.submit();
-        //     });
-        // }
-    }
-
-    // Actualizar los href de los filtros para que mantengan 'q' y 'orden'
-    const filterLinks = document.querySelectorAll('.filters .filter-list a');
-    const currentParams = new URLSearchParams(window.location.search);
-    const currentSortOrder = currentParams.get('orden');
-    const currentSearchQuery = currentParams.get('q');
-
-    filterLinks.forEach(link => {
-        const url = new URL(link.href); // El href ya debería ser la URL base correcta para el filtro
-
-        // Limpiar q y orden del enlace base para no duplicar si ya están en currentParams
-        url.searchParams.delete('q');
-        url.searchParams.delete('orden');
-
-        if (currentSearchQuery) {
-            url.searchParams.set('q', currentSearchQuery);
-        }
-        if (currentSortOrder) {
-            url.searchParams.set('orden', currentSortOrder);
-        }
-        link.href = url.toString();
-    });
-});
-</script>
 {% endblock %}

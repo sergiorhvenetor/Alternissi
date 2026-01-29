@@ -7,66 +7,90 @@
 {% block extra_head %}
 {{ block.super }}
 <style>
-    /* .auth-container y .form-group ya están definidos en style.css */
-    /* Se pueden añadir ajustes específicos aquí si es necesario */
-    .auth-container h2 { /* El título es h2 en style.css, aquí se usa h1 */
-        font-family: var(--font-secondary);
-        color: var(--color-dark-gray);
-        text-align: center;
-        margin-bottom: 1.8rem; /* Un poco más de espacio */
-        font-size: 2rem; /* Ajustar tamaño si es necesario */
-    }
-    .auth-container .form-label { /* Si se usa {{ form.as_p }} o similar */
-        font-weight: 500;
-        margin-bottom: 0.3rem;
-    }
-    .auth-container .form-control { /* Para inputs de Django form widget */
-        border-color: var(--color-medium-gray);
-        padding: 0.75rem 1rem; /* Padding consistente con otros forms */
-    }
-    .auth-container .form-control:focus {
-        border-color: var(--color-accent);
-        box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb, 176, 141, 87), 0.25);
-    }
-    .auth-container .errorlist {
-        list-style: none;
-        padding: 0;
-        margin: 0.5rem 0 0 0;
-        font-size: 0.85rem;
-        color: var(--color-error);
-    }
-    .auth-container .errorlist li {
-        margin-bottom: 0.2rem;
-    }
-    .auth-container .btn-primary { /* Botón de Ingresar */
-        width: 100%;
-        padding: 0.8rem;
-        font-size: 1.05rem; /* Ligeramente más grande */
-        margin-top: 0.5rem; /* Espacio sobre el botón */
-    }
-    .auth-links { /* Contenedor para "¿Olvidaste contraseña?" y "Regístrate" */
-        text-align: center;
-        margin-top: 1.5rem;
-        font-size: 0.9rem; /* Texto un poco más pequeño */
-    }
-    .auth-links p {
-        margin-bottom: 0.5rem;
-    }
-    .auth-links a {
-        color: var(--color-accent);
-        font-weight: 500;
-        text-decoration: none;
-    }
-    .auth-links a:hover {
-        text-decoration: underline;
-        color: var(--color-accent-hover);
-    }
+.auth-container {
+    margin: 3rem auto;
+    padding: 2.5rem;
+    background-color: var(--color-white);
+    border: 1px solid var(--color-medium-gray);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-md);
+    max-width: 500px;
+}
+
+.auth-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 2rem;
+    font-family: var(--font-secondary);
+    color: var(--color-dark-gray);
+    font-size: 2rem;
+}
+
+.auth-container .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-container .form-label {
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+.auth-container .form-control {
+    border-color: var(--color-medium-gray);
+    padding: 0.75rem 1rem;
+}
+
+.auth-container .form-control:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb, 44, 44, 44), 0.25);
+}
+
+.auth-container .errorlist {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+    font-size: 0.85rem;
+    color: var(--color-error);
+}
+
+.auth-container .errorlist li {
+    margin-bottom: 0.2rem;
+}
+
+.auth-container .btn-primary {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1.05rem;
+    margin-top: 0.5rem;
+}
+
+.auth-links {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.auth-links p {
+    margin-bottom: 0.5rem;
+}
+
+.auth-links a {
+    color: var(--color-accent);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+    color: var(--color-accent-hover);
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="auth-container"> {# Usar la clase global de style.css #}
-    <h2>Iniciar Sesión</h2> {# Cambiado h1 a h2 para consistencia con style.css #}
+<div class="auth-container">
+    <h2>Iniciar Sesión</h2>
 
     <form method="post" action="{% url 'tienda:login' %}">
         {% csrf_token %}

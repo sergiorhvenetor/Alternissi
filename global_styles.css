@@ -1,14 +1,3 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ tienda_config.nombre_tienda|default:"Alternissi" }}{% endblock %} - {{ tienda_config.nombre_tienda|default:"Alternissi" }}</title>
-    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon" />
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
 :root {
     --font-primary: system-ui, -apple-system, sans-serif;
     --font-secondary: Georgia, serif;
@@ -28,11 +17,11 @@
     --color-error: #DC3545;
     --color-warning: #FFC107;
 
-    /* Dashboard/Account Variables - Re-mapped for Monochrome */
-    --gold: #000000;
-    --light-gold: var(--color-light-gray);
+    /* Dashboard/Account Variables */
+    --gold: #333333;
+    --light-gold: #e9ecef;
     --white: #FFFFFF;
-    --black: #333333;
+    --black: var(--color-dark-gray);
     --gray: #6c757d;
 
     --border-radius-sm: 4px;
@@ -41,9 +30,6 @@
     --box-shadow-md: 0 4px 10px rgba(0, 0, 0, 0.1); /* Un poco más de difusión */
     --transition-fast: all 0.2s ease-in-out;
     --transition-medium: all 0.3s ease-in-out;
-}
-
-*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -498,8 +484,6 @@ form textarea::placeholder {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 2rem;
     margin-top: 2rem;
-}
-
 .pb-4 { padding-bottom: 2rem; }
 .pb-5 { padding-bottom: 3rem; }
 
@@ -651,8 +635,6 @@ form textarea::placeholder {
     .search-bar {
         order: 3;
         width: 100%;
-    }
-}
 @media (max-width: 576px) {
     body {
         font-size: 15px;
@@ -694,101 +676,5 @@ form textarea::placeholder {
     line-height: 1; /* Evita que la altura de línea del padre afecte */
 }
 
-</style>
-    {% block extra_css %}{% endblock %}
-    {% block extra_head %}{% endblock %}
-</head>
-
-<body>
-    <div class="top-bar">
-        <div class="container">
-            <div class="top-bar__left">
-                <span>Envío gratis en compras superiores a $100</span>
-            </div>
-            <div class="top-bar__right">
-                <a href="{% url 'tienda:contacto' %}">Contacto</a>
-                {% if not user.is_authenticated %}
-                    <a href="{% url 'tienda:login' %}">Iniciar Sesión</a>
-                    <a href="{% url 'tienda:registro' %}">Registrarse</a>
-                {% else %}
-                    <a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a>
-                    <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Cerrar Sesión</a>
-                    <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <header>
-        <div class="container">
-            <div class="logo">
-                <a href="{% url 'tienda:inicio' %}">
-                    
-                    <span class="logo-text">{{ tienda_config.nombre_tienda|default:"Alternissi" }}</span>
-                </a>
-            </div>
-
-            <nav>
-                <button class="nav-toggle" aria-label="toggle navigation">
-                    <span class="hamburger"></span>
-                </button>
-                <ul class="nav-links">
-                    <li><a href="{% url 'tienda:inicio' %}" {% if request.resolver_match.url_name == 'inicio' %}class="active"{% endif %}>Inicio</a></li>
-                    <li><a href="{% url 'tienda:lista_productos' %}" {% if request.resolver_match.url_name == 'lista_productos' %}class="active"{% endif %}>Colección</a></li>
-                    <li><a href="{% url 'tienda:ver_carrito' %}" {% if request.resolver_match.url_name == 'ver_carrito' %}class="active"{% endif %}>Carrito (<span id="cart-count">{{ global_cart_items|default:0 }}</span>)</a></li>
-                </ul>
-            </nav>
-
-            <form action="{% url 'tienda:buscar' %}" method="get" class="search-bar">
-                <input type="search" name="q" placeholder="Buscar productos..." value="{{ request.GET.q }}" class="search-bar__input">
-                <button type="submit" class="search-bar__button" aria-label="Buscar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </button>
-            </form>
-        </div>
-    </header>
-
-    {% block header_banner %}{% endblock %}
-
-    <main class="container fade-in">
-        {% if messages %}
-            <div class="messages-container">
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
-
-        {% block content_container %}
-        <div class="content-wrapper">
-            {% block content %}
-            {% endblock %}
-        </div>
-        {% endblock content_container %}
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; {% now "Y" %} {{ tienda_config.nombre_tienda|default:"Alternissi" }}. Todos los derechos reservados.</p>
-            <ul>
-                <li><a href="{% url 'tienda:politica_privacidad' %}">Política de Privacidad</a></li>
-                <li><a href="{% url 'tienda:terminos_condiciones' %}">Términos y Condiciones</a></li>
-                <li><a href="{% url 'tienda:sobre_nosotros' %}">Sobre Nosotros</a></li>
-            </ul>
-        </div>
-    </footer>
-
-
-    <!-- Bootstrap 5 JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_scripts %}
-    <script src="{% static 'post/js/cart_update.js' %}"></script>
-    <script src="{% static 'post/js/script.js' %}"></script>
-    {% endblock %}
-</body>
-</html>
-
-
-
+/* Estilos específicos para el carrusel y tarjetas de categoría que podrían no estar en style.css general */
+.carousel-wrapper {
