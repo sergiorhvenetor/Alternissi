@@ -32,6 +32,59 @@
     --transition-medium: all 0.3s ease-in-out;
 }
 
+/* --- Páginas de inicio / Hero --- */
+.hero-section {
+    position: relative;
+    background: url('../images/fotografia-ropa-1.webp') no-repeat center center/cover;
+    padding: 12rem 1rem;
+    text-align: center;
+    margin-bottom: 0; /* Eliminado margen inferior para que se una al contenido si se desea */
+    color: var(--color-white);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 85vh;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65); /* Un poco más oscuro para mejor contraste */
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+}
+.hero-section h1 {
+    font-size: 5rem;
+    color: var(--color-white);
+    margin-bottom: 1.5rem;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    font-weight: 700;
+    letter-spacing: 4px; /* Aumentado espaciado */
+    text-transform: uppercase;
+}
+.hero-section p {
+    font-size: 1.6rem;
+    color: var(--color-white);
+    margin-bottom: 3.5rem;
+    max-width: 850px;
+    margin-left: auto;
+    margin-right: auto;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    line-height: 1.6;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
 /* --- Reset y Estilos Generales --- */
 *,
 *::before,
@@ -132,7 +185,7 @@ ul, ol {
 /* --- Header y Navegación --- */
 header {
     background-color: var(--color-white);
-    padding: 0.4rem 0;
+    padding: 0.5rem 0; /* Un poco más de aire */
     box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     position: sticky;
     top: 0;
@@ -143,28 +196,39 @@ header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 .logo a {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     text-decoration: none;
 }
 
-.logo img {
-    max-height: 50px;
-    width: auto;
+.logo {
+    flex-shrink: 0;
+    max-width: 250px;
+}
+
+.logo img, .logo-img {
+    height: 40px !important; /* Forzado para evitar el logo gigante */
+    width: auto !important;
+    max-height: 40px !important;
     object-fit: contain;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
 }
 
 .logo-text {
+    font-family: var(--font-secondary);
     font-size: 1.6rem;
     color: var(--color-dark-gray);
     margin: 0;
     line-height: 1;
     font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }
 
 header nav {
@@ -1197,16 +1261,16 @@ form textarea::placeholder {
 /* Tablets y dispositivos más pequeños */
 @media (max-width: 992px) {
     .container {
-        width: 95%;
+        width: 92%;
     }
 
     .nav-toggle {
-        display: block; /* Mostrar el botón hamburguesa */
+        display: block;
+        z-index: 1002;
     }
 
     header nav {
-        justify-content: space-between;
-        align-items: center;
+        flex-grow: 0;
     }
 
     .nav-links {
@@ -1268,12 +1332,17 @@ form textarea::placeholder {
     header .container {
         flex-wrap: wrap;
         gap: 0.5rem;
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
+        padding: 0.8rem 1rem;
     }
 
     .logo {
         flex: 1;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    header nav {
+        order: 2;
     }
 
     .search-bar {
@@ -1281,6 +1350,25 @@ form textarea::placeholder {
         width: 100%;
         max-width: 100%;
         margin-top: 0.5rem;
+    }
+
+    .hero-section {
+        padding: 6rem 1rem;
+        min-height: 50vh;
+    }
+    .hero-section::before {
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    .hero-section h1 {
+        font-size: 2rem;
+        word-break: keep-all;
+        overflow-wrap: normal;
+    }
+
+    .hero-section p {
+        font-size: 1rem;
+        padding: 0 1rem;
     }
 
     .search-bar__input {
@@ -1364,17 +1452,12 @@ form textarea::placeholder {
         font-size: 15px;
     }
     .logo-text {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
-    .logo img {
-        max-height: 35px;
-        width: auto;
-    }
-    header nav h1 {
-        font-size: 1.6rem; /* Reducir más el logo en pantallas muy pequeñas */
-        text-align: center; /* Centrar el logo si el menú está abajo */
-        width: 100%;
-        margin-bottom: 0.5rem;
+    .logo img, .logo-img {
+        height: 32px !important;
+        max-height: 32px !important;
+        width: auto !important;
     }
     .search-bar input[type="search"], .search-bar button[type="submit"] {
         font-size: 0.8rem; /* Reducir fuente en barra de búsqueda */
@@ -1389,36 +1472,6 @@ form textarea::placeholder {
     }
 }
 
-/* Estilos para la página de inicio */
-.hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('../images/fotografia-ropa-1.webp') no-repeat center center/cover;
-    padding: 10rem 1rem;
-    text-align: center;
-    margin-bottom: 4rem;
-    color: var(--color-white);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 70vh;
-}
-.hero-section h1 {
-    font-size: 4rem;
-    color: var(--color-white);
-    margin-bottom: 1.5rem;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    font-weight: 700;
-}
-.hero-section p {
-    font-size: 1.4rem;
-    color: var(--color-white);
-    margin-bottom: 3rem;
-    max-width: 700px;
-    margin-left: auto;
-    margin-right: auto;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    line-height: 1.4;
-}
 
 .w-100 {
     width: 100%;
@@ -1740,7 +1793,4 @@ form textarea::placeholder {
     }
 }
 
-.logo-img {
-    max-height: 50px;
-    width: auto;
-}
+/* .logo-img class is handled by .logo img selector above */
