@@ -7,65 +7,6 @@
 {% block extra_css %}
 <style>
 
-.product-card {
-    background-color: var(--color-white);
-    border: none;
-    border-radius: var(--border-radius-md);
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: var(--transition-medium);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.product-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-}
-
-.product-card__image-container {
-    width: 100%;
-    padding-top: 100%; /* Aspect ratio 1:1. Ajustar si las imágenes son diferentes */
-    position: relative;
-    background-color: var(--color-light-gray); /* Placeholder color */
-}
-
-.product-card__image-container img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Asegura que la imagen cubra el contenedor sin distorsionarse */
-}
-
-.product-card__info {
-    padding: 1rem;
-    text-align: center;
-    flex-grow: 1; /* Para que el contenido ocupe el espacio disponible */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.product-card__name {
-    font-family: var(--font-secondary);
-    font-size: 1.2rem;
-    color: var(--color-dark-gray);
-    margin-bottom: 0.5rem;
-    text-decoration: none;
-}
-.product-card__name:hover {
-    color: var(--color-accent);
-}
-
-.product-card__price {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--color-accent);
-    margin-bottom: 1rem;
-}
 
 /* --- Estilos para Detalle de Producto --- */
 .product-detail {
@@ -73,10 +14,6 @@
     grid-template-columns: 1fr; /* Default para móvil */
     gap: 2rem;
     margin-top: 2rem;
-}
-.product-card__price span:not(.original-price):not(.discounted-price) { /* Estilo para precio normal */
-    font-weight: bold;
-    color: var(--color-accent);
 }
 
 .category-grid {
@@ -322,21 +259,6 @@
 }
 
 /* Los estilos de .product-grid y .product-card ya están en style.css */
-/* Ajustes de precio (ya deberían estar en style.css, pero para asegurar consistencia) */
-.product-card__price .original-price {
-    text-decoration: line-through;
-    color: var(--color-medium-gray);
-    font-size: 0.9em;
-    margin-right: 0.5em;
-}
-.product-card__price .discounted-price {
-    font-weight: bold;
-    color: var(--color-error);
-}
-.product-card__price span:not(.original-price):not(.discounted-price) {
-    font-weight: bold;
-    color: var(--color-accent);
-}
 </style>
 {% endblock %}
 

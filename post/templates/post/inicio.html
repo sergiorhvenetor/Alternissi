@@ -65,7 +65,10 @@
     overflow-x: auto;
     scroll-behavior: smooth;
     gap: 20px;
-    padding-bottom: 1rem;
+    padding-top: 15px; /* Evita que el hover se corte arriba */
+    padding-bottom: 30px; /* Evita que la sombra se corte abajo */
+    margin-top: -15px;
+    margin-bottom: -15px;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -106,17 +109,6 @@
     cursor: not-allowed;
 }
 
-.original-price {
-    text-decoration: line-through;
-    color: var(--color-medium-gray);
-    font-size: 0.9em;
-    margin-right: 0.5em;
-}
-
-.discounted-price {
-    font-weight: bold;
-    color: var(--color-error);
-}
 
 .category-card-link {
     text-decoration: none;
