@@ -5,7 +5,7 @@ from django.utils.text import slugify
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Sum, F
+from django.db.models import Q, Sum, F, Avg
 import uuid
 
 
@@ -208,6 +208,38 @@ class Producto(TimeStampedModel):
             raise ValueError("No hay suficiente stock disponible")
         self.stock -= cantidad
         self.save()
+
+    @property
+    def calificacion_promedio(self):
+        """Calcula el promedio de las calificaciones de las reseñas aprobadas."""
+        # Usar valor anotado si existe para evitar N+1
+        if hasattr(self, 'annotated_avg_rating') and self.annotated_avg_rating is not None:
+            return round(self.annotated_avg_rating, 1)
+
+        resenas = self.resenas.filter(aprobado=True)
+        if resenas.exists():
+            res = resenas.aggregate(promedio=Avg('calificacion'))['promedio']
+            return round(res, 1) if res else 0
+        return 0
+
+    @property
+    def total_resenas(self):
+        """Retorna el número total de reseñas aprobadas."""
+        # Usar valor anotado si existe para evitar N+1
+        if hasattr(self, 'annotated_count_reviews'):
+            return self.annotated_count_reviews
+
+        return self.resenas.filter(aprobado=True).count()
+
+    @property
+    def calificacion_promedio_entera(self):
+        """Retorna el promedio redondeado al entero más cercano."""
+        return int(round(self.calificacion_promedio))
+
+    @property
+    def calificacion_promedio_restante(self):
+        """Retorna el número de estrellas vacías para completar 5."""
+        return 5 - self.calificacion_promedio_entera
 
 class ImagenProducto(TimeStampedModel):
     producto = models.ForeignKey(
@@ -691,6 +723,19 @@ class Resena(TimeStampedModel):
     def calificacion_restante(self):
         """Retorna el número de estrellas vacías para completar 5."""
         return 5 - self.calificacion
+
+    @property
+    def es_verificada(self):
+        """Verifica si la reseña proviene de un comprador real."""
+        # Usar valor anotado si existe para evitar N+1
+        if hasattr(self, 'compra_verificada'):
+            return self.compra_verificada
+
+        return Pedido.objects.filter(
+            cliente=self.cliente,
+            detalles__producto=self.producto,
+            estado=Pedido.Estado.COMPLETADO
+        ).exists()
 
 class ListaDeseos(models.Model):
     cliente = models.OneToOneField(

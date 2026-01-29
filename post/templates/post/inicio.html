@@ -210,6 +210,12 @@
                         </a>
                         <div class="product-card__info">
                             <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
+                            {% if producto.total_resenas > 0 %}
+                            <div class="product-card__rating mb-2" style="color: #ffc107; font-size: 0.85rem;">
+                                {% for i in "x"|rjust:producto.calificacion_promedio_entera %}★{% endfor %}{% for i in "x"|rjust:producto.calificacion_promedio_restante %}☆{% endfor %}
+                                <span class="text-muted small">({{ producto.total_resenas }})</span>
+                            </div>
+                            {% endif %}
                             <p class="product-card__price">
                                 {% if producto.tiene_descuento %}
                                     <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
@@ -250,6 +256,12 @@
                     </a>
                     <div class="product-card__info">
                         <a href="{{ producto.get_absolute_url }}" class="product-card__name">{{ producto.nombre }}</a>
+                        {% if producto.total_resenas > 0 %}
+                        <div class="product-card__rating mb-2" style="color: #ffc107; font-size: 0.85rem;">
+                            {% for i in "x"|rjust:producto.calificacion_promedio_entera %}★{% endfor %}{% for i in "x"|rjust:producto.calificacion_promedio_restante %}☆{% endfor %}
+                            <span class="text-muted small">({{ producto.total_resenas }})</span>
+                        </div>
+                        {% endif %}
                         <p class="product-card__price">
                              {% if producto.tiene_descuento %}
                                 <span class="original-price">${{ producto.precio|floatformat:2 }}</span>
