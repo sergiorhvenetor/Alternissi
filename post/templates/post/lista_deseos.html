@@ -12,325 +12,70 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-
-/* --- Banner de Página (para efecto de superposición) --- */
-.page-banner {
-    background: linear-gradient(135deg, var(--color-dark-gray) 0%, #454d55 100%);
-    padding: 60px 0 100px;
-    color: var(--color-white);
-    text-align: center;
-    position: relative;
-}
-
-.page-banner h1 {
-    color: var(--color-white);
-    margin: 0;
-    font-size: 2.8rem;
-    font-family: var(--font-secondary);
-}
-/* --- Panel de Cuenta y Dashboard --- */
-.account-container {
-    max-width: 1000px;
-    margin: -80px auto 40px;
-    padding: 30px;
-    background-color: var(--color-white);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1001;
-}
-
-.account-grid {
-    display: flex;
-    gap: 40px;
-}
-
-.account-nav {
-    flex: 0 0 250px;
-    background-color: var(--color-dark-gray);
-    padding: 25px;
-    border-radius: 8px;
-    height: fit-content;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.account-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.account-nav li a {
-    display: block;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.account-nav li a:hover,
-.account-nav li a.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
-    transform: translateX(5px);
-}
-
-.account-nav li a.active {
-    font-weight: 700;
-    border-left: 3px solid var(--color-white);
-}
-
-.account-content {
-    flex: 1;
-}
-
-.account-content h2,
-.account-content h3 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    color: var(--color-dark-gray);
-}
-
-.account-content h2 {
-    font-size: 1.8em;
-    border-bottom: 2px solid var(--color-medium-gray);
-    padding-bottom: 10px;
-    display: inline-block;
-}
-
-.account-content h3 {
-    font-size: 1.5em;
-    position: relative;
-    padding-left: 15px;
-}
-
-.account-content h3:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 70%;
-    width: 4px;
-    background-color: var(--color-dark-gray);
-}
-
-.welcome-box {
-    background-color: var(--color-light-gray);
-    padding: 25px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    border-left: 4px solid var(--color-dark-gray);
-}
-
-.welcome-box--success {
-    background-color: rgba(40, 167, 69, 0.1);
-    border-left-color: var(--color-success);
-}
-
-.recent-orders-table, .orders-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 25px;
-    font-size: 0.95em;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.recent-orders-table th, .orders-table th {
-    background-color: var(--black);
-    color: var(--gold);
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.recent-orders-table td, .orders-table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 12px;
-    color: var(--gray);
-}
-
-.recent-orders-table tr:hover td, .orders-table tr:hover td {
-    background-color: rgba(44, 44, 44, 0.05);
-}
-
-.recent-orders-table a, .orders-table a {
-    color: var(--gold);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-
-.quick-links a {
-    margin-right: 20px;
-    text-decoration: none;
-    color: var(--gold);
-    font-weight: 500;
-    padding: 8px 0;
-    display: inline-block;
-    position: relative;
-}
-
-.quick-links a:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--gold);
-    transition: width 0.3s ease;
-}
-
-.quick-links a:hover:after {
-    width: 100%;
-}
-
-.info-quick-links {
-    margin-top: 15px;
-}
-
-.section-divider {
-    margin: 30px 0;
-    border: 0;
-    border-top: 1px solid #eee;
-}
-
-.info-section p {
-    margin-bottom: 12px;
-    font-size: 1.05em;
-}
-
-.info-section strong {
-    color: var(--black);
-    font-weight: 600;
-    min-width: 120px;
-    display: inline-block;
-}
-
-.account-nav li:last-child a {
-    color: var(--color-error);
-}
-
-.account-nav li:last-child a:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: var(--color-error);
-}
-
-@media (max-width: 768px) {
-    .account-grid {
-        flex-direction: column;
-    }
-
-
-/* Estilos adicionales para la lista de deseos */
-.wishlist-items-container .wishlist-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; background-color: #fff; }
-.wishlist-items-container .wishlist-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
-.wishlist-items-container .wishlist-item-info { flex-grow: 1; }
-.wishlist-items-container .wishlist-item-info h3 { margin: 0 0 5px 0; font-size: 1.2em; }
-.wishlist-items-container .wishlist-item-info h3 a { text-decoration: none; color: #333; }
-.wishlist-items-container .wishlist-item-info h3 a:hover { color: #007bff; }
-.wishlist-items-container .wishlist-item-info .precio { font-size: 1.1em; color: #28a745; margin-bottom:10px;}
-.wishlist-items-container .wishlist-item-info .precio-original { text-decoration: line-through; color: var(--color-error); margin-right: 8px; font-size: 0.9em; }
-.wishlist-items-container .wishlist-item-info .precio-descuento { font-weight: bold; color: var(--black); }
-.wishlist-items-container .wishlist-item-info .categoria-texto { font-size: 0.9em; color: #555; }
-.wishlist-item-actions form { display: inline-block; }
-.wishlist-item-actions .btn { margin-right: 10px; margin-top: 5px; }
-.empty-wishlist, .no-orders { padding: 20px; background-color:#f8f9fa; text-align:center; border-radius:5px;}
-
-/* --- Lista de Deseos --- */
-.wishlist-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-medium-gray);
-}
-.wishlist-item:last-child {
-    border-bottom: none;
-}
-
-.wishlist-item img {
-    max-width: 100px;
-    border-radius: var(--border-radius-sm);
-}
-.wishlist-item-info h4 {
-    margin: 0 0 0.5rem 0;
-}
-.wishlist-item-info p {
-    margin-bottom: 0.5rem;
-}
-
-/* --- Paginación --- */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    list-style: none;
-    padding: 0;
-    margin-top: 2rem;
-}
-
-.pagination .page-item {
-
-</style>
+    {% include "post/cuenta/_account_styles.html" %}
 {% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
-        <aside class="account-nav">
-            <ul>
-                <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
-                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}">Mis Pedidos</a></li>
-                <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
-                <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
-                <li><a href="{% url 'tienda:ver_lista_deseos' %}" class="active">Mi Lista de Deseos</a></li>
+        {% include "post/cuenta/_sidebar.html" with active_tab="wishlist" %}
 
-            </ul>
-        </aside>
         <main class="account-content">
+            <h2>Mi Selección</h2>
             {% if lista_deseos and lista_deseos.productos.all %}
                 <div class="wishlist-items-container">
                     {% for producto in lista_deseos.productos.all %}
                         <article class="wishlist-item">
-                            <a href="{{ producto.get_absolute_url }}">
-                                {% if producto.imagenes.first %}<img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.nombre }}">
-                                {% else %}<img src="{% static 'post/images/placeholder.png' %}" alt="Imagen no disponible">{% endif %}
+                            <a href="{{ producto.get_absolute_url }}" style="flex-shrink: 0;">
+                                {% if producto.imagenes.first %}
+                                    <img src="{{ producto.imagenes.first.imagen.url }}" alt="{{ producto.nombre }}">
+                                {% else %}
+                                    <img src="{% static 'post/images/placeholder.png' %}" alt="N/A">
+                                {% endif %}
                             </a>
                             <div class="wishlist-item-info">
-                                <h3><a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a></h3>
-                                <p class="precio">
+                                <h3 style="margin-bottom: 5px; font-size: 1.2rem;">
+                                    <a href="{{ producto.get_absolute_url }}">{{ producto.nombre }}</a>
+                                </h3>
+                                <p class="precio" style="margin-bottom: 5px;">
                                     {% if producto.tiene_descuento %}
-                                        <span class="precio-original">{{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                                        <span class="precio-descuento">{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}</span>
-                                    {% else %}{{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}{% endif %}
+                                        <span class="precio-original" style="text-decoration: line-through; color: var(--color-error); margin-right: 8px; font-size: 0.9em;">
+                                            {{ producto.precio|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                                        </span>
+                                        <span class="precio-descuento" style="font-weight: 700; color: var(--color-dark-gray);">
+                                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                                        </span>
+                                    {% else %}
+                                        <span style="font-weight: 700; color: var(--color-dark-gray);">
+                                            {{ producto.precio_actual|floatformat:2 }} {{moneda_simbolo|default:'$'}}
+                                        </span>
+                                    {% endif %}
                                 </p>
-                                <p class="categoria-texto">{{ producto.categoria.nombre }}</p>
+                                <p class="categoria-texto" style="font-size: 0.85em; color: #777;">{{ producto.categoria.nombre }}</p>
                             </div>
                             <div class="wishlist-item-actions">
-                                <a href="{{ producto.get_absolute_url }}" class="btn btn-secondary btn-sm">Ver</a>
                                 <form action="{% url 'tienda:mover_deseo_a_carrito' producto_id=producto.id %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary btn-sm">Mover al Carrito</button>
+                                    <button type="submit" class="btn btn-primary btn-sm" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                        Mover al Carrito
+                                    </button>
                                 </form>
                                 <form action="{% url 'tienda:eliminar_de_lista_deseos' producto_id=producto.id %}" method="post">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+                                        Eliminar
+                                    </button>
                                 </form>
                             </div>
                         </article>
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="empty-wishlist">
+                <div class="empty-wishlist" style="padding: 40px; text-align: center; background: var(--color-light-gray); border-radius: 8px;">
                     <p>Tu lista de deseos está vacía.</p>
-                    <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary">Descubrir productos</a>
+                    <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary" style="margin-top: 20px;">
+                        Descubrir productos
+                    </a>
                 </div>
             {% endif %}
         </main>

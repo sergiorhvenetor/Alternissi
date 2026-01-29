@@ -12,328 +12,108 @@
 {% endblock %}
 
 {% block extra_css %}
-<style>
-
-/* --- Banner de Página (para efecto de superposición) --- */
-.page-banner {
-    background: linear-gradient(135deg, var(--color-dark-gray) 0%, #454d55 100%);
-    padding: 60px 0 100px;
-    color: var(--color-white);
-    text-align: center;
-    position: relative;
-}
-
-.page-banner h1 {
-    color: var(--color-white);
-    margin: 0;
-    font-size: 2.8rem;
-    font-family: var(--font-secondary);
-}
-/* --- Panel de Cuenta y Dashboard --- */
-.account-container {
-    max-width: 1000px;
-    margin: -80px auto 40px;
-    padding: 30px;
-    background-color: var(--color-white);
-    border-radius: var(--border-radius-md);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1001;
-}
-
-.account-grid {
-    display: flex;
-    gap: 40px;
-}
-
-.account-nav {
-    flex: 0 0 250px;
-    background-color: var(--color-dark-gray);
-    padding: 25px;
-    border-radius: 8px;
-    height: fit-content;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.account-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.account-nav li a {
-    display: block;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
-    font-weight: 500;
-}
-
-.account-nav li a:hover,
-.account-nav li a.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--color-white);
-    transform: translateX(5px);
-}
-
-.account-nav li a.active {
-    font-weight: 700;
-    border-left: 3px solid var(--color-white);
-}
-
-.account-content {
-    flex: 1;
-}
-
-.account-content h2,
-.account-content h3 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    color: var(--color-dark-gray);
-}
-
-.account-content h2 {
-    font-size: 1.8em;
-    border-bottom: 2px solid var(--color-medium-gray);
-    padding-bottom: 10px;
-    display: inline-block;
-}
-
-.account-content h3 {
-    font-size: 1.5em;
-    position: relative;
-    padding-left: 15px;
-}
-
-.account-content h3:before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 70%;
-    width: 4px;
-    background-color: var(--color-dark-gray);
-}
-
-.welcome-box {
-    background-color: var(--color-light-gray);
-    padding: 25px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-    border-left: 4px solid var(--color-dark-gray);
-}
-
-.welcome-box--success {
-    background-color: rgba(40, 167, 69, 0.1);
-    border-left-color: var(--color-success);
-}
-
-.recent-orders-table, .orders-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 25px;
-    font-size: 0.95em;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-}
-
-.recent-orders-table th, .orders-table th {
-    background-color: var(--black);
-    color: var(--gold);
-    padding: 12px;
-    text-align: left;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.recent-orders-table td, .orders-table td {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 12px;
-    color: var(--gray);
-}
-
-.recent-orders-table tr:hover td, .orders-table tr:hover td {
-    background-color: rgba(44, 44, 44, 0.05);
-}
-
-.recent-orders-table a, .orders-table a {
-    color: var(--gold);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s;
-}
-
-.quick-links a {
-    margin-right: 20px;
-    text-decoration: none;
-    color: var(--gold);
-    font-weight: 500;
-    padding: 8px 0;
-    display: inline-block;
-    position: relative;
-}
-
-.quick-links a:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--gold);
-    transition: width 0.3s ease;
-}
-
-.quick-links a:hover:after {
-    width: 100%;
-}
-
-.info-quick-links {
-    margin-top: 15px;
-}
-
-.section-divider {
-    margin: 30px 0;
-    border: 0;
-    border-top: 1px solid #eee;
-}
-
-.info-section p {
-    margin-bottom: 12px;
-    font-size: 1.05em;
-}
-
-.info-section strong {
-    color: var(--black);
-    font-weight: 600;
-    min-width: 120px;
-    display: inline-block;
-}
-
-.account-nav li:last-child a {
-    color: var(--color-error);
-}
-
-.account-nav li:last-child a:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: var(--color-error);
-}
-
-@media (max-width: 768px) {
-    .account-grid {
-        flex-direction: column;
-    }
-
-
-/* Estilos adicionales para la lista de deseos */
-.wishlist-items-container .wishlist-item { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; background-color: #fff; }
-.wishlist-items-container .wishlist-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; margin-right: 20px; }
-.wishlist-items-container .wishlist-item-info { flex-grow: 1; }
-.wishlist-items-container .wishlist-item-info h3 { margin: 0 0 5px 0; font-size: 1.2em; }
-.wishlist-items-container .wishlist-item-info h3 a { text-decoration: none; color: #333; }
-.wishlist-items-container .wishlist-item-info h3 a:hover { color: #007bff; }
-.wishlist-items-container .wishlist-item-info .precio { font-size: 1.1em; color: #28a745; margin-bottom:10px;}
-.wishlist-items-container .wishlist-item-info .precio-original { text-decoration: line-through; color: var(--color-error); margin-right: 8px; font-size: 0.9em; }
-.wishlist-items-container .wishlist-item-info .precio-descuento { font-weight: bold; color: var(--black); }
-.wishlist-items-container .wishlist-item-info .categoria-texto { font-size: 0.9em; color: #555; }
-.wishlist-item-actions form { display: inline-block; }
-.wishlist-item-actions .btn { padding: 8px 12px; text-decoration: none; border-radius: 4px; font-size: 0.9em; margin-right: 10px; border: none; cursor:pointer; display:inline-block; margin-top:5px;}
-.wishlist-item-actions .btn-view { background-color: #6c757d; color: white; }
-.wishlist-item-actions .btn-add-cart { background-color: #007bff; color: white; }
-.wishlist-item-actions .btn-remove-wishlist { background-color: var(--color-error); color: white; }
-.empty-wishlist, .no-orders { padding: 20px; background-color:#f8f9fa; text-align:center; border-radius:5px;}
-
-/* --- Lista de Deseos --- */
-.wishlist-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-medium-gray);
-}
-.wishlist-item:last-child {
-    border-bottom: none;
-}
-
-.wishlist-item img {
-    max-width: 100px;
-    border-radius: var(--border-radius-sm);
-}
-.wishlist-item-info h4 {
-    margin: 0 0 0.5rem 0;
-}
-.wishlist-item-info p {
-    margin-bottom: 0.5rem;
-}
-
-/* --- Paginación --- */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    list-style: none;
-    padding: 0;
-    margin-top: 2rem;
-}
-
-.pagination .page-item {
-
-</style>
+    {% include "post/cuenta/_account_styles.html" %}
+    <style>
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            list-style: none;
+            padding: 0;
+            margin-top: 2rem;
+            gap: 10px;
+        }
+        .pagination-list {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            gap: 5px;
+        }
+        .pagination li a, .pagination li span {
+            padding: 8px 16px;
+            border: 1px solid var(--color-medium-gray);
+            border-radius: 4px;
+            text-decoration: none;
+            color: var(--color-dark-gray);
+        }
+        .pagination li.active span {
+            background-color: var(--color-dark-gray);
+            color: var(--color-white);
+            border-color: var(--color-dark-gray);
+        }
+    </style>
 {% endblock %}
+
 {% block content %}
 <div class="account-container">
     <div class="account-grid">
-        <aside class="account-nav">
-            <ul>
-                <li><a href="{% url 'tienda:cuenta_dashboard' %}">Panel Principal</a></li>
-                <li><a href="{% url 'tienda:lista_pedidos_cliente' %}" class="active">Mis Pedidos</a></li>
-                <li><a href="{% url 'tienda:editar_perfil_cliente' %}">Editar Perfil</a></li>
-                <li><a href="{% url 'tienda:password_change' %}">Cambiar Contraseña</a></li>
-                <li><a href="{% url 'tienda:ver_lista_deseos' %}">Mi Lista de Deseos</a></li>
-                <li>
-                    <form id="sidebar-logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                    <a href="#" onclick="document.getElementById('sidebar-logout-form').submit(); return false;">Cerrar Sesión</a>
-                </li>
-            </ul>
-        </aside>
+        {% include "post/cuenta/_sidebar.html" with active_tab="pedidos" %}
+
         <main class="account-content">
+            <h2>Historial de Pedidos</h2>
             {% if pedidos %}
                 <table class="orders-table">
-                    <thead><tr><th>Nº Pedido</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Nº Pedido</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
                     <tbody>
                         {% for pedido_obj in pedidos %}
                         <tr>
-                            <td><a href="{% url 'tienda:detalle_pedido_cliente' pedido_id=pedido_obj.id %}">{{ pedido_obj.codigo }}</a></td>
+                            <td>
+                                <a href="{% url 'tienda:detalle_pedido_cliente' pedido_id=pedido_obj.id %}">
+                                    {{ pedido_obj.codigo }}
+                                </a>
+                            </td>
                             <td>{{ pedido_obj.creado|date:"d M Y" }}</td>
                             <td>{{ pedido_obj.total|floatformat:2 }} {{moneda_simbolo|default:'$'}}</td>
                             <td>{{ pedido_obj.get_estado_display }}</td>
-                            <td><a href="{% url 'tienda:detalle_pedido_cliente' pedido_id=pedido_obj.id %}">Ver Detalles</a></td>
+                            <td>
+                                <a href="{% url 'tienda:detalle_pedido_cliente' pedido_id=pedido_obj.id %}">
+                                    Ver Detalles
+                                </a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+
                 {% if is_paginated %}
                 <nav class="pagination">
                     <ul class="pagination-list">
-                        {% if page_obj.has_previous %}<li><a href="?page={{ page_obj.previous_page_number }}">&laquo; Anterior</a></li>
-                        {% else %}<li class="disabled"><span>&laquo; Anterior</span></li>{% endif %}
+                        {% if page_obj.has_previous %}
+                            <li><a href="?page={{ page_obj.previous_page_number }}">&laquo; Anterior</a></li>
+                        {% else %}
+                            <li class="disabled"><span>&laquo; Anterior</span></li>
+                        {% endif %}
+
                         {% for i in paginator.page_range %}
-                            {% if page_obj.number == i %}<li class="active"><span>{{ i }}</span></li>
-                            {% else %}<li><a href="?page={{ i }}">{{ i }}</a></li>{% endif %}
+                            {% if page_obj.number == i %}
+                                <li class="active"><span>{{ i }}</span></li>
+                            {% else %}
+                                <li><a href="?page={{ i }}">{{ i }}</a></li>
+                            {% endif %}
                         {% endfor %}
-                        {% if page_obj.has_next %}<li><a href="?page={{ page_obj.next_page_number }}">Siguiente &raquo;</a></li>
-                        {% else %}<li class="disabled"><span>Siguiente &raquo;</span></li>{% endif %}
+
+                        {% if page_obj.has_next %}
+                            <li><a href="?page={{ page_obj.next_page_number }}">Siguiente &raquo;</a></li>
+                        {% else %}
+                            <li class="disabled"><span>Siguiente &raquo;</span></li>
+                        {% endif %}
                     </ul>
                 </nav>
                 {% endif %}
             {% else %}
-                <div class="no-orders">
+                <div class="no-orders" style="padding: 40px; text-align: center; background: var(--color-light-gray); border-radius: 8px;">
                     <p>Aún no has realizado ningún pedido.</p>
-                    <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary">Explorar productos</a>
+                    <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary" style="margin-top: 20px;">
+                        Explorar productos
+                    </a>
                 </div>
             {% endif %}
         </main>
