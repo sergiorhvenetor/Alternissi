@@ -1,0 +1,197 @@
+<style>
+/* --- Banner de Página --- */
+.page-banner {
+    background: linear-gradient(135deg, #2c2c2c 0%, #454d55 100%);
+    padding: 80px 0 120px;
+    color: #ffffff;
+    text-align: center;
+    position: relative;
+    margin-bottom: 0;
+}
+
+.page-banner h1 {
+    color: #ffffff !important;
+    margin: 0;
+    font-size: 3rem;
+    font-family: var(--font-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* --- Panel de Cuenta --- */
+.account-container {
+    max-width: 1100px;
+    margin: -60px auto 60px;
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    position: relative;
+    z-index: 1005;
+}
+
+.account-grid {
+    display: flex;
+    gap: 40px;
+}
+
+/* --- Sidebar Navigation --- */
+.account-nav {
+    flex: 0 0 280px;
+    background-color: #1a1a1a;
+    padding: 30px 20px;
+    border-radius: 10px;
+    height: fit-content;
+}
+
+.account-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.account-nav li a {
+    display: block;
+    padding: 14px 20px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.7);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.account-nav li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: translateX(5px);
+}
+
+.account-nav li a.active {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+/* --- Main Content --- */
+.account-content {
+    flex: 1;
+    color: #333333;
+}
+
+.account-content h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #1a1a1a;
+    border-bottom: 2px solid #eeeeee;
+    padding-bottom: 15px;
+}
+
+.account-content h3 {
+    font-size: 1.5rem;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+}
+
+/* --- Forms --- */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: #1a1a1a;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    border: 1px solid #cccccc !important;
+    border-radius: 6px !important;
+    padding: 12px 15px !important;
+}
+
+.helptext {
+    display: block;
+    margin-top: 8px;
+    color: #666666;
+    font-size: 0.85rem;
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+    color: #ffffff !important;
+    padding: 12px 30px !important;
+    border-radius: 50px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover {
+    background-color: #333333 !important;
+    border-color: #333333 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* --- Welcome Box --- */
+.welcome-box {
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+    border-left: 5px solid #1a1a1a;
+}
+
+.welcome-box h2 {
+    margin-top: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+    font-size: 1.8rem;
+}
+
+/* --- Tables --- */
+.orders-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.orders-table th {
+    padding: 15px;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: #777777;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.orders-table td {
+    padding: 15px;
+    background-color: #ffffff;
+    border-top: 1px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.orders-table tr td:first-child { border-left: 1px solid #eeeeee; border-radius: 8px 0 0 8px; }
+.orders-table tr td:last-child { border-right: 1px solid #eeeeee; border-radius: 0 8px 8px 0; }
+
+/* --- Responsive --- */
+@media (max-width: 992px) {
+    .account-grid {
+        flex-direction: column;
+    }
+    .account-nav {
+        flex: none;
+        width: 100%;
+    }
+}
+</style>
