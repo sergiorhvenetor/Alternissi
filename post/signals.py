@@ -179,36 +179,58 @@ User = get_user_model()
 def create_or_update_cliente_profile(sender, instance, created, **kwargs):
     """
     Crea o actualiza el perfil del cliente cada vez que un usuario se guarda.
+    Incluye lógica robusta para evitar IntegrityError por emails duplicados
+    y permite vincular perfiles de Cliente existentes sin usuario.
     """
     if created:
-        # Si se crea un nuevo usuario, también creamos un perfil de Cliente asociado.
-        # Esto es especialmente útil para usuarios creados desde el admin.
-        Cliente.objects.get_or_create(
-            usuario=instance,
-            defaults={
-                'email': instance.email,
-                'nombre': instance.first_name,
-                'apellido': instance.last_name,
-            }
-        )
+        # Primero intentamos buscar si ya existe un perfil para este usuario
+        cliente = Cliente.objects.filter(usuario=instance).first()
+        if not cliente:
+            # Si no existe por usuario, buscamos por email
+            cliente = Cliente.objects.filter(email=instance.email).first()
+            if cliente:
+                if cliente.usuario is None:
+                    # Vincular cliente existente (ej. huérfano o previo) al nuevo usuario
+                    cliente.usuario = instance
+                    cliente.nombre = cliente.nombre or instance.first_name
+                    cliente.apellido = cliente.apellido or instance.last_name
+                    cliente.save()
+                # Si ya tiene un usuario diferente, no hacemos nada para evitar conflictos de integridad
+            else:
+                # No existe ni por usuario ni por email, crear uno nuevo
+                Cliente.objects.create(
+                    usuario=instance,
+                    email=instance.email,
+                    nombre=instance.first_name,
+                    apellido=instance.last_name,
+                )
     else:
-        # Si un usuario existente se actualiza, actualizamos el perfil del Cliente.
+        # Actualización de usuario existente
         try:
             cliente = instance.cliente
-            # Comprobar si los datos han cambiado para evitar escrituras innecesarias.
+            # Comprobar si los datos han cambiado
             if (cliente.email != instance.email or
                 cliente.nombre != instance.first_name or
                 cliente.apellido != instance.last_name):
 
-                cliente.email = instance.email
-                cliente.nombre = instance.first_name
-                cliente.apellido = instance.last_name
-                cliente.save()
+                # Verificar si el nuevo email ya está en uso por OTRO cliente
+                email_en_uso = Cliente.objects.filter(email=instance.email).exclude(id=cliente.id).exists()
+                if not email_en_uso:
+                    cliente.email = instance.email
+                    cliente.nombre = instance.first_name
+                    cliente.apellido = instance.last_name
+                    cliente.save()
         except Cliente.DoesNotExist:
-            # Si por alguna razón el perfil no existe, lo creamos.
-            Cliente.objects.create(
-                usuario=instance,
-                email=instance.email,
-                nombre=instance.first_name,
-                apellido=instance.last_name,
-            )
+            # Si no tiene perfil, intentar vincular uno por email o crear uno nuevo
+            cliente = Cliente.objects.filter(email=instance.email).first()
+            if cliente:
+                if cliente.usuario is None:
+                    cliente.usuario = instance
+                    cliente.save()
+            else:
+                Cliente.objects.create(
+                    usuario=instance,
+                    email=instance.email,
+                    nombre=instance.first_name,
+                    apellido=instance.last_name,
+                )

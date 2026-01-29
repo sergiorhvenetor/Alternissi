@@ -55,6 +55,18 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name')
 
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Ya existe un usuario con este correo electrónico.")
+
+        # Verificar si el email ya existe en el modelo Cliente
+        cliente = Cliente.objects.filter(email=email).first()
+        if cliente and cliente.usuario is not None:
+            raise forms.ValidationError("Este correo electrónico ya está registrado.")
+
+        return email
+
 class ProductoForm(forms.ModelForm):
     """
     Formulario para la creación y edición de productos desde el panel de administración.
