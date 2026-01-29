@@ -138,13 +138,16 @@ ul, ol {
 }
 
 /* --- Header y Navegación --- */
+.main-header-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
 header {
     background-color: var(--color-white);
     padding: 0.5rem 0; /* Un poco más de aire */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
 }
 
 header .container {
@@ -773,27 +776,28 @@ form textarea::placeholder {
 </head>
 
 <body>
-    <div class="top-bar">
-        <div class="container">
-            <div class="top-bar__left">
-                <span>Envío gratis en compras superiores a $100</span>
-            </div>
-            <div class="top-bar__right">
-                <a href="{% url 'tienda:contacto' %}">Contacto</a>
-                {% if not user.is_authenticated %}
-                    <a href="{% url 'tienda:login' %}">Iniciar Sesión</a>
-                    <a href="{% url 'tienda:registro' %}">Registrarse</a>
-                {% else %}
-                    <a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a>
-                    <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Cerrar Sesión</a>
-                    <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-                {% endif %}
+    <div class="main-header-wrapper">
+        <div class="top-bar">
+            <div class="container">
+                <div class="top-bar__left">
+                    <span>Envío gratis en compras superiores a $100</span>
+                </div>
+                <div class="top-bar__right">
+                    <a href="{% url 'tienda:contacto' %}">Contacto</a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'tienda:login' %}">Iniciar Sesión</a>
+                        <a href="{% url 'tienda:registro' %}">Registrarse</a>
+                    {% else %}
+                        <a href="{% url 'tienda:cuenta_dashboard' %}">Mi Cuenta</a>
+                        <a href="#" onclick="document.getElementById('logout-form').submit(); return false;">Cerrar Sesión</a>
+                        <form id="logout-form" action="{% url 'tienda:logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
 
-    <header>
-        <div class="container">
+        <header>
+            <div class="container">
             <div class="logo">
                 <a href="{% url 'tienda:inicio' %}">
                     {% if tienda_config.logo %}
@@ -823,7 +827,8 @@ form textarea::placeholder {
                 </button>
             </form>
         </div>
-    </header>
+        </header>
+    </div>
 
     {% block header_banner %}{% endblock %}
 
