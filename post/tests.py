@@ -70,6 +70,46 @@ class SignalTests(TestCase):
         self.assertEqual(user.last_name, 'User')
         self.assertEqual(user.email, 'updated_sync@example.com')
 
+    def test_duplicate_email_signal_handling(self):
+        """Test that signal handles existing Cliente without user by linking them."""
+        email = "orphaned@example.com"
+        cliente = Cliente.objects.create(
+            nombre="Orphaned",
+            apellido="Cliente",
+            email=email
+        )
+
+        # This should NOT raise IntegrityError anymore
+        user = User.objects.create_user(
+            username="newuser_signal",
+            email=email,
+            password="password123",
+            first_name="New",
+            last_name="User"
+        )
+
+        cliente.refresh_from_db()
+        self.assertEqual(cliente.usuario, user)
+        self.assertEqual(cliente.nombre, "Orphaned")
+
+    def test_duplicate_user_email_signal_safety(self):
+        """Test that signal doesn't crash if email already belongs to another user."""
+        email = "user1@example.com"
+        User.objects.create_user(
+            username="user1",
+            email=email,
+            password="password123"
+        )
+
+        # Second user with same email (Standard User allows this)
+        user2 = User.objects.create_user(
+            username="user2",
+            email=email,
+            password="password123"
+        )
+
+        self.assertFalse(Cliente.objects.filter(usuario=user2).exists())
+
 
 class PedidoModelTests(TestCase):
     def test_generar_codigo_pedido_format(self):
@@ -80,6 +120,52 @@ class PedidoModelTests(TestCase):
         codigo = pedido.generar_codigo_pedido()
 
         self.assertRegex(codigo, r'^PED-\d{6}-[A-F0-9]{6}$')
+
+
+from .forms import CustomUserCreationForm
+
+class RegistrationFormTests(TestCase):
+    def test_form_validation_duplicate_email(self):
+        """Test that form prevents registration with an email already used by another user."""
+        email = "taken@example.com"
+        User.objects.create_user(
+            username="existing",
+            email=email,
+            password="password123"
+        )
+
+        form_data = {
+            'username': 'newuser_form',
+            'email': email,
+            'first_name': 'New',
+            'last_name': 'User',
+            'password1': 'Pass123!',
+            'password2': 'Pass123!',
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+        self.assertEqual(form.errors['email'][0], "Ya existe un usuario con este correo electrónico.")
+
+    def test_form_validation_existing_cliente_no_user(self):
+        """Test that form ALLOWS registration if Cliente exists but has no user."""
+        email = "guest@example.com"
+        Cliente.objects.create(
+            nombre="Guest",
+            apellido="User",
+            email=email
+        )
+
+        form_data = {
+            'username': 'newuser_form_guest',
+            'email': email,
+            'first_name': 'New',
+            'last_name': 'User',
+            'password1': 'Pass123!',
+            'password2': 'Pass123!',
+        }
+        form = CustomUserCreationForm(data=form_data)
+        self.assertTrue(form.is_valid(), form.errors)
 
 
 class ViewTests(TestCase):
