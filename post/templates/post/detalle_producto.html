@@ -72,6 +72,16 @@
         font-family: var(--font-secondary);
         color: var(--color-dark-gray);
     }
+    .product-detail__rating-summary {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+    }
+    .product-detail__rating-summary .stars {
+        color: #ffc107;
+    }
     .product-detail__meta {
         font-size: 0.9rem;
         color: #777;
@@ -292,6 +302,15 @@
         <div class="product-detail__info">
             <h1>{{ producto.nombre }}</h1>
 
+            {% if resenas.count > 0 %}
+            <div class="product-detail__rating-summary">
+                <div class="stars">
+                    {% for i in "x"|rjust:producto.calificacion_promedio_entera %}★{% endfor %}{% for i in "x"|rjust:producto.calificacion_promedio_restante %}☆{% endfor %}
+                </div>
+                <a href="#opiniones" class="text-muted small">({{ resenas.count }} reseña{{ resenas.count|pluralize }})</a>
+            </div>
+            {% endif %}
+
             <div class="product-detail__meta">
                 {% if producto.categoria %}
                     <span>Categoría: <a href="{{ producto.categoria.get_absolute_url }}">{{ producto.categoria.nombre }}</a></span>
@@ -360,9 +379,6 @@
                 <button class="nav-link" id="especificaciones-tab" data-bs-toggle="tab" data-bs-target="#especificacionesContent" type="button" role="tab" aria-controls="especificacionesContent" aria-selected="false">Características</button>
             </li>
             {% endif %}
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reseñas-tab" data-bs-toggle="tab" data-bs-target="#reseñasContent" type="button" role="tab" aria-controls="reseñasContent" aria-selected="false">Reseñas ({{ resenas.count }})</button>
-            </li>
         </ul>
         <div class="tab-content" id="productTabContent">
             <div class="tab-pane fade show active" id="descripcionContent" role="tabpanel" aria-labelledby="descripcion-tab">
@@ -377,28 +393,62 @@
                 </ul>
             </div>
             {% endif %}
-            <div class="tab-pane fade reviews-section" id="reseñasContent" role="tabpanel" aria-labelledby="reseñas-tab">
-                <h4>Reseñas de Clientes</h4>
-                {% if resenas %}
+        </div>
+    </div>
+
+    <!-- Sección de Reseñas (Movida fuera de las pestañas para mayor visibilidad) -->
+    <div id="opiniones" class="reviews-section mt-5 pt-4 border-top">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>Opiniones de los Clientes</h4>
+            {% if user.is_authenticated %}
+                <a href="{% url 'tienda:crear_resena' producto_id=producto.id %}" class="btn btn-outline-primary btn-sm">Escribir una Reseña</a>
+            {% else %}
+                <a href="{% url 'tienda:login' %}?next={{ request.path }}" class="btn btn-outline-secondary btn-sm">Inicia sesión para opinar</a>
+            {% endif %}
+        </div>
+
+        {% if resenas %}
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="rating-summary-box p-4 bg-light rounded text-center">
+                        <h2 class="display-4 fw-bold mb-0">{{ producto.calificacion_promedio|floatformat:1 }}</h2>
+                        <div class="stars mb-2" style="color: #ffc107; font-size: 1.5rem;">
+                            {% for i in "x"|rjust:producto.calificacion_promedio_entera %}★{% endfor %}{% for i in "x"|rjust:producto.calificacion_promedio_restante %}☆{% endfor %}
+                        </div>
+                        <p class="text-muted small">Basado en {{ resenas.count }} opinión{{ resenas.count|pluralize:"es" }}</p>
+                    </div>
+                </div>
+                <div class="col-md-8">
                     {% for resena in resenas %}
-                        <div class="review">
-                            <p class="review-title">{{ resena.titulo }}</p>
-                            <p class="rating">
-                                {% for i in "x"|rjust:resena.calificacion %}★{% endfor %}{% for i in "x"|rjust:resena.calificacion_restante %}☆{% endfor %}
-                                <span class="ms-2">({{ resena.calificacion }}/5)</span>
-                            </p>
-                            <p class="review-comment">{{ resena.comentario|linebreaksbr }}</p>
-                            <p class="author">- {{ resena.cliente.usuario.get_full_name|default:resena.cliente.usuario.username }} el {{ resena.creado|date:"d M, Y" }}</p>
+                        <div class="review border-bottom pb-4 mb-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="review-title fw-bold d-block">{{ resena.titulo }}</span>
+                                    <div class="rating text-warning">
+                                        {% for i in "x"|rjust:resena.calificacion %}★{% endfor %}{% for i in "x"|rjust:resena.calificacion_restante %}☆{% endfor %}
+                                    </div>
+                                </div>
+                                <span class="text-muted small">{{ resena.creado|date:"d M, Y" }}</span>
+                            </div>
+                            <p class="review-comment my-3">{{ resena.comentario|linebreaksbr }}</p>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="author fw-bold small text-dark">{{ resena.cliente.nombre }} {{ resena.cliente.apellido|slice:":1" }}.</span>
+                                {% if resena.es_verificada %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.7rem;">
+                                        <span class="material-icons align-middle" style="font-size: 10px;">verified</span> Compra Verificada
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
                     {% endfor %}
-                {% else %}
-                    <p class="no-reviews">Aún no hay reseñas para este producto.</p>
-                {% endif %}
-                {% if user.is_authenticated %}
-                    <a href="{% url 'tienda:crear_resena' producto_id=producto.id %}" class="btn btn-outline-primary mt-3">Escribir una Reseña</a>
-                {% endif %}
+                </div>
             </div>
-        </div>
+        {% else %}
+            <div class="text-center py-5 bg-light rounded">
+                <span class="material-icons text-muted" style="font-size: 48px;">rate_review</span>
+                <p class="mt-3 mb-0">Aún no hay reseñas para este producto. ¡Sé el primero en compartir tu opinión!</p>
+            </div>
+        {% endif %}
     </div>
 
     {% if productos_relacionados %}

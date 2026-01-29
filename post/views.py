@@ -17,7 +17,7 @@ from django.contrib.auth import login as auth_login, authenticate
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.db.models import F, Q, Sum, Value
+from django.db.models import F, Q, Sum, Value, Avg, Count, Exists, OuterRef
 from django.db.models.functions import Coalesce
 from django.db import transaction
 from .forms import ClienteForm, ResenaForm
@@ -69,19 +69,25 @@ class InicioTiendaView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        productos_destacados_query = Producto.objects.filter(disponible=True, precio_descuento__isnull=False, precio_descuento__lt=F('precio')).annotate(
+
+        # Base queryset con anotaciones de rating para evitar N+1
+        base_productos = Producto.objects.filter(disponible=True).annotate(
+            annotated_avg_rating=Avg('resenas__calificacion', filter=Q(resenas__aprobado=True)),
+            annotated_count_reviews=Count('resenas', filter=Q(resenas__aprobado=True))
+        )
+
+        productos_destacados_query = base_productos.filter(precio_descuento__isnull=False, precio_descuento__lt=F('precio')).annotate(
             total_vendido=Coalesce(Sum('ventas__cantidad'), Value(0))
         ).order_by('-total_vendido', '-destacado', '-creado')
 
         context['productos_destacados'] = productos_destacados_query.prefetch_related('imagenes')[:8]
-        context['productos_nuevos'] = Producto.objects.filter(disponible=True, nuevo=True).prefetch_related('imagenes')[:8]
+        context['productos_nuevos'] = base_productos.filter(nuevo=True).prefetch_related('imagenes')[:8]
 
         # Productos con descuento
-        context['productos_con_descuento'] = Producto.objects.filter(
-            disponible=True,
+        context['productos_con_descuento'] = base_productos.filter(
             precio_descuento__isnull=False,
             precio_descuento__lt=F('precio')
-        ).prefetch_related('imagenes').order_by('-creado')[:8] # Ordenar por creación o popularidad
+        ).prefetch_related('imagenes').order_by('-creado')[:8]
 
         context['categorias'] = Categoria.objects.filter(activo=True)
         # 'moneda_simbolo_global' y 'tienda_config' ya están en el contexto global
@@ -95,7 +101,10 @@ class ListaProductosView(ListView):
     paginate_by = 12
 
     def get_queryset(self):
-        queryset = super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes')
+        queryset = super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes').annotate(
+            annotated_avg_rating=Avg('resenas__calificacion', filter=Q(resenas__aprobado=True)),
+            annotated_count_reviews=Count('resenas', filter=Q(resenas__aprobado=True))
+        )
 
         categoria_slug = self.kwargs.get('categoria_slug')
         marca_slug = self.kwargs.get('marca_slug')
@@ -122,21 +131,38 @@ class DetalleProductoView(DetailView):
     model = Producto
     template_name = 'post/detalle_producto.html' # Corrected path
     context_object_name = 'producto'
-    # slug_field = 'slug' # Already present in models.py get_absolute_url
-    # slug_url_kwarg = 'slug' # Already present in models.py get_absolute_url
 
     def get_queryset(self):
-        return super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes', 'resenas__cliente')
+        return super().get_queryset().filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes').annotate(
+            annotated_avg_rating=Avg('resenas__calificacion', filter=Q(resenas__aprobado=True)),
+            annotated_count_reviews=Count('resenas', filter=Q(resenas__aprobado=True))
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         producto = self.get_object()
-        context['resenas'] = producto.resenas.filter(aprobado=True)
-        # Productos relacionados (misma categoría, excluyendo el actual)
+
+        # Anotar reseñas con compra_verificada para evitar N+1
+        from .models import Pedido
+        resenas = producto.resenas.filter(aprobado=True).select_related('cliente').annotate(
+            compra_verificada=Exists(
+                Pedido.objects.filter(
+                    cliente=OuterRef('cliente'),
+                    detalles__producto=OuterRef('producto'),
+                    estado=Pedido.Estado.COMPLETADO
+                )
+            )
+        )
+        context['resenas'] = resenas
+
+        # Productos relacionados con anotaciones de rating
         context['productos_relacionados'] = Producto.objects.filter(
             categoria=producto.categoria,
             disponible=True
-        ).exclude(id=producto.id).prefetch_related('imagenes')[:4]
+        ).exclude(id=producto.id).prefetch_related('imagenes').annotate(
+            annotated_avg_rating=Avg('resenas__calificacion', filter=Q(resenas__aprobado=True)),
+            annotated_count_reviews=Count('resenas', filter=Q(resenas__aprobado=True))
+        )[:4]
         return context
 
 class BuscarProductosView(ListView):
@@ -151,7 +177,10 @@ class BuscarProductosView(ListView):
         if query:
             return Producto.objects.filter(
                 Q(nombre__icontains=query) | Q(descripcion__icontains=query) | Q(sku__icontains=query)
-            ).filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes') # Optimización
+            ).filter(disponible=True).select_related('categoria', 'marca').prefetch_related('imagenes').annotate(
+                annotated_avg_rating=Avg('resenas__calificacion', filter=Q(resenas__aprobado=True)),
+                annotated_count_reviews=Count('resenas', filter=Q(resenas__aprobado=True))
+            )
         return Producto.objects.none()
 
     def get_context_data(self, **kwargs):
@@ -692,12 +721,17 @@ class VerListaDeseosView(LoginRequiredMixin, DetailView):
         return lista
 
     def get_queryset(self):
-        # Aplicar prefetch_related al queryset base que get_object usará.
+        from django.db.models import Prefetch
+        # Optimizar productos de la lista de deseos con anotaciones de rating
+        productos_queryset = Producto.objects.filter(disponible=True).select_related('categoria').prefetch_related('imagenes').annotate(
+            annotated_avg_rating=Avg('resenas__calificacion', filter=Q(resenas__aprobado=True)),
+            annotated_count_reviews=Count('resenas', filter=Q(resenas__aprobado=True))
+        )
+
         return super().get_queryset().filter(
             cliente__usuario=self.request.user
         ).prefetch_related(
-            'productos__categoria',
-            'productos__imagenes'
+            Prefetch('productos', queryset=productos_queryset)
         )
 
     def get_context_data(self, **kwargs):
@@ -725,7 +759,7 @@ class CrearResenaView(LoginRequiredMixin, CreateView):
         )
         
         if not Pedido.objects.filter(cliente=self.cliente, detalles__producto=self.producto, estado=Pedido.Estado.COMPLETADO).exists():
-            messages.error(request, "Solo puedes reseñar productos que has comprado y cuyo pedido esté completado.")
+            messages.warning(request, f"Para dejar una reseña sobre '{self.producto.nombre}', primero debes haberlo comprado y recibido (el pedido debe estar marcado como completado).")
             return redirect('tienda:detalle_producto', pk=self.producto.id, slug=self.producto.slug)
         if Resena.objects.filter(producto=self.producto, cliente=self.cliente).exists():
             messages.error(request, "Ya has dejado una reseña para este producto.")
