@@ -3,7 +3,7 @@
 
 {% block title %}Bienvenido a Alternissi{% endblock %}
 
-{% block content_container %} {# Usamos content_container para que el hero section pueda ir full-width #}
+{% block header_banner %}
 <section class="hero-section">
     <div class="container">
         <h1>Bienvenido a Alternissi</h1>
@@ -11,8 +11,10 @@
         <a href="{% url 'tienda:lista_productos' %}" class="btn btn-primary btn-lg">Explorar Colección</a>
     </div>
 </section>
+{% endblock %}
 
-<div class="container mt-5"> {# El resto del contenido va dentro del container normal #}
+{% block content_container %}
+<div class="container mt-5">
     {% if productos_con_descuento %}
     <section class="productos-con-descuento mb-5">
         <div class="text-center mb-4">
