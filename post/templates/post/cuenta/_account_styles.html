@@ -96,6 +96,10 @@
 }
 
 /* --- Forms --- */
+.profile-form {
+    max-width: 500px;
+}
+
 .form-group {
     margin-bottom: 25px;
 }
@@ -110,8 +114,8 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-    border: 1px solid #cccccc !important;
-    border-radius: 6px !important;
+    border: 1px solid var(--color-medium-gray) !important;
+    border-radius: 8px !important;
     padding: 12px 15px !important;
 }
 
@@ -123,23 +127,48 @@
 }
 
 /* --- Buttons --- */
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+}
+
 .btn-primary {
-    background-color: #000000 !important;
-    border-color: #000000 !important;
-    color: #ffffff !important;
-    padding: 12px 30px !important;
+    background-color: var(--color-accent) !important;
+    border-color: var(--color-accent) !important;
+    color: var(--color-white) !important;
+    padding: 0.8rem 2rem !important;
     border-radius: 50px !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     text-transform: uppercase !important;
     letter-spacing: 1px !important;
-    transition: all 0.3s ease !important;
+    transition: var(--transition-medium) !important;
 }
 
 .btn-primary:hover {
-    background-color: #333333 !important;
-    border-color: #333333 !important;
+    background-color: var(--color-accent-hover) !important;
+    border-color: var(--color-accent-hover) !important;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: var(--box-shadow-md);
+}
+
+.btn-secondary {
+    background-color: var(--color-dark-gray) !important;
+    border-color: var(--color-dark-gray) !important;
+    color: var(--color-white) !important;
+    padding: 0.8rem 2rem !important;
+    border-radius: 50px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    transition: var(--transition-medium) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-black) !important;
+    border-color: var(--color-black) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-md);
 }
 
 /* --- Welcome Box --- */
