@@ -242,8 +242,9 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
     max-width: 350px;
 }
 
-.search-bar__input {
+.search-bar .search-bar__input {
     padding: 0.4rem 1rem;
+    margin-bottom: 0;
     border: 1px solid var(--color-medium-gray);
     border-radius: 30px 0 0 30px;
     font-size: 0.85rem;
@@ -253,7 +254,7 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
     background-color: var(--color-light-gray);
 }
 
-.search-bar__input:focus {
+.search-bar .search-bar__input:focus {
     outline: none;
     border-color: var(--color-accent);
     box-shadow: 0 0 8px rgba(var(--color-accent-rgb), 0.4);
@@ -261,7 +262,7 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
     position: relative;
 }
 
-.search-bar__button {
+.search-bar .search-bar__button {
     background-color: var(--color-accent);
     border: 1px solid var(--color-accent);
     color: var(--color-white);
@@ -272,6 +273,7 @@ header nav ul li a.active::after { /* Para marcar la página activa si se implem
     justify-content: center;
     border-radius: 0 30px 30px 0;
     transition: background-color 0.3s ease;
+    height: 100%; /* Asegurar que tome la altura del contenedor o del input */
 }
 
 .search-bar__button:hover {
